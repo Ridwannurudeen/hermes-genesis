@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Flame } from 'lucide-react';
 import type { WorldEvent, Faction, Character } from '../types';
 import { EVENT_TYPE_ICONS } from '../types';
 
@@ -35,7 +35,11 @@ export default function EventCard({ event, factions, characters }: Props) {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors"
+      className={`rounded-xl p-4 transition-colors ${
+        event.type === 'death' && event.obituary
+          ? 'bg-red-950/30 border border-red-900/40 hover:border-red-800/50'
+          : 'bg-gray-900 border border-gray-800 hover:border-gray-700'
+      }`}
     >
       {/* Header row */}
       <div className="flex items-start gap-3">
@@ -55,6 +59,21 @@ export default function EventCard({ event, factions, characters }: Props) {
             <p className="text-sm text-gray-400 mt-2 leading-relaxed">
               {event.narrative}
             </p>
+          )}
+
+          {/* Memorial obituary */}
+          {event.type === 'death' && event.obituary && (
+            <div className="mt-3 p-3 bg-red-950/20 border border-red-900/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Flame className="w-3.5 h-3.5 text-red-400" />
+                <span className="text-xs font-semibold text-red-400 uppercase tracking-wider">
+                  In Memoriam
+                </span>
+              </div>
+              <p className="text-sm text-gray-300 italic leading-relaxed">
+                {event.obituary}
+              </p>
+            </div>
           )}
 
           {/* Actors */}

@@ -108,6 +108,7 @@ export interface WorldEvent {
   regions_affected: string[];
   outcome: EventOutcome;
   narrative: string;
+  obituary: string;
 }
 
 export interface World {

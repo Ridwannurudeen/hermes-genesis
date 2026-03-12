@@ -23,3 +23,4 @@ class Event(BaseModel):
     regions_affected: list[str] = []
     outcome: EventOutcome = EventOutcome()
     narrative: str = ""
+    obituary: str = ""
