@@ -156,6 +156,19 @@ export const api = {
       }
     ),
 
+  getCouncil: (id: string) =>
+    fetchJson<{
+      topic: string;
+      statements: Array<{
+        faction_id: string;
+        leader_name: string;
+        stance: string;
+        statement: string;
+        emotion: string;
+      }>;
+      conclusion: string;
+    }>(`/api/worlds/${id}/council`, { method: 'POST' }),
+
   chatWithCharacter: (worldId: string, charId: string, message: string) =>
     fetchJson<{ reply: string; character_name: string; character_id: string }>(
       `/api/worlds/${worldId}/characters/${charId}/chat`,

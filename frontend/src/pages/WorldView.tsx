@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -24,6 +24,7 @@ import RelationshipGraph from '../components/RelationshipGraph';
 import CharacterDetail from '../components/CharacterDetail';
 import ChronicleModal from '../components/ChronicleModal';
 import GodModePanel from '../components/GodModePanel';
+import CouncilModal from '../components/CouncilModal';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
@@ -65,6 +66,7 @@ export default function WorldView() {
   const [autoPlay, setAutoPlay] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
   const [godMode, setGodMode] = useState(false);
+  const [showCouncil, setShowCouncil] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
@@ -277,6 +279,13 @@ export default function WorldView() {
                 <Zap className="w-5 h-5" />
               </button>
               <button
+                onClick={() => setShowCouncil(true)}
+                title="Faction Council"
+                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Swords className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setShowChronicle(true)}
                 title="Generate Chronicle"
                 className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-gray-800 rounded-lg transition-colors"
@@ -435,6 +444,15 @@ export default function WorldView() {
           worldId={world.id}
           worldName={world.name}
           onClose={() => setShowChronicle(false)}
+        />
+      )}
+
+      {/* Council Modal */}
+      {showCouncil && (
+        <CouncilModal
+          worldId={world.id}
+          factions={factions}
+          onClose={() => setShowCouncil(false)}
         />
       )}
     </div>

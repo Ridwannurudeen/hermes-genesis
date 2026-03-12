@@ -8,6 +8,7 @@ from llm import chat_completion, extract_json
 from prompts.chronicle import SYSTEM as CHRONICLE_SYSTEM, chronicle_prompt
 from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_prompt
 from prompts.character_chat import build_character_system
+from prompts.council import SYSTEM as COUNCIL_SYSTEM, council_prompt
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
@@ -237,6 +238,26 @@ async def chat_with_character(world_id: str, char_id: str, req: ChatRequest):
         "character_name": char.name,
         "character_id": char.id,
     }
+
+@router.post("/{world_id}/council")
+async def faction_council(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    prompt = council_prompt(
+        world.name,
+        world.current_day,
+        [f.model_dump() for f in world.factions],
+        [c.model_dump() for c in world.characters],
+        [e.model_dump() for e in world.events],
+    )
+
+    raw = await chat_completion(COUNCIL_SYSTEM, prompt, max_tokens=2000)
+    data = extract_json(raw)
+
+    return data
+
 
 @router.delete("/{world_id}")
 async def remove_world(world_id: str):
