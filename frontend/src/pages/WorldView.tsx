@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Map, Shield, Users, ScrollText, Dna } from 'lucide-react';
@@ -16,6 +16,7 @@ import CharacterList from '../components/CharacterList';
 import EventTimeline from '../components/EventTimeline';
 import EvolutionView from '../components/EvolutionView';
 import SimulateButton from '../components/SimulateButton';
+import AutoPlayButton from '../components/AutoPlayButton';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution';
 
@@ -49,6 +50,9 @@ export default function WorldView() {
     geography: { regions: any[]; connections: any[] };
     factions: Record<string, { name: string; color: string }>;
   } | null>(null);
+  const [autoPlay, setAutoPlay] = useState(false);
+  const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoPlayActiveRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!id) return;
@@ -107,6 +111,51 @@ export default function WorldView() {
     [id, fetchAll]
   );
 
+  // Keep ref in sync
+  useEffect(() => {
+    autoPlayActiveRef.current = autoPlay;
+  }, [autoPlay]);
+
+  useEffect(() => {
+    if (!autoPlay || !id || simulating) return;
+
+    const tick = async () => {
+      if (!autoPlayActiveRef.current) return;
+      setSimulating(true);
+      try {
+        await api.simulate(id, 1);
+        await fetchAll();
+      } catch {
+        setAutoPlay(false);
+      } finally {
+        setSimulating(false);
+        // Schedule next tick if still active
+        if (autoPlayActiveRef.current) {
+          autoPlayTimerRef.current = setTimeout(tick, 8000);
+        }
+      }
+    };
+
+    // Start first tick immediately
+    tick();
+
+    return () => {
+      if (autoPlayTimerRef.current) {
+        clearTimeout(autoPlayTimerRef.current);
+        autoPlayTimerRef.current = null;
+      }
+    };
+  }, [autoPlay, id]);
+
+  const toggleAutoPlay = useCallback(() => {
+    setAutoPlay((prev) => {
+      if (!prev) {
+        setTab('map'); // Switch to map to see markers
+      }
+      return !prev;
+    });
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 p-6">
@@ -162,7 +211,7 @@ export default function WorldView() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-xs text-gray-500 uppercase tracking-wider">
                   Day
@@ -171,9 +220,14 @@ export default function WorldView() {
                   {world.current_day}
                 </p>
               </div>
+              <AutoPlayButton
+                active={autoPlay}
+                onToggle={toggleAutoPlay}
+                disabled={loading}
+              />
               <SimulateButton
                 onSimulate={handleSimulate}
-                loading={simulating}
+                loading={simulating || autoPlay}
               />
             </div>
           </div>
