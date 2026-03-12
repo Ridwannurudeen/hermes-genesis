@@ -6,11 +6,13 @@ from fastapi.responses import FileResponse
 from config import HOST, PORT
 from routes.worlds import router as worlds_router
 from routes.simulate import router as simulate_router
+from routes.stream import router as stream_router
 
 app = FastAPI(title="Hermes Genesis", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(worlds_router)
 app.include_router(simulate_router)
+app.include_router(stream_router)
 
 @app.get("/api/health")
 async def health():

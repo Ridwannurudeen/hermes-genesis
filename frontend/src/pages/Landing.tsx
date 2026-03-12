@@ -13,14 +13,16 @@ const PLACEHOLDER_SEEDS = [
   'Space colony on a hostile planet...',
 ];
 
-const STAGE_MESSAGES = [
-  'Weaving the fabric of reality...',
-  'Shaping geography and climate...',
-  'Breathing life into factions...',
-  'Forging characters with unique genomes...',
-  'Establishing alliances and rivalries...',
-  'Writing the opening chapter...',
-];
+const STAGE_MAP: Record<string, string> = {
+  geography: 'Shaping geography and climate...',
+  geography_done: 'Terrain mapped!',
+  factions: 'Breathing life into factions...',
+  factions_done: 'Factions established!',
+  characters: 'Forging characters with unique genomes...',
+  characters_done: 'Characters born!',
+  assembling: 'Assembling the world...',
+  complete: 'World is alive!',
+};
 
 const features = [
   {
@@ -47,7 +49,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const [seed, setSeed] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stageIdx, setStageIdx] = useState(0);
+  const [stageMessage, setStageMessage] = useState('');
   const [worlds, setWorlds] = useState<WorldSummary[]>([]);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -64,23 +66,29 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (!loading) return;
-    const interval = setInterval(() => {
-      setStageIdx((i) => (i + 1) % STAGE_MESSAGES.length);
-    }, 2200);
-    return () => clearInterval(interval);
-  }, [loading]);
-
   const handleGenerate = useCallback(async () => {
     const trimmed = seed.trim();
     if (!trimmed) return;
     setLoading(true);
-    setStageIdx(0);
+    setStageMessage('Weaving the fabric of reality...');
     setError(null);
     try {
-      const result = await api.createWorld(trimmed);
-      navigate(`/world/${result.id}`);
+      await new Promise<void>((resolve, reject) => {
+        api.createWorldStream(trimmed, {
+          onProgress: (data) => {
+            const msg =
+              STAGE_MAP[data.stage] || data.detail || 'Working...';
+            setStageMessage(msg);
+          },
+          onComplete: (data) => {
+            navigate(`/world/${data.id}`);
+            resolve();
+          },
+          onError: (err) => {
+            reject(err);
+          },
+        });
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to create world');
       setLoading(false);
@@ -178,7 +186,7 @@ export default function Landing() {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>{STAGE_MESSAGES[stageIdx]}</span>
+                <span>{stageMessage || 'Weaving the fabric of reality...'}</span>
               </>
             ) : (
               <>

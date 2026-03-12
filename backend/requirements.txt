@@ -4,3 +4,4 @@ httpx==0.27.0
 pydantic>=2.9.0
 websockets==13.0
 python-dotenv==1.0.1
+sse-starlette==2.1.0

@@ -15,6 +15,65 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// SSE Streaming helpers
+type SSEHandler = {
+  onProgress?: (data: any) => void;
+  onEvent?: (eventType: string, data: any) => void;
+  onComplete?: (data: any) => void;
+  onError?: (error: Error) => void;
+};
+
+function streamSSE(url: string, body: any, handlers: SSEHandler): () => void {
+  const controller = new AbortController();
+
+  fetch(`${BASE}${url}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: controller.signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        let currentEvent = '';
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim();
+          } else if (line.startsWith('data:')) {
+            try {
+              const raw = line.slice(5).trim();
+              if (!raw) continue;
+              const data = JSON.parse(raw);
+              if (currentEvent === 'progress') handlers.onProgress?.(data);
+              else if (currentEvent === 'complete') handlers.onComplete?.(data);
+              else if (currentEvent === 'ping') {
+                /* skip */
+              } else handlers.onEvent?.(currentEvent, data);
+            } catch {
+              /* skip parse errors */
+            }
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') handlers.onError?.(err);
+    });
+
+  return () => controller.abort();
+}
+
 export const api = {
   listWorlds: () => fetchJson<WorldSummary[]>('/api/worlds'),
 
@@ -80,4 +139,25 @@ export const api = {
     fetchJson<{ deleted: boolean }>(`/api/worlds/${id}`, {
       method: 'DELETE',
     }),
+
+  createWorldStream: (
+    seed: string,
+    handlers: SSEHandler,
+    numRegions = 6,
+    numFactions = 4,
+    numCharacters = 15
+  ) =>
+    streamSSE(
+      '/api/worlds/stream',
+      {
+        seed,
+        num_regions: numRegions,
+        num_factions: numFactions,
+        num_characters: numCharacters,
+      },
+      handlers
+    ),
+
+  simulateStream: (id: string, days: number, handlers: SSEHandler) =>
+    streamSSE(`/api/worlds/${id}/simulate/stream?days=${days}`, {}, handlers),
 };

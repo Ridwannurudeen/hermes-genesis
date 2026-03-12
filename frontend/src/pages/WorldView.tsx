@@ -83,10 +83,23 @@ export default function WorldView() {
       if (!id) return;
       setSimulating(true);
       try {
-        await api.simulate(id, days);
-        await fetchAll();
+        await new Promise<void>((resolve, reject) => {
+          api.simulateStream(id, days, {
+            onEvent: (type, data) => {
+              if (type === 'sim_event') {
+                setEvents((prev) => [...prev, data]);
+              }
+            },
+            onComplete: async () => {
+              await fetchAll();
+              resolve();
+            },
+            onError: (err) => reject(err),
+          });
+        });
       } catch {
-        // ignore
+        // fallback: fetch all data anyway
+        await fetchAll();
       } finally {
         setSimulating(false);
       }
