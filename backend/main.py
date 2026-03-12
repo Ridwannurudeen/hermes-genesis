@@ -7,12 +7,29 @@ from config import HOST, PORT
 from routes.worlds import router as worlds_router
 from routes.simulate import router as simulate_router
 from routes.stream import router as stream_router
+from telegram_bot import create_bot
 
 app = FastAPI(title="Hermes Genesis", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(worlds_router)
 app.include_router(simulate_router)
 app.include_router(stream_router)
+
+@app.on_event("startup")
+async def startup():
+    bot = create_bot()
+    if bot:
+        await bot.initialize()
+        await bot.start()
+        await bot.updater.start_polling()
+
+@app.on_event("shutdown")
+async def shutdown():
+    from telegram_bot import _bot_app
+    if _bot_app:
+        await _bot_app.updater.stop()
+        await _bot_app.stop()
+        await _bot_app.shutdown()
 
 @app.get("/api/health")
 async def health():

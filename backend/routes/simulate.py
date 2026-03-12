@@ -52,6 +52,19 @@ async def run_simulation(world_id: str, days: int = 1):
         save_world(world)
         all_events.extend(events)
 
+    # Notify linked Telegram chats
+    try:
+        from telegram_bot import notify_linked_chats
+        summary = f"\u2694\ufe0f Day {world.current_day} \u2014 {len(all_events)} events\n"
+        for ev in all_events[:5]:
+            summary += f"\u2022 {ev.title}\n"
+        if len(all_events) > 5:
+            summary += f"... and {len(all_events) - 5} more"
+        import asyncio
+        asyncio.create_task(notify_linked_chats(world_id, summary))
+    except Exception:
+        pass  # Don't fail simulation if notification fails
+
     return {
         "world_id": world_id,
         "days_simulated": days,
@@ -71,6 +84,19 @@ async def run_quick_simulation(world_id: str, days: int = 1):
         events = simulate_tick(world)
         world = load_world(world_id)
         all_events.extend(events)
+
+    # Notify linked Telegram chats
+    try:
+        from telegram_bot import notify_linked_chats
+        summary = f"\u2694\ufe0f Day {world.current_day} \u2014 {len(all_events)} events\n"
+        for ev in all_events[:5]:
+            summary += f"\u2022 {ev.title}\n"
+        if len(all_events) > 5:
+            summary += f"... and {len(all_events) - 5} more"
+        import asyncio
+        asyncio.create_task(notify_linked_chats(world_id, summary))
+    except Exception:
+        pass  # Don't fail simulation if notification fails
 
     return {
         "world_id": world_id,
