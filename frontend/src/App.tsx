@@ -1,7 +1,14 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Landing from './pages/Landing';
+import WorldView from './pages/WorldView';
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-genesis-400">Hermes Genesis</h1>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/world/:id" element={<WorldView />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
