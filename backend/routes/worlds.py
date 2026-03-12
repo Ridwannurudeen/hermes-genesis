@@ -92,6 +92,13 @@ async def get_evolution(world_id: str):
         result.append(entry)
     return result
 
+@router.get("/{world_id}/faction-timeline")
+async def get_faction_timeline(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+    return world.faction_snapshots
+
 @router.delete("/{world_id}")
 async def remove_world(world_id: str):
     if delete_world(world_id):

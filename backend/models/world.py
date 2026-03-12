@@ -25,3 +25,4 @@ class World(BaseModel):
     events: list[Event] = []
     rules: WorldRules = Field(default_factory=WorldRules)
     status: str = "generating"
+    faction_snapshots: list[dict] = []

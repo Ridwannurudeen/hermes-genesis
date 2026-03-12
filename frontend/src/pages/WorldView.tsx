@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -9,16 +9,18 @@ import type {
   Character,
   WorldEvent,
   EvolutionEntry,
+  FactionSnapshot,
 } from '../types';
 import WorldMap from '../components/WorldMap';
 import FactionDashboard from '../components/FactionDashboard';
 import CharacterList from '../components/CharacterList';
 import EventTimeline from '../components/EventTimeline';
 import EvolutionView from '../components/EvolutionView';
+import FactionPowerChart from '../components/FactionPowerChart';
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
 
-type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution';
+type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
 
 const TABS: { key: TabKey; label: string; icon: typeof Map }[] = [
   { key: 'map', label: 'Map', icon: Map },
@@ -26,6 +28,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Map }[] = [
   { key: 'characters', label: 'Characters', icon: Users },
   { key: 'events', label: 'Events', icon: ScrollText },
   { key: 'evolution', label: 'Evolution', icon: Dna },
+  { key: 'power', label: 'Power', icon: TrendingUp },
 ];
 
 function SkeletonBlock({ className }: { className?: string }) {
@@ -43,6 +46,7 @@ export default function WorldView() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [events, setEvents] = useState<WorldEvent[]>([]);
   const [evolution, setEvolution] = useState<EvolutionEntry[]>([]);
+  const [factionTimeline, setFactionTimeline] = useState<FactionSnapshot[]>([]);
   const [tab, setTab] = useState<TabKey>('map');
   const [loading, setLoading] = useState(true);
   const [simulating, setSimulating] = useState(false);
@@ -57,13 +61,14 @@ export default function WorldView() {
   const fetchAll = useCallback(async () => {
     if (!id) return;
     try {
-      const [w, m, f, c, e, ev] = await Promise.all([
+      const [w, m, f, c, e, ev, timeline] = await Promise.all([
         api.getWorld(id),
         api.getMap(id),
         api.getFactions(id),
         api.getCharacters(id),
         api.getEvents(id),
         api.getEvolution(id),
+        api.getFactionTimeline(id),
       ]);
       setWorld(w);
       setMapData(m);
@@ -71,6 +76,7 @@ export default function WorldView() {
       setCharacters(c);
       setEvents(e);
       setEvolution(ev);
+      setFactionTimeline(timeline);
     } catch {
       // keep stale data visible
     } finally {
@@ -163,7 +169,7 @@ export default function WorldView() {
           <SkeletonBlock className="h-10 w-64 mb-6" />
           <SkeletonBlock className="h-8 w-96 mb-8" />
           <div className="flex gap-2 mb-6">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <SkeletonBlock key={i} className="h-10 w-28" />
             ))}
           </div>
@@ -296,6 +302,12 @@ export default function WorldView() {
               />
             )}
             {tab === 'evolution' && <EvolutionView data={evolution} />}
+            {tab === 'power' && (
+              <FactionPowerChart
+                snapshots={factionTimeline}
+                factions={factions}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

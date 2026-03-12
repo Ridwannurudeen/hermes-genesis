@@ -135,6 +135,14 @@ export interface WorldSummary {
   created_at: string;
 }
 
+export interface FactionSnapshot {
+  day: number;
+  faction_id: string;
+  territory_count: number;
+  population: number;
+  morale: number;
+}
+
 export interface EvolutionEntry {
   generation: number;
   count: number;

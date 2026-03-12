@@ -181,6 +181,16 @@ def simulate_tick(world: World) -> list[Event]:
                 narrative=""
             ))
 
+    # Snapshot faction state for power timeline
+    for f in world.factions:
+        world.faction_snapshots.append({
+            "day": day,
+            "faction_id": f.id,
+            "territory_count": len(f.territory),
+            "population": f.population,
+            "morale": f.morale,
+        })
+
     world.events.extend(events)
     save_world(world)
     return events
