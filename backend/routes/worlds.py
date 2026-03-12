@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from store import list_worlds, load_world, save_world, delete_world
 from generator import generate_world
 from models.genome import TRAITS
+from llm import chat_completion
+from prompts.chronicle import SYSTEM as CHRONICLE_SYSTEM, chronicle_prompt
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
@@ -98,6 +100,29 @@ async def get_faction_timeline(world_id: str):
     if not world:
         raise HTTPException(404, "World not found")
     return world.faction_snapshots
+
+@router.post("/{world_id}/chronicle")
+async def generate_chronicle(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    prompt = chronicle_prompt(
+        world.name,
+        world.seed,
+        [e.model_dump() for e in world.events],
+        [c.model_dump() for c in world.characters],
+        [f.model_dump() for f in world.factions],
+        world.current_day,
+    )
+
+    chronicle = await chat_completion(CHRONICLE_SYSTEM, prompt, max_tokens=4000)
+
+    return {
+        "chronicle": chronicle.strip(),
+        "world_name": world.name,
+        "current_day": world.current_day,
+    }
 
 @router.delete("/{world_id}")
 async def remove_world(world_id: str):

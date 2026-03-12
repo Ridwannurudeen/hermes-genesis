@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -21,6 +21,7 @@ import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
 import RelationshipGraph from '../components/RelationshipGraph';
 import CharacterDetail from '../components/CharacterDetail';
+import ChronicleModal from '../components/ChronicleModal';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
 
@@ -59,6 +60,7 @@ export default function WorldView() {
     factions: Record<string, { name: string; color: string }>;
   } | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [showChronicle, setShowChronicle] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
 
@@ -236,6 +238,13 @@ export default function WorldView() {
                   {world.current_day}
                 </p>
               </div>
+              <button
+                onClick={() => setShowChronicle(true)}
+                title="Generate Chronicle"
+                className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <BookOpen className="w-5 h-5" />
+              </button>
               <AutoPlayButton
                 active={autoPlay}
                 onToggle={toggleAutoPlay}
@@ -369,6 +378,15 @@ export default function WorldView() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Chronicle Modal */}
+      {showChronicle && (
+        <ChronicleModal
+          worldId={world.id}
+          worldName={world.name}
+          onClose={() => setShowChronicle(false)}
+        />
+      )}
     </div>
   );
 }

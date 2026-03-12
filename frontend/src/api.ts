@@ -140,6 +140,12 @@ export const api = {
       events: WorldEvent[];
     }>(`/api/worlds/${id}/simulate/quick?days=${days}`, { method: 'POST' }),
 
+  generateChronicle: (id: string) =>
+    fetchJson<{ chronicle: string; world_name: string; current_day: number }>(
+      `/api/worlds/${id}/chronicle`,
+      { method: 'POST' }
+    ),
+
   deleteWorld: (id: string) =>
     fetchJson<{ deleted: boolean }>(`/api/worlds/${id}`, {
       method: 'DELETE',
