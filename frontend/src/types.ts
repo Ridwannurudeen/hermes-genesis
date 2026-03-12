@@ -173,4 +173,5 @@ export const EVENT_TYPE_ICONS: Record<string, string> = {
   cultural_shift: '\uD83C\uDF0A',
   natural_disaster: '\uD83C\uDF0B',
   death: '\uD83D\uDC80',
+  birth: '\u2728',
 };

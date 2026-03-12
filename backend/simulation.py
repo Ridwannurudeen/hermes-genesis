@@ -172,6 +172,14 @@ def simulate_tick(world: World) -> list[Event]:
                 fitness=0.5
             )
             world.characters.append(child)
+            events.append(Event(
+                id=f"evt_{day:03d}_birth_{child_id}", day=day, type="birth",
+                title=f"{child.name} is born",
+                actors=[p1.id, p2.id, child_id],
+                factions_involved=[f.id],
+                regions_affected=[p1.location] if p1.location else [],
+                narrative=""
+            ))
 
     world.events.extend(events)
     save_world(world)

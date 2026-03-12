@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Region, Connection, Character, WorldEvent } from '../types';
 import RegionDetail from './RegionDetail';
+import MapEventMarkers from './MapEventMarkers';
 
 interface Props {
   geography: { regions: Region[]; connections: Connection[] };
@@ -387,6 +388,12 @@ export default function WorldMap({
                 </g>
               );
             })}
+
+            {/* Event markers overlay */}
+            <MapEventMarkers
+              events={events}
+              regionPositions={adjustedPositions}
+            />
           </svg>
 
           {/* Zoom controls */}
