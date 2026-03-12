@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -7,15 +8,18 @@ import {
   Users,
   GitBranch,
   Dna,
+  MessageCircle,
 } from 'lucide-react';
 import type { Character, Faction } from '../types';
 import { TRAIT_COLORS } from '../types';
 import GenomeRadar from './GenomeRadar';
+import CharacterChatModal from './CharacterChatModal';
 
 interface Props {
   character: Character;
   faction: Faction | undefined;
   allCharacters: Character[];
+  worldId: string;
   onClose: () => void;
 }
 
@@ -48,8 +52,11 @@ export default function CharacterDetail({
   character,
   faction,
   allCharacters,
+  worldId,
   onClose,
 }: Props) {
+  const [showChat, setShowChat] = useState(false);
+
   const charMap: Record<string, Character> = {};
   allCharacters.forEach((c) => {
     charMap[c.id] = c;
@@ -106,12 +113,23 @@ export default function CharacterDetail({
               <span className="text-gray-500">Age {character.age}</span>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {character.alive && (
+              <button
+                onClick={() => setShowChat(true)}
+                title={`Chat with ${character.name}`}
+                className="p-1.5 text-gray-500 hover:text-genesis-400 transition-colors rounded-lg hover:bg-gray-800"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className="p-5 space-y-6">
@@ -286,6 +304,16 @@ export default function CharacterDetail({
           </div>
         </div>
       </motion.div>
+
+      {/* Chat Modal */}
+      {showChat && (
+        <CharacterChatModal
+          worldId={worldId}
+          character={character}
+          faction={faction}
+          onClose={() => setShowChat(false)}
+        />
+      )}
     </motion.div>
   );
 }

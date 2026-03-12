@@ -7,6 +7,7 @@ from models.event import Event, EventOutcome
 from llm import chat_completion, extract_json
 from prompts.chronicle import SYSTEM as CHRONICLE_SYSTEM, chronicle_prompt
 from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_prompt
+from prompts.character_chat import build_character_system
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
@@ -204,6 +205,37 @@ async def divine_intervention(world_id: str, req: InterveneRequest):
     return {
         "event": event.model_dump(),
         "effects_applied": effects,
+    }
+
+class ChatRequest(BaseModel):
+    message: str
+
+@router.post("/{world_id}/characters/{char_id}/chat")
+async def chat_with_character(world_id: str, char_id: str, req: ChatRequest):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    char = next((c for c in world.characters if c.id == char_id), None)
+    if not char:
+        raise HTTPException(404, "Character not found")
+
+    faction = next((f for f in world.factions if f.id == char.faction_id), None)
+    faction_name = faction.name if faction else "Unknown"
+
+    system = build_character_system(
+        char.model_dump(),
+        world.name,
+        faction_name,
+        [e.model_dump() for e in world.events],
+    )
+
+    reply = await chat_completion(system, req.message, max_tokens=300, temperature=0.85)
+
+    return {
+        "reply": reply.strip(),
+        "character_name": char.name,
+        "character_id": char.id,
     }
 
 @router.delete("/{world_id}")

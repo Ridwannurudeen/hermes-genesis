@@ -14,6 +14,7 @@ interface Props {
 export default function CharacterList({
   characters,
   factions,
+  worldId,
 }: Props) {
   const [selectedChar, setSelectedChar] = useState<Character | null>(null);
   const [factionFilter, setFactionFilter] = useState<string>('all');
@@ -132,6 +133,7 @@ export default function CharacterList({
             character={selectedChar}
             faction={factionMap[selectedChar.faction_id]}
             allCharacters={characters}
+            worldId={worldId}
             onClose={() => setSelectedChar(null)}
           />
         )}

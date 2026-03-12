@@ -156,6 +156,16 @@ export const api = {
       }
     ),
 
+  chatWithCharacter: (worldId: string, charId: string, message: string) =>
+    fetchJson<{ reply: string; character_name: string; character_id: string }>(
+      `/api/worlds/${worldId}/characters/${charId}/chat`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      }
+    ),
+
   deleteWorld: (id: string) =>
     fetchJson<{ deleted: boolean }>(`/api/worlds/${id}`, {
       method: 'DELETE',

@@ -379,6 +379,7 @@ export default function WorldView() {
                       character={graphSelectedChar}
                       faction={factionMap[graphSelectedChar.faction_id]}
                       allCharacters={characters}
+                      worldId={world.id}
                       onClose={() => setGraphSelectedChar(null)}
                     />
                   )}
