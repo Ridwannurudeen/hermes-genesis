@@ -19,10 +19,12 @@ import EvolutionView from '../components/EvolutionView';
 import FactionPowerChart from '../components/FactionPowerChart';
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
+import VoiceNarrationButton from '../components/VoiceNarrationButton';
 import RelationshipGraph from '../components/RelationshipGraph';
 import CharacterDetail from '../components/CharacterDetail';
 import ChronicleModal from '../components/ChronicleModal';
 import GodModePanel from '../components/GodModePanel';
+import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
 
@@ -63,14 +65,32 @@ export default function WorldView() {
   const [autoPlay, setAutoPlay] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
   const [godMode, setGodMode] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
+  const prevEventCountRef = useRef(0);
 
   const factionMap = useMemo(() => {
     const m: Record<string, Faction> = {};
     factions.forEach((f) => { m[f.id] = f; });
     return m;
   }, [factions]);
+
+  const { speak } = useVoiceNarration(voiceEnabled);
+
+  // Voice narration: speak new events from any source (simulate, auto-play, god mode)
+  useEffect(() => {
+    if (!voiceEnabled || events.length <= prevEventCountRef.current) {
+      prevEventCountRef.current = events.length;
+      return;
+    }
+    const newEvents = events.slice(prevEventCountRef.current);
+    for (const ev of newEvents) {
+      const text = ev.narrative || ev.title;
+      if (text) speak(text);
+    }
+    prevEventCountRef.current = events.length;
+  }, [events.length, voiceEnabled, speak]);
 
   const fetchAll = useCallback(async () => {
     if (!id) return;
@@ -240,6 +260,11 @@ export default function WorldView() {
                   {world.current_day}
                 </p>
               </div>
+              <VoiceNarrationButton
+                active={voiceEnabled}
+                onToggle={() => setVoiceEnabled((prev) => !prev)}
+                disabled={loading}
+              />
               <button
                 onClick={() => setGodMode((prev) => !prev)}
                 title="God Mode"
