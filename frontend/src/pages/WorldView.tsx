@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -19,6 +19,8 @@ import EvolutionView from '../components/EvolutionView';
 import FactionPowerChart from '../components/FactionPowerChart';
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
+import RelationshipGraph from '../components/RelationshipGraph';
+import CharacterDetail from '../components/CharacterDetail';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
 
@@ -48,6 +50,8 @@ export default function WorldView() {
   const [evolution, setEvolution] = useState<EvolutionEntry[]>([]);
   const [factionTimeline, setFactionTimeline] = useState<FactionSnapshot[]>([]);
   const [tab, setTab] = useState<TabKey>('map');
+  const [charView, setCharView] = useState<'grid' | 'graph'>('grid');
+  const [graphSelectedChar, setGraphSelectedChar] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
   const [simulating, setSimulating] = useState(false);
   const [mapData, setMapData] = useState<{
@@ -57,6 +61,12 @@ export default function WorldView() {
   const [autoPlay, setAutoPlay] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
+
+  const factionMap = useMemo(() => {
+    const m: Record<string, Faction> = {};
+    factions.forEach((f) => { m[f.id] = f; });
+    return m;
+  }, [factions]);
 
   const fetchAll = useCallback(async () => {
     if (!id) return;
@@ -288,11 +298,59 @@ export default function WorldView() {
               />
             )}
             {tab === 'characters' && (
-              <CharacterList
-                characters={characters}
-                factions={factions}
-                worldId={world.id}
-              />
+              <div>
+                {/* Grid / Graph toggle */}
+                <div className="flex items-center gap-1 mb-4">
+                  <button
+                    onClick={() => setCharView('grid')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                      charView === 'grid'
+                        ? 'bg-gray-800 border-genesis-600 text-genesis-400'
+                        : 'border-gray-800 text-gray-500 hover:text-gray-300'
+                    }`}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    Grid
+                  </button>
+                  <button
+                    onClick={() => setCharView('graph')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                      charView === 'graph'
+                        ? 'bg-gray-800 border-genesis-600 text-genesis-400'
+                        : 'border-gray-800 text-gray-500 hover:text-gray-300'
+                    }`}
+                  >
+                    <Network className="w-4 h-4" />
+                    Relationships
+                  </button>
+                </div>
+
+                {charView === 'grid' ? (
+                  <CharacterList
+                    characters={characters}
+                    factions={factions}
+                    worldId={world.id}
+                  />
+                ) : (
+                  <RelationshipGraph
+                    characters={characters}
+                    factions={factions}
+                    onSelectCharacter={setGraphSelectedChar}
+                  />
+                )}
+
+                {/* Character detail modal for graph view */}
+                <AnimatePresence>
+                  {graphSelectedChar && (
+                    <CharacterDetail
+                      character={graphSelectedChar}
+                      faction={factionMap[graphSelectedChar.faction_id]}
+                      allCharacters={characters}
+                      onClose={() => setGraphSelectedChar(null)}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
             )}
             {tab === 'events' && (
               <EventTimeline
