@@ -3,8 +3,10 @@ from pydantic import BaseModel
 from store import list_worlds, load_world, save_world, delete_world
 from generator import generate_world
 from models.genome import TRAITS
-from llm import chat_completion
+from models.event import Event, EventOutcome
+from llm import chat_completion, extract_json
 from prompts.chronicle import SYSTEM as CHRONICLE_SYSTEM, chronicle_prompt
+from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_prompt
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
@@ -122,6 +124,86 @@ async def generate_chronicle(world_id: str):
         "chronicle": chronicle.strip(),
         "world_name": world.name,
         "current_day": world.current_day,
+    }
+
+class InterveneRequest(BaseModel):
+    command: str
+
+@router.post("/{world_id}/intervene")
+async def divine_intervention(world_id: str, req: InterveneRequest):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    prompt = intervention_prompt(
+        req.command,
+        world.name,
+        world.seed,
+        world.current_day,
+        [r.model_dump() for r in world.geography.regions],
+        [f.model_dump() for f in world.factions],
+        [c.model_dump() for c in world.characters],
+    )
+
+    raw = await chat_completion(INTERVENTION_SYSTEM, prompt, max_tokens=1000)
+    data = extract_json(raw)
+
+    # Create event
+    event = Event(
+        id=f"evt_{world.current_day:03d}_divine_{len(world.events)}",
+        day=world.current_day,
+        type="divine_intervention",
+        title=data.get("title", "Divine Intervention"),
+        description=data.get("description", ""),
+        narrative=data.get("narrative", ""),
+        actors=data.get("actors", []),
+        factions_involved=data.get("factions_involved", []),
+        regions_affected=data.get("regions_affected", []),
+    )
+
+    # Apply effects
+    effects = data.get("effects", {})
+
+    # Morale changes
+    for fid, change in effects.get("morale_changes", {}).items():
+        for f in world.factions:
+            if f.id == fid:
+                f.morale = max(0, min(100, f.morale + change))
+
+    # Casualties
+    for fid, count in effects.get("casualties", {}).items():
+        for f in world.factions:
+            if f.id == fid:
+                f.population = max(0, f.population - count)
+
+    # Character deaths
+    for cid in effects.get("character_deaths", []):
+        for c in world.characters:
+            if c.id == cid:
+                c.alive = False
+
+    # Territory changes
+    for rid, new_fid in effects.get("territory_changes", {}).items():
+        for r in world.geography.regions:
+            if r.id == rid:
+                # Remove from old faction
+                old_fid = r.controlled_by
+                if old_fid:
+                    for f in world.factions:
+                        if f.id == old_fid and rid in f.territory:
+                            f.territory.remove(rid)
+                # Add to new faction
+                r.controlled_by = new_fid
+                for f in world.factions:
+                    if f.id == new_fid and rid not in f.territory:
+                        f.territory.append(rid)
+
+    world.events.append(event)
+    save_world(world)
+
+    return {
+        "event": event.model_dump(),
+        "effects_applied": effects,
     }
 
 @router.delete("/{world_id}")

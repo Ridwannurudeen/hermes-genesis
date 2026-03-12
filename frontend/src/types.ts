@@ -183,4 +183,5 @@ export const EVENT_TYPE_ICONS: Record<string, string> = {
   natural_disaster: '\uD83C\uDF0B',
   death: '\uD83D\uDC80',
   birth: '\u2728',
+  divine_intervention: '\u26A1',
 };

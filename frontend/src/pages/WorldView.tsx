@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -22,6 +22,7 @@ import AutoPlayButton from '../components/AutoPlayButton';
 import RelationshipGraph from '../components/RelationshipGraph';
 import CharacterDetail from '../components/CharacterDetail';
 import ChronicleModal from '../components/ChronicleModal';
+import GodModePanel from '../components/GodModePanel';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
 
@@ -61,6 +62,7 @@ export default function WorldView() {
   } | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
+  const [godMode, setGodMode] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
 
@@ -239,6 +241,17 @@ export default function WorldView() {
                 </p>
               </div>
               <button
+                onClick={() => setGodMode((prev) => !prev)}
+                title="God Mode"
+                className={`p-2 rounded-lg transition-colors ${
+                  godMode
+                    ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30'
+                    : 'text-gray-400 hover:text-amber-400 hover:bg-gray-800'
+                }`}
+              >
+                <Zap className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setShowChronicle(true)}
                 title="Generate Chronicle"
                 className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-gray-800 rounded-lg transition-colors"
@@ -292,13 +305,24 @@ export default function WorldView() {
             transition={{ duration: 0.2 }}
           >
             {tab === 'map' && mapData && (
-              <WorldMap
-                geography={mapData.geography}
-                factionMap={mapData.factions}
-                characters={characters}
-                events={events}
-                currentDay={world.current_day}
-              />
+              <div>
+                <WorldMap
+                  geography={mapData.geography}
+                  factionMap={mapData.factions}
+                  characters={characters}
+                  events={events}
+                  currentDay={world.current_day}
+                />
+                {godMode && (
+                  <GodModePanel
+                    worldId={world.id}
+                    onIntervention={(event) => {
+                      setEvents((prev) => [...prev, event]);
+                      fetchAll();
+                    }}
+                  />
+                )}
+              </div>
             )}
             {tab === 'factions' && (
               <FactionDashboard

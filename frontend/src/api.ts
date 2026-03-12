@@ -146,6 +146,16 @@ export const api = {
       { method: 'POST' }
     ),
 
+  intervene: (id: string, command: string) =>
+    fetchJson<{ event: WorldEvent; effects_applied: any }>(
+      `/api/worlds/${id}/intervene`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command }),
+      }
+    ),
+
   deleteWorld: (id: string) =>
     fetchJson<{ deleted: boolean }>(`/api/worlds/${id}`, {
       method: 'DELETE',
