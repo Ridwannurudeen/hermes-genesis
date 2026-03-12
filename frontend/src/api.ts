@@ -57,6 +57,7 @@ function streamSSE(url: string, body: any, handlers: SSEHandler): () => void {
               const data = JSON.parse(raw);
               if (currentEvent === 'progress') handlers.onProgress?.(data);
               else if (currentEvent === 'complete') handlers.onComplete?.(data);
+              else if (currentEvent === 'error') handlers.onError?.(new Error(data.message || 'Stream error'));
               else if (currentEvent === 'ping') {
                 /* skip */
               } else handlers.onEvent?.(currentEvent, data);

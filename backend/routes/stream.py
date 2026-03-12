@@ -46,7 +46,11 @@ async def create_world_stream(req: CreateWorldStreamRequest):
         while not queue.empty():
             yield await queue.get()
 
-        world = task.result()
+        try:
+            world = task.result()
+        except Exception as e:
+            yield {"event": "error", "data": json.dumps({"message": str(e)})}
+            return
         yield {
             "event": "complete",
             "data": json.dumps(
@@ -85,13 +89,12 @@ async def simulate_stream(world_id: str, days: int = 1):
                     except Exception:
                         event.narrative = event.title
 
-                save_world(world)
-
                 yield {
                     "event": "sim_event",
                     "data": json.dumps(event.model_dump(), default=str),
                 }
 
+            save_world(world)
             yield {
                 "event": "day_complete",
                 "data": json.dumps(
