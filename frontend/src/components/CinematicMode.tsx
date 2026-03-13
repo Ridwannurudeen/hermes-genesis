@@ -17,6 +17,7 @@ interface Props {
   events: WorldEvent[];
   onClose: () => void;
   onNewEvents: (events: WorldEvent[]) => void;
+  mode?: 'live' | 'replay';
 }
 
 export default function CinematicMode({
@@ -29,10 +30,14 @@ export default function CinematicMode({
   events,
   onClose,
   onNewEvents,
+  mode = 'live',
 }: Props) {
-  const [day, setDay] = useState(currentDay);
+  const [day, setDay] = useState(mode === 'replay' ? 0 : currentDay);
   const [displayedEvent, setDisplayedEvent] = useState<WorldEvent | null>(null);
   const [simulating, setSimulating] = useState(false);
+  const [replayProgress, setReplayProgress] = useState(0);
+  const [replayTotal, setReplayTotal] = useState(0);
+  const [replayDone, setReplayDone] = useState(false);
   const eventQueueRef = useRef<WorldEvent[]>([]);
   const displayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(true);
@@ -80,8 +85,60 @@ export default function CinematicMode({
     }, 4000);
   }, [speak]);
 
-  // Auto-simulation: 10-second interval
+  // REPLAY MODE: play through all past events
   useEffect(() => {
+    if (mode !== 'replay' || events.length === 0) return;
+
+    // Group events by day
+    const byDay = new Map<number, WorldEvent[]>();
+    for (const ev of events) {
+      const d = ev.day || 0;
+      if (!byDay.has(d)) byDay.set(d, []);
+      byDay.get(d)!.push(ev);
+    }
+    const sortedDays = [...byDay.keys()].sort((a, b) => a - b);
+    setReplayTotal(events.length);
+
+    let eventIndex = 0;
+    let dayIndex = 0;
+
+    const playNextDay = () => {
+      if (!activeRef.current || dayIndex >= sortedDays.length) {
+        setReplayDone(true);
+        return;
+      }
+      const currentDayNum = sortedDays[dayIndex];
+      const dayEvents = byDay.get(currentDayNum) || [];
+      setDay(currentDayNum);
+
+      // Queue all events for this day
+      eventQueueRef.current.push(...dayEvents);
+      eventIndex += dayEvents.length;
+      setReplayProgress(eventIndex);
+
+      // Process queue, then after all events displayed, move to next day
+      processQueue();
+
+      // Wait enough time for all events to display (4.5s per event) plus buffer
+      const waitMs = dayEvents.length * 4500 + 1000;
+      displayTimerRef.current = setTimeout(() => {
+        dayIndex++;
+        playNextDay();
+      }, waitMs);
+    };
+
+    // Start replay after brief intro pause
+    const startTimer = setTimeout(playNextDay, 1500);
+    return () => {
+      clearTimeout(startTimer);
+      if (displayTimerRef.current) clearTimeout(displayTimerRef.current);
+    };
+  }, [mode, events, processQueue]);
+
+  // LIVE MODE: Auto-simulation with 10-second interval
+  useEffect(() => {
+    if (mode !== 'live') return;
+
     const tick = async () => {
       if (!activeRef.current || simulating) return;
       setSimulating(true);
@@ -114,7 +171,7 @@ export default function CinematicMode({
       clearInterval(interval);
       clearTimeout(initialTimer);
     };
-  }, [worldId, onNewEvents, processQueue, simulating]);
+  }, [mode, worldId, onNewEvents, processQueue, simulating]);
 
   // Close on Escape key
   useEffect(() => {
@@ -252,15 +309,29 @@ export default function CinematicMode({
         )}
       </AnimatePresence>
 
-      {/* LIVE indicator — bottom center */}
+      {/* Mode indicator — bottom center */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
-        </span>
-        <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
-          Live
-        </span>
+        {mode === 'replay' ? (
+          <>
+            <span className="relative flex h-3 w-3">
+              <span className={`absolute inline-flex h-full w-full rounded-full ${replayDone ? 'bg-green-500' : 'bg-amber-500 animate-ping'} opacity-75`} />
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${replayDone ? 'bg-green-600' : 'bg-amber-600'}`} />
+            </span>
+            <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
+              {replayDone ? 'Replay Complete' : `Replay ${replayProgress}/${replayTotal}`}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+            </span>
+            <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
+              Live
+            </span>
+          </>
+        )}
       </div>
 
       {/* Simulating indicator */}

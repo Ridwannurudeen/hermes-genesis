@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play, Sparkles } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play, Sparkles, History } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -78,6 +78,7 @@ export default function WorldView() {
   const [showAgent, setShowAgent] = useState(false);
   const [showCampaignKit, setShowCampaignKit] = useState(false);
   const [showCinematic, setShowCinematic] = useState(false);
+  const [showReplay, setShowReplay] = useState(false);
   const [showSessionPrep, setShowSessionPrep] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
@@ -319,10 +320,18 @@ export default function WorldView() {
               </button>
               <button
                 onClick={() => setShowCinematic(true)}
-                title="Cinematic Mode"
+                title="Cinematic Mode (Live)"
                 className="p-2 text-gray-400 hover:text-rose-400 hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <Play className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setShowReplay(true)}
+                title="Replay History"
+                disabled={events.length === 0}
+                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <History className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setShowSessionPrep(true)}
@@ -536,7 +545,7 @@ export default function WorldView() {
         />
       )}
 
-      {/* Cinematic Mode */}
+      {/* Cinematic Mode (Live) */}
       {showCinematic && mapData && (
         <CinematicMode
           worldId={world.id}
@@ -551,6 +560,23 @@ export default function WorldView() {
             setEvents((prev) => [...prev, ...newEvents]);
             fetchAll();
           }}
+          mode="live"
+        />
+      )}
+
+      {/* Replay Mode */}
+      {showReplay && mapData && (
+        <CinematicMode
+          worldId={world.id}
+          worldName={world.name}
+          currentDay={world.current_day}
+          geography={mapData.geography}
+          factionMap={mapData.factions}
+          characters={characters}
+          events={events}
+          onClose={() => setShowReplay(false)}
+          onNewEvents={() => {}}
+          mode="replay"
         />
       )}
     </div>
