@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Zap, Dna, Loader2, Trash2, Calendar, Sparkles } from 'lucide-react';
+import { Globe, Zap, Dna, Loader2, Trash2, Calendar, Sparkles, Brain, Swords, BookOpen } from 'lucide-react';
 import { api } from '../api';
 import type { WorldSummary } from '../types';
 
 const PLACEHOLDER_SEEDS = [
-  'A dying fantasy kingdom where magic is fading...',
-  'Post-apocalyptic wasteland with three rival settlements...',
-  'Cyberpunk megacity with corporate warfare...',
-  'Ancient civilization at the peak of its power...',
-  'Space colony on a hostile planet...',
+  'A dying fantasy kingdom where magic is fading and old gods demand sacrifice...',
+  'Post-apocalyptic wasteland where three rival warlords fight over the last water source...',
+  'Cyberpunk megacity where corporate AIs wage invisible wars through human proxies...',
+  'Ancient Rome at the height of its power, but a prophecy foretells its fall...',
+  'A generation ship where factions have forgotten they are in space...',
+  'Norse mythology brought to life — Ragnarok approaches and the gods scheme...',
 ];
 
 const STAGE_MAP: Record<string, string> = {
@@ -29,19 +30,37 @@ const features = [
     icon: Globe,
     title: 'Generate',
     description:
-      'Describe any world concept and watch it materialize with regions, factions, and characters — each with unique genetic traits.',
+      'Describe any world. Watch it materialize with regions, factions, and characters — each carrying a unique genetic code that shapes their destiny.',
   },
   {
-    icon: Zap,
-    title: 'Simulate',
+    icon: Brain,
+    title: 'Autonomous AI',
     description:
-      'Advance time day by day. Wars erupt, alliances form, leaders fall. Every event emerges from character motivations and faction dynamics.',
+      'An autonomous World Master agent governs your world — triggering interventions, fulfilling prophecies, and weaving narrative arcs without human input.',
+  },
+  {
+    icon: Swords,
+    title: 'Causal Events',
+    description:
+      'Every event has consequences. Betrayals trigger wars, wars cause successions, alliances reshape borders. A living chain of cause and effect.',
   },
   {
     icon: Dna,
     title: 'Evolve',
     description:
-      'Characters reproduce, mutate, and die. Track how courage, cunning, loyalty, and other traits shift across generations.',
+      'Characters reproduce, mutate, and die. Courage, cunning, loyalty — traits shift across generations through genetic crossover and natural selection.',
+  },
+  {
+    icon: Zap,
+    title: 'God Mode',
+    description:
+      'Intervene as a deity. Command divine storms, forge alliances, assassinate leaders. Or let the AI handle everything autonomously.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Chronicle',
+    description:
+      'Export your world\'s history as an epic narrative. Every war, betrayal, and prophecy woven into a story you can read and share.',
   },
 ];
 
@@ -138,7 +157,11 @@ export default function Landing() {
             <Sparkles className="w-8 h-8 text-genesis-400" />
           </div>
           <p className="text-xl text-gray-400 font-light">
-            Describe a world. Watch it live.
+            Describe a world. Watch it live. Watch it die.
+          </p>
+          <p className="text-sm text-gray-600 mt-2 max-w-lg mx-auto">
+            An autonomous living world engine powered by Hermes. AI agents govern civilizations,
+            fulfill prophecies, and write history — no human input required.
           </p>
         </motion.div>
 
@@ -206,7 +229,7 @@ export default function Landing() {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-20"
         >
           {features.map((feature, i) => (
             <motion.div
