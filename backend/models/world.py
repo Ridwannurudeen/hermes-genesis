@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from .geography import Geography
 from .faction import Faction
 from .character import Character
@@ -18,21 +18,21 @@ class WorldRules(BaseModel):
     magic_level: str = "none"
     tech_level: str = "medieval"
     conflict_driver: str = ""
-    special_rules: list[str] = []
+    special_rules: list[str] = Field(default_factory=list)
 
 class World(BaseModel):
     id: str
     name: str
     seed: str
     theme: str = ""
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     current_day: int = 0
     geography: Geography = Field(default_factory=Geography)
-    factions: list[Faction] = []
-    characters: list[Character] = []
-    events: list[Event] = []
+    factions: list[Faction] = Field(default_factory=list)
+    characters: list[Character] = Field(default_factory=list)
+    events: list[Event] = Field(default_factory=list)
     rules: WorldRules = Field(default_factory=WorldRules)
-    prophecies: list[Prophecy] = []
+    prophecies: list[Prophecy] = Field(default_factory=list)
     status: str = "generating"
-    faction_snapshots: list[dict] = []
-    agent_logs: list[dict] = []
+    faction_snapshots: list[dict] = Field(default_factory=list)
+    agent_logs: list[dict] = Field(default_factory=list)

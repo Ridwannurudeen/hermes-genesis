@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Power, Loader2, AlertTriangle, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Brain, Power, Loader2, AlertTriangle, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { api } from '../api';
 import { EVENT_TYPE_ICONS } from '../types';
 
@@ -414,6 +414,37 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                             No events resulted from this intervention
                           </span>
                         </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Intent → Action → Consequence strip */}
+                  {(log.reasoning || log.decision || (log.event_titles && log.event_titles.length > 0)) && (
+                    <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px]">
+                      {log.reasoning && (
+                        <span className="px-2 py-0.5 rounded bg-gray-800/60 text-gray-400 border border-gray-700/50 max-w-[200px] truncate" title={log.reasoning}>
+                          Intent: {log.reasoning.split('.')[0]}
+                        </span>
+                      )}
+                      {log.reasoning && (log.action || log.decision) && (
+                        <ArrowRight className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                      )}
+                      {log.action && (
+                        <span className={`px-2 py-0.5 rounded border font-medium ${
+                          log.action === 'intervene' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
+                          log.action === 'focus' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                          'bg-gray-800/60 text-gray-400 border-gray-700/50'
+                        }`}>
+                          {log.action === 'intervene' ? 'Intervened' : log.action === 'focus' ? 'Focused' : 'Simulated'}
+                        </span>
+                      )}
+                      {log.action && log.event_titles && log.event_titles.length > 0 && (
+                        <ArrowRight className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                      )}
+                      {log.event_titles && log.event_titles.length > 0 && (
+                        <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                          {log.event_titles.length} event{log.event_titles.length !== 1 ? 's' : ''} resulted
+                        </span>
                       )}
                     </div>
                   )}
