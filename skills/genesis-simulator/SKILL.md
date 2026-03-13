@@ -5,7 +5,7 @@ version: 1.0.0
 metadata:
   hermes:
     tags: [simulation, worldbuilding, narrative, evolution, genesis]
-    related_skills: [genesis-worldbuilder]
+    related_skills: [genesis-worldbuilder, genesis-autonomous]
     category: creative
 ---
 
@@ -81,12 +81,12 @@ The system includes an **Autonomous World Agent** — a background AI loop that 
 
 ### Autonomous Agent API
 
-- `POST /api/worlds/{id}/autonomous/start` — Start the agent loop (runs every 2 minutes)
-- `POST /api/worlds/{id}/autonomous/stop` — Stop the agent loop
-- `GET /api/worlds/{id}/autonomous/status` — Check if agent is active
-- `GET /api/worlds/{id}/autonomous/logs` — Get the agent's reasoning log (analysis, decisions, memory notes)
+- `POST /api/worlds/{id}/agent/start?interval=120` — Start the agent loop (configurable interval in seconds)
+- `POST /api/worlds/{id}/agent/stop` — Stop the agent loop
+- `GET /api/worlds/{id}/agent/status` — Check if agent is running
+- `GET /api/worlds/{id}/agent/logs` — Get the agent's reasoning log (analysis, decisions, narrative arcs)
 
-When the user wants to "let the world run on its own" or "see what the world does by itself", start the autonomous agent. The agent produces `agent_intervention` events when it decides to intervene.
+When the user wants to "let the world run on its own" or "see what the world does by itself", start the autonomous agent. See also the `genesis-autonomous` skill for full agent documentation.
 
 ## Pitfalls
 
