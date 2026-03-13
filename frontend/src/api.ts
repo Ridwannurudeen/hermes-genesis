@@ -189,6 +189,35 @@ export const api = {
       }
     ),
 
+  startAgent: (id: string, interval = 120) =>
+    fetchJson<{ started: boolean; world_id: string; interval: number }>(
+      `/api/worlds/${id}/agent/start?interval=${interval}`,
+      { method: 'POST' }
+    ),
+
+  stopAgent: (id: string) =>
+    fetchJson<{ stopped: boolean; world_id: string }>(
+      `/api/worlds/${id}/agent/stop`,
+      { method: 'POST' }
+    ),
+
+  getAgentStatus: (id: string) =>
+    fetchJson<{ running: boolean; world_id: string; log_count: number }>(
+      `/api/worlds/${id}/agent/status`
+    ),
+
+  getAgentLogs: (id: string) =>
+    fetchJson<Array<{
+      timestamp: string;
+      day: number;
+      reasoning: string;
+      decision: string;
+      narrative_arc: string;
+      urgency: string;
+      events_generated: number;
+      event_titles: string[];
+    }>>(`/api/worlds/${id}/agent/logs`),
+
   deleteWorld: (id: string) =>
     fetchJson<{ deleted: boolean }>(`/api/worlds/${id}`, {
       method: 'DELETE',

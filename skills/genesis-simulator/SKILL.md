@@ -69,8 +69,28 @@ If multiple generations exist, note:
 >
 > By Day 16, natural selection is visible: the population's average courage has risen 12% as low-courage characters fell in combat. A new generation is emerging — Successor of Reya (generation 1) shows an unusual combination of her mother's courage (0.88) and her mentor's cunning (0.79).
 
+## Autonomous Agent Mode
+
+The system includes an **Autonomous World Agent** — a background AI loop that runs worlds independently. Instead of manually simulating each day, the agent:
+
+1. **Observes** the world state (tensions, weak factions, narrative arcs)
+2. **Reasons** about what would be narratively interesting (logged for transparency)
+3. **Decides** whether to let the simulation run naturally (~70%) or intervene with dramatic events (~30%)
+4. **Maintains memory** of narrative threads across cycles
+5. **Logs reasoning** so users can see "the agent's mind" at work
+
+### Autonomous Agent API
+
+- `POST /api/worlds/{id}/autonomous/start` — Start the agent loop (runs every 2 minutes)
+- `POST /api/worlds/{id}/autonomous/stop` — Stop the agent loop
+- `GET /api/worlds/{id}/autonomous/status` — Check if agent is active
+- `GET /api/worlds/{id}/autonomous/logs` — Get the agent's reasoning log (analysis, decisions, memory notes)
+
+When the user wants to "let the world run on its own" or "see what the world does by itself", start the autonomous agent. The agent produces `agent_intervention` events when it decides to intervene.
+
 ## Pitfalls
 
 - Don't simulate more than 30 days with narrative (LLM calls are slow)
 - Use quick simulation for bulk advancement, then narrate key days
 - Always reload world data after simulation (state changes)
+- The autonomous agent runs every 2 minutes — don't also manually simulate while it's active

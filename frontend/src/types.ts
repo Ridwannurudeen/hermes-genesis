@@ -194,4 +194,5 @@ export const EVENT_TYPE_ICONS: Record<string, string> = {
   death: '\uD83D\uDC80',
   birth: '\u2728',
   divine_intervention: '\u26A1',
+  agent_intervention: '\uD83E\uDDE0',
 };

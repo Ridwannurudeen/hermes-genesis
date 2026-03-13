@@ -10,7 +10,7 @@ from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_pro
 from prompts.character_chat import build_character_system
 from prompts.council import SYSTEM as COUNCIL_SYSTEM, council_prompt
 from prompts.campaign_kit import SYSTEM as CAMPAIGN_SYSTEM, campaign_kit_prompt
-from autonomous_agent import start_agent, stop_agent, is_agent_active, get_agent_logs
+from autonomous_agent import start_agent, stop_agent, is_agent_running, get_agent_logs
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
@@ -294,28 +294,29 @@ async def generate_campaign_kit(world_id: str):
     }
 
 
-@router.post("/{world_id}/autonomous/start")
-async def start_autonomous(world_id: str):
+@router.post("/{world_id}/agent/start")
+async def start_world_agent(world_id: str, interval: int = 120):
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
-    started = start_agent(world_id)
-    return {"active": True, "started": started}
+    started = start_agent(world_id, interval)
+    return {"started": started, "world_id": world_id, "interval": interval}
 
-@router.post("/{world_id}/autonomous/stop")
-async def stop_autonomous(world_id: str):
-    stopped = stop_agent(world_id)
-    return {"active": False, "stopped": stopped}
+@router.post("/{world_id}/agent/stop")
+async def stop_world_agent(world_id: str):
+    stop_agent(world_id)
+    return {"stopped": True, "world_id": world_id}
 
-@router.get("/{world_id}/autonomous/status")
-async def autonomous_status(world_id: str):
+@router.get("/{world_id}/agent/status")
+async def agent_status(world_id: str):
     return {
-        "active": is_agent_active(world_id),
+        "running": is_agent_running(world_id),
+        "world_id": world_id,
         "log_count": len(get_agent_logs(world_id)),
     }
 
-@router.get("/{world_id}/autonomous/logs")
-async def autonomous_logs(world_id: str):
+@router.get("/{world_id}/agent/logs")
+async def agent_logs(world_id: str):
     return get_agent_logs(world_id)
 
 
