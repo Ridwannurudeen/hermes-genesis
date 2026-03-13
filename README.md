@@ -1,93 +1,90 @@
 # HERMES GENESIS
 
-**Describe a world. Watch it live.**
+**Describe a world. Watch it live. Watch it die.**
 
-An autonomous living world engine powered by NousResearch Hermes-4-70B. Give it a sentence — it generates a complete civilization with factions, characters, and genetic trait systems, then keeps the world evolving autonomously. Characters make decisions driven by their genome, factions rise and fall, alliances form and shatter, and the AI agent pursues its own narrative arcs across days.
+An autonomous living world engine. You type one sentence — "a dying kingdom where magic is fading" — and it builds a complete civilization: regions, factions, characters with DNA, and ancient prophecies. Then the world runs itself. Wars erupt, alliances form, leaders are betrayed, children are born with mutated traits, and an AI god watches from above, steering the story toward dramatic moments.
+
+No scripting. No prompting. The world just... lives.
 
 **Live Demo:** [http://75.119.153.252:8003](http://75.119.153.252:8003)
 
 ---
 
-## Features
+## What Happens When You Create a World
 
-### Core Engine
-- **World Generation from Natural Language** — one prompt produces geographic regions, factions with ideologies and territory, characters with 6-trait genetic genomes, and cryptic prophecies
-- **Genome-Driven Simulation** — military conflicts, political intrigue, betrayals, alliances, discoveries, and successions resolve based on character genome traits (courage, cunning, loyalty, ambition, empathy, resilience)
-- **Genetic Evolution** — characters reproduce via crossover + mutation, natural selection culls low-fitness individuals, population trait distributions shift across generations
-- **Prophecy System** — generated at world creation, prophecies foreshadow events that may unfold as the simulation progresses
+1. **You describe it** — "Norse mythology where Ragnarok approaches" or "cyberpunk megacity with corporate warfare"
+2. **It builds itself** — geography, factions with ideologies, characters with genetic traits, and 4 cryptic prophecies
+3. **It comes alive** — every day, events happen: battles, political intrigue, betrayals, alliances, discoveries, births, deaths
+4. **Events cause events** — a betrayal triggers a war, which causes a succession crisis, which leads to an alliance. Nothing is random
+5. **An AI agent governs** — the World Master watches, reasons about narrative arcs, and intervenes when the story needs it. It chases prophecy fulfillment on its own
+6. **Characters evolve** — offspring inherit traits from parents through genetic crossover + mutation. Over generations, the population shifts: a world that rewards cunning breeds cunning people
 
-### Autonomous Intelligence
-- **True Autonomous Agent** — an AI agent observes world state, reasons about narrative potential, and takes real actions: triggering simulations, executing divine interventions, or focusing events on specific factions/characters. The agent maintains multi-day narrative arcs and pursues prophecy fulfillment
-- **God Mode (Divine Intervention)** — natural language commands that alter the world: "Destroy the capital", "Forge an alliance between rivals", "Assassinate the king" — the LLM interprets and applies effects to factions, territories, characters
-- **Faction Council** — AI-driven council where faction leaders debate strategy, propose alliances, and threaten rivals based on current world state
+---
 
-### Interactive Experience
-- **SVG World Map** — D3.js interactive map with faction-colored territories, character positions, event markers with death/birth/conflict animations
-- **Cinematic Mode** — fullscreen map with auto-simulation, voice narration (Web Speech API), and animated event title cards. Watch your world unfold like a documentary
-- **World Replay** — replay the entire history of your world as a cinematic documentary, events playing back day-by-day with narration
-- **Character Chat** — talk to any character in-world; they respond in character based on their genome, faction, and personal history
-- **Voice Narration** — zero-dependency text-to-speech narrates events as they happen
+## What You Can Do
 
-### Analytics & Export
-- **Faction Power Timeline** — Recharts area chart tracking territory, population, and morale across days. Watch empires rise and fall
-- **Genome Evolution Tracker** — per-generation trait averages visualized as line charts showing population-level genetic drift
-- **Character Relationship Graph** — D3 force-directed graph showing alliances, rivalries, family bonds, and mentorships between characters
-- **Chronicle Export** — LLM generates an epic narrative history of your world (800-1500 words), downloadable as markdown
-- **Campaign Kit** — full TTRPG campaign module with hooks, encounters, NPCs, and session structure
-- **Session Prep** — instant GM session plan with read-aloud text, 3 encounters, and a cliffhanger
+- **Just watch** — toggle auto-play and the world advances every 8 seconds with events exploding on the map
+- **Play god** — type "destroy the capital" or "assassinate the king" and watch the consequences ripple out
+- **Talk to characters** — chat with anyone in-world; they respond based on their personality, faction loyalty, and lived history
+- **Read the story** — generate an epic chronicle of your world's history, export it as markdown
+- **Prep a D&D session** — get a full campaign module or GM session plan from your world's current state
 
-### Integration
-- **Telegram Bot** — link your world to [@hermesgenesis_bot](https://t.me/hermesgenesis_bot). Get event notifications, check world status, and trigger simulation from Telegram
-- **SSE Streaming** — real-time Server-Sent Events for world generation progress and simulation events
+---
+
+## The Demo World: Crossroads of Hermes
+
+Our flagship world, themed around Hermes the trickster god:
+
+- **317 days** of autonomous history
+- **928 events** — wars, betrayals, prophecies, births, deaths
+- **194 characters** across 4 factions (48 have died)
+- **101 chain reactions** — events causing events causing events
+- **4/4 prophecies fulfilled** — including "Titan's Wrath Unleashed," a volcanic eruption the AI agent triggered to fulfill an ancient prophecy
+- **Factions:** Nightshade Syndicate, Emberstone Legion, Silk Road Cartel, Oracle Guardians
+
+Open it in the live demo and explore the history.
+
+---
+
+## What Makes This Different
+
+| Other AI Projects | Hermes Genesis |
+|---|---|
+| Generate static text/images | Living simulation with real state that changes |
+| Need constant prompting | Runs autonomously — no human input needed |
+| No memory between outputs | Characters remember, factions accumulate territory, events chain |
+| Thin LLM wrapper | Structured simulation engine with genetic evolution, causality chains, and prophecy tracking |
+| AI responds | AI *acts* — the World Master has its own agenda |
+
+---
+
+## How Hermes-4-70B Powers Everything
+
+| Component | What Hermes Does |
+|---|---|
+| **World Generation** | Creates geography, factions, characters, and prophecies from one sentence |
+| **Event Narration** | Writes vivid prose for each event based on character genomes and world state |
+| **World Master Agent** | Observes, reasons, decides to simulate, intervene, or focus — then sees consequences |
+| **Divine Intervention** | Interprets "destroy the capital" and applies real effects (casualties, territory, deaths) |
+| **Character Chat** | Responds in-character shaped by genome, faction loyalty, and personal history |
+| **Prophecy Fulfillment** | Detects when world events match prophecy conditions, marks them fulfilled |
+| **Chronicle / Campaign** | Writes publishable narrative histories and TTRPG campaign modules |
+| **Obituaries** | Memorial text for fallen characters based on their life events |
 
 ---
 
 ## The Genome System
 
-Every character carries a genome of six traits, each a float in [0.0, 1.0]:
+Every character carries 6 genetic traits: **courage, cunning, loyalty, ambition, empathy, resilience** (each 0.0–1.0).
 
-```
-courage  |  cunning  |  loyalty  |  ambition  |  empathy  |  resilience
-```
-
-**How it works:**
-
-1. **Trait-weighted events** — military conflicts favor `courage` + `resilience`; political intrigue favors `cunning` + `ambition`; betrayals are driven by low `loyalty` and high `ambition`
-2. **Crossover reproduction** — offspring inherit traits from both parents with 50% probability per trait
-3. **Mutation** — each inherited trait has a 10% chance of Gaussian perturbation (`±N(0, 0.1)`)
-4. **Fitness scoring** — characters score on survival, influence, goal completion, and relationships:
-
-   ```
-   fitness = 0.30 * survival + 0.25 * influence + 0.25 * goals + 0.20 * relationships
-   ```
-
-5. **Natural selection** — characters below fitness threshold die, removing their genome from the pool
-6. **Population drift** — over generations, the world's aggregate trait distribution shifts; a world that rewards cunning eventually breeds cunning populations
-
----
-
-## How Hermes-4-70B Powers It
-
-Every decision in the engine is driven by Hermes-4-70B via the NousResearch inference API:
-
-| Component | What Hermes Does |
-|---|---|
-| **World Generation** | Creates geography, factions, characters, and prophecies from a single seed sentence |
-| **Event Simulation** | Narrates each day's events — battles, betrayals, alliances — considering character genomes and world state |
-| **Autonomous Agent** | Observes world state, reasons about narrative arcs, decides actions (simulate/intervene/focus) |
-| **Divine Intervention** | Interprets natural language god commands and applies structured effects |
-| **Character Chat** | Responds in-character with personality shaped by genome, faction loyalty, and lived experience |
-| **Faction Council** | Generates multi-faction debate with each leader arguing from their faction's position |
-| **Chronicle / Campaign Kit** | Writes publishable narrative histories and complete TTRPG campaign modules |
-| **Obituaries** | Writes memorial text for fallen characters based on their life events |
+- Traits drive events: high courage wins battles, high cunning wins intrigue, low loyalty enables betrayal
+- Children inherit traits via crossover (50% from each parent) + 10% mutation chance
+- Low-fitness characters die off — natural selection reshapes the population over generations
+- After 100+ days, you can see the population evolve: worlds that reward cunning breed cunning people
 
 ---
 
 ## Quick Start
-
-**Prerequisites:** Python 3.11+, Node 20+, a NousResearch API key
-
-### Local Dev
 
 ```bash
 # Clone
@@ -96,112 +93,61 @@ cd hermes-genesis
 
 # Backend
 cd backend
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env             # add your NOUS_API_KEY
+cp .env.example .env    # add your NOUS_API_KEY
 uvicorn main:app --reload --port 8003
 
-# Frontend (separate terminal)
+# Frontend (new terminal)
 cd frontend
-npm install
-npm run dev                      # http://localhost:5173
+npm install && npm run dev
 ```
 
-### Docker (production)
-
+**Docker:**
 ```bash
-cp .env.example .env             # add NOUS_API_KEY and TELEGRAM_BOT_TOKEN
-docker compose up -d
-# API + frontend served at http://localhost:8003
+cp .env.example .env    # add NOUS_API_KEY
+docker compose up -d    # http://localhost:8003
 ```
-
-### Environment Variables
 
 | Variable | Required | Description |
 |---|---|---|
 | `NOUS_API_KEY` | Yes | NousResearch inference API key |
-| `NOUS_BASE_URL` | No | Defaults to `https://inference-api.nousresearch.com/v1` |
-| `NOUS_MODEL` | No | Defaults to `Hermes-4-70B` |
-| `DATA_DIR` | No | World state storage path, defaults to `data/worlds` |
-| `TELEGRAM_BOT_TOKEN` | No | Required for Telegram bot integration |
-| `PORT` | No | API port, defaults to `8003` |
-
----
-
-## API Reference
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check |
-| `GET` | `/api/worlds` | List all worlds |
-| `POST` | `/api/worlds` | Create a world from seed text |
-| `GET` | `/api/worlds/{id}` | Full world state |
-| `DELETE` | `/api/worlds/{id}` | Delete a world |
-| `GET` | `/api/worlds/{id}/map` | Geography + faction territory |
-| `GET` | `/api/worlds/{id}/factions` | All factions |
-| `GET` | `/api/worlds/{id}/characters` | All characters with genomes |
-| `GET` | `/api/worlds/{id}/characters/{cid}` | Single character detail |
-| `GET` | `/api/worlds/{id}/events?day=N` | Events, optionally filtered by day |
-| `GET` | `/api/worlds/{id}/evolution` | Per-generation trait averages |
-| `GET` | `/api/worlds/{id}/prophecies` | World prophecies |
-| `GET` | `/api/worlds/{id}/faction-timeline` | Faction power snapshots over time |
-| `POST` | `/api/worlds/{id}/simulate?days=N` | Simulate N days with LLM narrative (max 30) |
-| `POST` | `/api/worlds/{id}/simulate/quick?days=N` | Simulate N days without narrative (max 100) |
-| `POST` | `/api/worlds/{id}/intervene` | Divine intervention (natural language command) |
-| `POST` | `/api/worlds/{id}/characters/{cid}/chat` | Chat with a character in-world |
-| `POST` | `/api/worlds/{id}/council` | Faction council debate |
-| `POST` | `/api/worlds/{id}/chronicle` | Generate epic narrative history |
-| `POST` | `/api/worlds/{id}/campaign-kit` | Generate TTRPG campaign module |
-| `POST` | `/api/worlds/{id}/session-prep` | Generate GM session plan |
-| `POST` | `/api/worlds/{id}/agent/start` | Start autonomous agent |
-| `POST` | `/api/worlds/{id}/agent/stop` | Stop autonomous agent |
-| `GET` | `/api/worlds/{id}/agent/status` | Agent running status |
-| `GET` | `/api/worlds/{id}/agent/logs` | Agent decision logs |
-| `POST` | `/api/worlds/stream` | SSE: stream world generation progress |
-| `POST` | `/api/worlds/{id}/simulate/stream` | SSE: stream simulation events |
+| `TELEGRAM_BOT_TOKEN` | No | For Telegram bot integration |
+| `PORT` | No | Defaults to `8003` |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   Hermes-4-70B (NousResearch)                │
-│                   inference-api.nousresearch.com              │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-          ┌────────────────▼─────────────────┐
-          │        FastAPI Backend            │
-          │        Python 3.11               │
-          │                                  │
-          │  generator.py     (world birth)  │
-          │  simulation.py    (daily ticks)  │
-          │  autonomous_agent (AI agent)     │
-          │  models/genome.py (evolution)    │
-          │  telegram_bot.py  (notifications)│
-          │                                  │
-          │  30+ API endpoints               │
-          │  SSE streaming                   │
-          │  JSON repair + retry             │
-          └────────────────┬─────────────────┘
-                           │
-          ┌────────────────▼─────────────────┐
-          │       React 18 Frontend           │
-          │       TypeScript + Tailwind       │
-          │                                  │
-          │  WorldMap         (D3.js SVG)    │
-          │  MapEventMarkers  (animations)   │
-          │  CinematicMode    (fullscreen)   │
-          │  RelationshipGraph(D3 force)     │
-          │  FactionPowerChart(Recharts)     │
-          │  CharacterChat    (in-world)     │
-          │  AutonomousAgent  (AI control)   │
-          │  ChronicleModal   (story export) │
-          │  CampaignKitModal (TTRPG)       │
-          │  SessionPrepModal (GM prep)      │
-          │  VoiceNarration   (Web Speech)   │
-          └──────────────────────────────────┘
+         Hermes-4-70B (NousResearch API)
+                    │
+     ┌──────────────▼──────────────┐
+     │     FastAPI Backend         │
+     │     Python 3.11             │
+     │                             │
+     │  World Generation           │
+     │  Simulation Engine          │
+     │  Autonomous Agent           │
+     │  Genetic Evolution          │
+     │  Prophecy Checker           │
+     │  Telegram Bot               │
+     │  30+ API endpoints          │
+     │  SSE Streaming              │
+     └──────────────┬──────────────┘
+                    │
+     ┌──────────────▼──────────────┐
+     │     React 18 Frontend       │
+     │     TypeScript + Tailwind   │
+     │                             │
+     │  Cinematic World Map (SVG)  │
+     │  Event Animations           │
+     │  D3 Relationship Graph      │
+     │  Faction Power Charts       │
+     │  Auto-play Mode             │
+     │  Voice Narration            │
+     │  God Mode / Chronicle       │
+     └────────────────────────────┘
 ```
 
 ---
@@ -212,13 +158,11 @@ docker compose up -d
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat-square&logo=vite&logoColor=white)
-![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![D3](https://img.shields.io/badge/D3.js-7.9-F9A03C?style=flat-square&logo=d3.js&logoColor=white)
-![Recharts](https://img.shields.io/badge/Recharts-2.12-22B5BF?style=flat-square)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-11-E91E63?style=flat-square)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Hermes](https://img.shields.io/badge/NousResearch-Hermes--4--70B-8B5CF6?style=flat-square)
+
+**70 tests** | **24 code-split chunks** | **30+ API endpoints** | **Deployed on VPS**
 
 ---
 
@@ -226,8 +170,8 @@ docker compose up -d
 
 Hermes Genesis demonstrates what happens when you give an AI full creative control over a living world. Every character decision, every faction power shift, every prophecy fulfilled — all driven by Hermes-4-70B reasoning over structured world state.
 
+The world doesn't wait for you. It lives on its own.
+
 ---
 
-## License
-
-MIT
+MIT License
