@@ -5,6 +5,54 @@ from models.character import Character, Lineage, Relationship
 from models.genome import Genome, TRAITS
 from store import save_world
 
+# Name generation for offspring — avoids "Successor of Successor" degradation
+_NAME_PREFIXES = [
+    "Ash", "Bel", "Cor", "Dra", "El", "Fen", "Gor", "Hal", "Ir", "Jas",
+    "Kel", "Lor", "Mor", "Ner", "Or", "Pyr", "Ral", "Sar", "Tor", "Val",
+    "Wren", "Xan", "Yar", "Zan", "Bri", "Cal", "Dyn", "Eri", "Fal", "Gwyn",
+    "Hel", "Ith", "Jyn", "Kael", "Lys", "Myr", "Nyx", "Orin", "Pax", "Ryn",
+    "Syl", "Thal", "Ula", "Vex", "Wyl", "Zeph", "Ara", "Bane", "Cael", "Dar",
+]
+_NAME_SUFFIXES = [
+    "ric", "wen", "thor", "ia", "ius", "aine", "on", "iel", "ara", "is",
+    "oth", "ane", "rin", "ek", "as", "ora", "iel", "yn", "ax", "us",
+    "ina", "eld", "orn", "ith", "al", "en", "ir", "os", "une", "yx",
+]
+
+def _generate_child_name(parent1_name: str, parent2_name: str, existing_names: set[str]) -> str:
+    """Generate a unique fantasy name blending parent name fragments."""
+    # Try blending parent names first (take start of one, end of another)
+    p1_first = parent1_name.split()[0] if parent1_name else "Unknown"
+    p2_first = parent2_name.split()[0] if parent2_name else "Unknown"
+
+    # Strategy 1: First syllable(s) of parent1 + suffix from parent2
+    candidates = []
+    p1_root = p1_first[:max(2, len(p1_first)//2)]
+    p2_end = p2_first[max(1, len(p2_first)//2):]
+    blended = p1_root + p2_end.lower()
+    if len(blended) >= 3:
+        candidates.append(blended.capitalize())
+
+    # Strategy 2: Reverse blend
+    p2_root = p2_first[:max(2, len(p2_first)//2)]
+    p1_end = p1_first[max(1, len(p1_first)//2):]
+    blended2 = p2_root + p1_end.lower()
+    if len(blended2) >= 3:
+        candidates.append(blended2.capitalize())
+
+    # Strategy 3: Random prefix + suffix
+    for _ in range(5):
+        name = random.choice(_NAME_PREFIXES) + random.choice(_NAME_SUFFIXES)
+        candidates.append(name)
+
+    # Pick first candidate not already in use
+    for name in candidates:
+        if name not in existing_names:
+            return name
+
+    # Fallback: prefix + random number suffix
+    return random.choice(_NAME_PREFIXES) + random.choice(_NAME_SUFFIXES) + str(random.randint(2, 99))
+
 EVENT_TYPES = [
     ("military_conflict", ["courage", "resilience"], 0.25),
     ("political_intrigue", ["cunning", "ambition"], 0.2),
@@ -236,14 +284,20 @@ def simulate_tick(world: World) -> list[Event]:
             p1, p2 = faction_chars[0], faction_chars[1]
             child_genome = Genome.crossover(p1.genome, p2.genome)
             child_id = f"char_{len(world.characters)+1:02d}"
+            existing_names = {c.name for c in world.characters}
+            child_name = _generate_child_name(p1.name, p2.name, existing_names)
+            # Add a surname from parent if they have one
+            p1_parts = p1.name.split()
+            if len(p1_parts) > 1:
+                child_name = f"{child_name} {p1_parts[-1]}"
             child = Character(
                 id=child_id,
-                name=f"Successor of {p1.name.split()[0]}",
+                name=child_name,
                 faction_id=f.id,
                 role="protege",
                 age=18,
                 location=p1.location,
-                backstory=f"Mentored by {p1.name} and {p2.name}",
+                backstory=f"Born of {p1.name} and {p2.name}, raised in the traditions of the {f.name}",
                 goals=["prove_worthy"],
                 genome=child_genome,
                 lineage=Lineage(parent_ids=[p1.id, p2.id], generation=max(p1.lineage.generation, p2.lineage.generation) + 1),
