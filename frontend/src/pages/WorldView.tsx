@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play, Sparkles, History } from 'lucide-react';
@@ -12,26 +12,29 @@ import type {
   FactionSnapshot,
   Prophecy,
 } from '../types';
+// Core tab components (kept static — always needed quickly)
 import WorldMap from '../components/WorldMap';
 import FactionDashboard from '../components/FactionDashboard';
 import CharacterList from '../components/CharacterList';
 import EventTimeline from '../components/EventTimeline';
 import EvolutionView from '../components/EvolutionView';
-import FactionPowerChart from '../components/FactionPowerChart';
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
 import VoiceNarrationButton from '../components/VoiceNarrationButton';
-import RelationshipGraph from '../components/RelationshipGraph';
 import CharacterDetail from '../components/CharacterDetail';
-import ChronicleModal from '../components/ChronicleModal';
-import GodModePanel from '../components/GodModePanel';
-import CouncilModal from '../components/CouncilModal';
 import ProphecyPanel from '../components/ProphecyPanel';
-import AutonomousAgentPanel from '../components/AutonomousAgentPanel';
-import CampaignKitModal from '../components/CampaignKitModal';
-import SessionPrepModal from '../components/SessionPrepModal';
-import CinematicMode from '../components/CinematicMode';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
+
+// Lazy-loaded heavy components (D3, Recharts, modals)
+const RelationshipGraph = lazy(() => import('../components/RelationshipGraph'));
+const FactionPowerChart = lazy(() => import('../components/FactionPowerChart'));
+const CinematicMode = lazy(() => import('../components/CinematicMode'));
+const ChronicleModal = lazy(() => import('../components/ChronicleModal'));
+const CampaignKitModal = lazy(() => import('../components/CampaignKitModal'));
+const SessionPrepModal = lazy(() => import('../components/SessionPrepModal'));
+const GodModePanel = lazy(() => import('../components/GodModePanel'));
+const CouncilModal = lazy(() => import('../components/CouncilModal'));
+const AutonomousAgentPanel = lazy(() => import('../components/AutonomousAgentPanel'));
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
 
@@ -393,7 +396,9 @@ export default function WorldView() {
             transition={{ duration: 0.3 }}
             className="max-w-7xl mx-auto px-6 pt-4"
           >
-            <AutonomousAgentPanel worldId={world.id} onRefresh={fetchAll} />
+            <Suspense fallback={<div className="flex items-center justify-center h-32"><div className="text-gray-400">Loading agent...</div></div>}>
+              <AutonomousAgentPanel worldId={world.id} onRefresh={fetchAll} />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -419,13 +424,15 @@ export default function WorldView() {
                 />
                 <ProphecyPanel prophecies={prophecies} />
                 {godMode && (
-                  <GodModePanel
-                    worldId={world.id}
-                    onIntervention={(event) => {
-                      setEvents((prev) => [...prev, event]);
-                      fetchAll();
-                    }}
-                  />
+                  <Suspense fallback={<div className="text-gray-400 p-4">Loading god mode...</div>}>
+                    <GodModePanel
+                      worldId={world.id}
+                      onIntervention={(event) => {
+                        setEvents((prev) => [...prev, event]);
+                        fetchAll();
+                      }}
+                    />
+                  </Suspense>
                 )}
               </div>
             )}
@@ -470,11 +477,13 @@ export default function WorldView() {
                     worldId={world.id}
                   />
                 ) : (
-                  <RelationshipGraph
-                    characters={characters}
-                    factions={factions}
-                    onSelectCharacter={setGraphSelectedChar}
-                  />
+                  <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading graph...</div></div>}>
+                    <RelationshipGraph
+                      characters={characters}
+                      factions={factions}
+                      onSelectCharacter={setGraphSelectedChar}
+                    />
+                  </Suspense>
                 )}
 
                 {/* Character detail modal for graph view */}
@@ -500,10 +509,12 @@ export default function WorldView() {
             )}
             {tab === 'evolution' && <EvolutionView data={evolution} />}
             {tab === 'power' && (
-              <FactionPowerChart
-                snapshots={factionTimeline}
-                factions={factions}
-              />
+              <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading chart...</div></div>}>
+                <FactionPowerChart
+                  snapshots={factionTimeline}
+                  factions={factions}
+                />
+              </Suspense>
             )}
           </motion.div>
         </AnimatePresence>
@@ -511,73 +522,85 @@ export default function WorldView() {
 
       {/* Chronicle Modal */}
       {showChronicle && (
-        <ChronicleModal
-          worldId={world.id}
-          worldName={world.name}
-          onClose={() => setShowChronicle(false)}
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
+          <ChronicleModal
+            worldId={world.id}
+            worldName={world.name}
+            onClose={() => setShowChronicle(false)}
+          />
+        </Suspense>
       )}
 
       {/* Council Modal */}
       {showCouncil && (
-        <CouncilModal
-          worldId={world.id}
-          factions={factions}
-          onClose={() => setShowCouncil(false)}
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
+          <CouncilModal
+            worldId={world.id}
+            factions={factions}
+            onClose={() => setShowCouncil(false)}
+          />
+        </Suspense>
       )}
 
       {/* Campaign Kit Modal */}
       {showCampaignKit && (
-        <CampaignKitModal
-          worldId={world.id}
-          worldName={world.name}
-          onClose={() => setShowCampaignKit(false)}
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
+          <CampaignKitModal
+            worldId={world.id}
+            worldName={world.name}
+            onClose={() => setShowCampaignKit(false)}
+          />
+        </Suspense>
       )}
 
       {/* Session Prep Modal */}
       {showSessionPrep && (
-        <SessionPrepModal
-          worldId={world.id}
-          worldName={world.name}
-          onClose={() => setShowSessionPrep(false)}
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
+          <SessionPrepModal
+            worldId={world.id}
+            worldName={world.name}
+            onClose={() => setShowSessionPrep(false)}
+          />
+        </Suspense>
       )}
 
       {/* Cinematic Mode (Live) */}
       {showCinematic && mapData && (
-        <CinematicMode
-          worldId={world.id}
-          worldName={world.name}
-          currentDay={world.current_day}
-          geography={mapData.geography}
-          factionMap={mapData.factions}
-          characters={characters}
-          events={events}
-          onClose={() => setShowCinematic(false)}
-          onNewEvents={(newEvents) => {
-            setEvents((prev) => [...prev, ...newEvents]);
-            fetchAll();
-          }}
-          mode="live"
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black"><div className="text-white/60">Entering cinematic mode...</div></div>}>
+          <CinematicMode
+            worldId={world.id}
+            worldName={world.name}
+            currentDay={world.current_day}
+            geography={mapData.geography}
+            factionMap={mapData.factions}
+            characters={characters}
+            events={events}
+            onClose={() => setShowCinematic(false)}
+            onNewEvents={(newEvents) => {
+              setEvents((prev) => [...prev, ...newEvents]);
+              fetchAll();
+            }}
+            mode="live"
+          />
+        </Suspense>
       )}
 
       {/* Replay Mode */}
       {showReplay && mapData && (
-        <CinematicMode
-          worldId={world.id}
-          worldName={world.name}
-          currentDay={world.current_day}
-          geography={mapData.geography}
-          factionMap={mapData.factions}
-          characters={characters}
-          events={events}
-          onClose={() => setShowReplay(false)}
-          onNewEvents={() => {}}
-          mode="replay"
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black"><div className="text-white/60">Entering replay mode...</div></div>}>
+          <CinematicMode
+            worldId={world.id}
+            worldName={world.name}
+            currentDay={world.current_day}
+            geography={mapData.geography}
+            factionMap={mapData.factions}
+            characters={characters}
+            events={events}
+            onClose={() => setShowReplay(false)}
+            onNewEvents={() => {}}
+            mode="replay"
+          />
+        </Suspense>
       )}
     </div>
   );
