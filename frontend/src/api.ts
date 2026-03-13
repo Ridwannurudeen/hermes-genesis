@@ -156,6 +156,12 @@ export const api = {
       { method: 'POST' }
     ),
 
+  generateSessionPrep: (id: string) =>
+    fetchJson<{ session_plan: string; world_name: string; current_day: number }>(
+      `/api/worlds/${id}/session-prep`,
+      { method: 'POST' }
+    ),
+
   intervene: (id: string, command: string) =>
     fetchJson<{ event: WorldEvent; effects_applied: any }>(
       `/api/worlds/${id}/intervene`,

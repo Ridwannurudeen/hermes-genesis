@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play, Sparkles } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -29,6 +29,7 @@ import CouncilModal from '../components/CouncilModal';
 import ProphecyPanel from '../components/ProphecyPanel';
 import AutonomousAgentPanel from '../components/AutonomousAgentPanel';
 import CampaignKitModal from '../components/CampaignKitModal';
+import SessionPrepModal from '../components/SessionPrepModal';
 import CinematicMode from '../components/CinematicMode';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
@@ -77,6 +78,7 @@ export default function WorldView() {
   const [showAgent, setShowAgent] = useState(false);
   const [showCampaignKit, setShowCampaignKit] = useState(false);
   const [showCinematic, setShowCinematic] = useState(false);
+  const [showSessionPrep, setShowSessionPrep] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
@@ -323,6 +325,13 @@ export default function WorldView() {
                 <Play className="w-5 h-5" />
               </button>
               <button
+                onClick={() => setShowSessionPrep(true)}
+                title="Session Prep"
+                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Sparkles className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setShowCampaignKit(true)}
                 title="Campaign Kit (TTRPG)"
                 className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
@@ -515,6 +524,15 @@ export default function WorldView() {
           worldId={world.id}
           worldName={world.name}
           onClose={() => setShowCampaignKit(false)}
+        />
+      )}
+
+      {/* Session Prep Modal */}
+      {showSessionPrep && (
+        <SessionPrepModal
+          worldId={world.id}
+          worldName={world.name}
+          onClose={() => setShowSessionPrep(false)}
         />
       )}
 

@@ -10,6 +10,7 @@ from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_pro
 from prompts.character_chat import build_character_system
 from prompts.council import SYSTEM as COUNCIL_SYSTEM, council_prompt
 from prompts.campaign_kit import SYSTEM as CAMPAIGN_SYSTEM, campaign_kit_prompt
+from prompts.session_prep import SYSTEM as SESSION_PREP_SYSTEM, session_prep_prompt
 from autonomous_agent import start_agent, stop_agent, is_agent_running, get_agent_logs
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
@@ -289,6 +290,31 @@ async def generate_campaign_kit(world_id: str):
 
     return {
         "campaign_kit": kit.strip(),
+        "world_name": world.name,
+        "current_day": world.current_day,
+    }
+
+
+@router.post("/{world_id}/session-prep")
+async def generate_session_prep(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    prompt = session_prep_prompt(
+        world.name,
+        world.seed,
+        world.current_day,
+        [r.model_dump() for r in world.geography.regions],
+        [f.model_dump() for f in world.factions],
+        [c.model_dump() for c in world.characters],
+        [e.model_dump() for e in world.events],
+    )
+
+    session_plan = await chat_completion(SESSION_PREP_SYSTEM, prompt, max_tokens=4000, temperature=0.8)
+
+    return {
+        "session_plan": session_plan.strip(),
         "world_name": world.name,
         "current_day": world.current_day,
     }
