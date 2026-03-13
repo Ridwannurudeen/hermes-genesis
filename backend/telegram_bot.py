@@ -5,7 +5,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from config import DATA_DIR, TELEGRAM_BOT_TOKEN
 from store import load_world
-from simulation import simulate_tick
 
 logger = logging.getLogger(__name__)
 

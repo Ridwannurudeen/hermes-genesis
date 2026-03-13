@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from config import DATA_DIR
 from store import load_world, save_world, list_worlds
 from simulation import simulate_tick
@@ -385,7 +385,7 @@ async def agent_tick(world_id: str):
 
     # Step 4: Log the decision with action taken visible
     log_entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "day": world.current_day,
         "reasoning": decision.get("reasoning", ""),
         "decision": decision.get("decision", ""),
