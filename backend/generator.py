@@ -52,6 +52,7 @@ async def generate_world(seed: str, num_regions: int = 6, num_factions: int = 4,
     except Exception:
         pass  # Prophecies are optional, don't fail world creation
 
+    world.status = "ready"
     save_world(world)
     await _notify("complete", f"World '{world.name}' is alive")
     return world
