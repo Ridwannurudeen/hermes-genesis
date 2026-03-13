@@ -150,6 +150,12 @@ export const api = {
       { method: 'POST' }
     ),
 
+  generateCampaignKit: (id: string) =>
+    fetchJson<{ campaign_kit: string; world_name: string; current_day: number }>(
+      `/api/worlds/${id}/campaign-kit`,
+      { method: 'POST' }
+    ),
+
   intervene: (id: string, command: string) =>
     fetchJson<{ event: WorldEvent; effects_applied: any }>(
       `/api/worlds/${id}/intervene`,

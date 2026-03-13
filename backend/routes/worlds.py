@@ -9,6 +9,8 @@ from prompts.chronicle import SYSTEM as CHRONICLE_SYSTEM, chronicle_prompt
 from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_prompt
 from prompts.character_chat import build_character_system
 from prompts.council import SYSTEM as COUNCIL_SYSTEM, council_prompt
+from prompts.campaign_kit import SYSTEM as CAMPAIGN_SYSTEM, campaign_kit_prompt
+from autonomous_agent import start_agent, stop_agent, is_agent_active, get_agent_logs
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
@@ -264,6 +266,57 @@ async def faction_council(world_id: str):
     data = extract_json(raw)
 
     return data
+
+
+@router.post("/{world_id}/campaign-kit")
+async def generate_campaign_kit(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    prompt = campaign_kit_prompt(
+        world.name,
+        world.seed,
+        world.current_day,
+        [r.model_dump() for r in world.geography.regions],
+        [f.model_dump() for f in world.factions],
+        [c.model_dump() for c in world.characters],
+        [e.model_dump() for e in world.events],
+        [p.model_dump() for p in getattr(world, 'prophecies', [])],
+    )
+
+    kit = await chat_completion(CAMPAIGN_SYSTEM, prompt, max_tokens=6000, temperature=0.8)
+
+    return {
+        "campaign_kit": kit.strip(),
+        "world_name": world.name,
+        "current_day": world.current_day,
+    }
+
+
+@router.post("/{world_id}/autonomous/start")
+async def start_autonomous(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+    started = start_agent(world_id)
+    return {"active": True, "started": started}
+
+@router.post("/{world_id}/autonomous/stop")
+async def stop_autonomous(world_id: str):
+    stopped = stop_agent(world_id)
+    return {"active": False, "stopped": stopped}
+
+@router.get("/{world_id}/autonomous/status")
+async def autonomous_status(world_id: str):
+    return {
+        "active": is_agent_active(world_id),
+        "log_count": len(get_agent_logs(world_id)),
+    }
+
+@router.get("/{world_id}/autonomous/logs")
+async def autonomous_logs(world_id: str):
+    return get_agent_logs(world_id)
 
 
 @router.delete("/{world_id}")
