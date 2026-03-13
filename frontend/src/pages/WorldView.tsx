@@ -27,7 +27,7 @@ import ChronicleModal from '../components/ChronicleModal';
 import GodModePanel from '../components/GodModePanel';
 import CouncilModal from '../components/CouncilModal';
 import ProphecyPanel from '../components/ProphecyPanel';
-import AutonomousPanel from '../components/AutonomousPanel';
+import AutonomousAgentPanel from '../components/AutonomousAgentPanel';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
@@ -276,14 +276,15 @@ export default function WorldView() {
               />
               <button
                 onClick={() => setShowAgent((prev) => !prev)}
-                title="Autonomous Agent"
-                className={`p-2 rounded-lg transition-colors ${
+                title="World Master Agent"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   showAgent
-                    ? 'text-green-400 bg-green-500/10 border border-green-500/30'
-                    : 'text-gray-400 hover:text-green-400 hover:bg-gray-800'
+                    ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
+                    : 'text-gray-400 hover:text-cyan-400 hover:bg-gray-800'
                 }`}
               >
                 <Brain className="w-5 h-5" />
+                <span className="hidden sm:inline">Agent</span>
               </button>
               <button
                 onClick={() => setGodMode((prev) => !prev)}
@@ -356,7 +357,7 @@ export default function WorldView() {
             transition={{ duration: 0.3 }}
             className="max-w-7xl mx-auto px-6 pt-4"
           >
-            <AutonomousPanel worldId={world.id} onRefresh={fetchAll} />
+            <AutonomousAgentPanel worldId={world.id} onRefresh={fetchAll} />
           </motion.div>
         )}
       </AnimatePresence>
