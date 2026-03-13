@@ -14,6 +14,13 @@ export default function EventTimeline({ events, factions, characters }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [factionFilter, setFactionFilter] = useState<string>('all');
 
+  // Build a map of event id -> event for causality lookups
+  const eventMap = useMemo(() => {
+    const m: Record<string, WorldEvent> = {};
+    events.forEach((e) => { m[e.id] = e; });
+    return m;
+  }, [events]);
+
   const eventTypes = useMemo(() => {
     const set = new Set<string>();
     events.forEach((e) => set.add(e.type));
@@ -126,6 +133,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
                     event={event}
                     factions={factions}
                     characters={characters}
+                    eventMap={eventMap}
                   />
                 ))}
               </div>

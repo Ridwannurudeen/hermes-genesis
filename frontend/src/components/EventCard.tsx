@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Flame } from 'lucide-react';
+import { ChevronDown, ChevronUp, Flame, Brain, Link2 } from 'lucide-react';
 import type { WorldEvent, Faction, Character } from '../types';
 import { EVENT_TYPE_ICONS } from '../types';
 
@@ -8,9 +8,10 @@ interface Props {
   event: WorldEvent;
   factions: Faction[];
   characters: Character[];
+  eventMap?: Record<string, WorldEvent>;
 }
 
-export default function EventCard({ event, factions, characters }: Props) {
+export default function EventCard({ event, factions, characters, eventMap }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const factionMap: Record<string, Faction> = {};
@@ -30,21 +31,61 @@ export default function EventCard({ event, factions, characters }: Props) {
     Object.keys(event.outcome.morale_changes).length > 0 ||
     event.outcome.character_effects.length > 0;
 
+  const isAgentTriggered = event.agent_triggered;
+  const hasCausedBy = event.caused_by && event.caused_by.length > 0;
+  const isProphecyFulfilled =
+    (event.prophecy_id && event.prophecy_id.length > 0) ||
+    event.type === 'prophecy_fulfilled';
+
+  const parentEvent = hasCausedBy && eventMap ? eventMap[event.caused_by] : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className={`rounded-xl p-4 transition-colors ${
+      className={`relative rounded-xl p-4 transition-colors ${
         event.type === 'death' && event.obituary
           ? 'bg-red-950/30 border border-red-900/40 hover:border-red-800/50'
           : 'bg-gray-900 border border-gray-800 hover:border-gray-700'
-      }`}
+      } ${hasCausedBy ? 'border-l-2 border-l-amber-500/50' : ''}`}
     >
+      {/* Agent Intervention Badge - top right */}
+      {isAgentTriggered && (
+        <div className="absolute top-2 right-2 z-10">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            <Brain className="w-3 h-3" />
+            World Master
+          </span>
+        </div>
+      )}
+
+      {/* Prophecy Fulfilled Badge - top right, offset below agent badge if both present */}
+      {isProphecyFulfilled && (
+        <div className={`absolute ${isAgentTriggered ? 'top-8' : 'top-2'} right-2 z-10`}>
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40"
+            style={{ boxShadow: '0 0 12px rgba(245, 158, 11, 0.25), 0 0 4px rgba(245, 158, 11, 0.15)' }}
+          >
+            {'\uD83D\uDD2E'} Prophecy Fulfilled
+          </span>
+        </div>
+      )}
+
       {/* Header row */}
       <div className="flex items-start gap-3">
         <span className="text-xl mt-0.5 flex-shrink-0">{icon}</span>
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0 ${isAgentTriggered || isProphecyFulfilled ? 'pr-28' : ''}`}>
+          {/* Caused-By Link */}
+          {hasCausedBy && (
+            <div className="flex items-center gap-1 mb-1">
+              <Link2 className="w-3 h-3 text-amber-400/60 flex-shrink-0" />
+              <span className="text-[11px] text-amber-400/60 italic truncate">
+                Triggered by: {parentEvent ? parentEvent.title : event.caused_by}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-start justify-between gap-2">
             <h4 className="text-sm font-semibold text-gray-100">
               {event.title}

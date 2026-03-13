@@ -171,6 +171,7 @@ async def divine_intervention(world_id: str, req: InterveneRequest):
         actors=data.get("actors", []),
         factions_involved=data.get("factions_involved", []),
         regions_affected=data.get("regions_affected", []),
+        agent_triggered=True,
     )
 
     # Apply effects
@@ -343,7 +344,36 @@ async def agent_status(world_id: str):
 
 @router.get("/{world_id}/agent/logs")
 async def agent_logs(world_id: str):
-    return get_agent_logs(world_id)
+    # Get in-memory logs (may be newer than persisted)
+    in_memory = get_agent_logs(world_id)
+
+    # Load persisted logs from world data
+    world = load_world(world_id)
+    if not world:
+        return in_memory
+
+    persisted = world.agent_logs or []
+
+    # If no in-memory logs, return persisted
+    if not in_memory:
+        return persisted
+
+    # If no persisted logs, return in-memory
+    if not persisted:
+        return in_memory
+
+    # Merge: use persisted as base, append any in-memory entries that are newer
+    # Compare by timestamp -- in-memory entries after the last persisted timestamp are new
+    last_persisted_ts = persisted[-1].get("timestamp", "")
+    newer = [log for log in in_memory if log.get("timestamp", "") > last_persisted_ts]
+
+    if newer:
+        merged = persisted + newer
+        # Cap at 100 for the response
+        return merged[-100:]
+
+    # Persisted is up-to-date or superset -- return whichever is longer
+    return persisted if len(persisted) >= len(in_memory) else in_memory
 
 
 @router.delete("/{world_id}")

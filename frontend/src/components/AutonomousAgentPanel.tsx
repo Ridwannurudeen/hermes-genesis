@@ -1,7 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Power, Loader2, AlertTriangle, Clock } from 'lucide-react';
+import { Brain, Power, Loader2, AlertTriangle, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../api';
+import { EVENT_TYPE_ICONS } from '../types';
+
+interface ConsequenceEvent {
+  title: string;
+  type: string;
+}
+
+interface Consequences {
+  events: ConsequenceEvent[];
+  territory_changes: Record<string, string>;
+  morale_changes: Record<string, number>;
+}
 
 interface AgentLog {
   timestamp: string;
@@ -16,6 +28,7 @@ interface AgentLog {
   urgency: string;
   events_generated: number;
   event_titles: string[];
+  consequences?: Consequences;
 }
 
 interface Props {
@@ -135,6 +148,12 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
     } catch {
       return ts;
     }
+  };
+
+  const [expandedConsequences, setExpandedConsequences] = useState<Record<number, boolean>>({});
+
+  const toggleConsequences = (index: number) => {
+    setExpandedConsequences((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
   const reversedLogs = [...logs].reverse();
@@ -378,6 +397,27 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     </p>
                   )}
 
+                  {/* Intervention success/failure indicator */}
+                  {log.action === 'intervene' && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      {log.events_generated > 0 ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400/80 text-xs font-medium">
+                            Intervention succeeded — {log.events_generated} event{log.events_generated !== 1 ? 's' : ''} generated
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="text-amber-400/80 text-xs font-medium">
+                            No events resulted from this intervention
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   {/* Event titles */}
                   {log.event_titles && log.event_titles.length > 0 && (
                     <div className="mt-2 pl-2 border-l border-gray-800">
@@ -386,6 +426,73 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                           {title}
                         </p>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Consequences section */}
+                  {log.consequences && log.consequences.events && log.consequences.events.length > 0 && (
+                    <div className="mt-2">
+                      <button
+                        onClick={() => toggleConsequences(i)}
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                      >
+                        {expandedConsequences[i] ? (
+                          <ChevronUp className="w-3 h-3" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3" />
+                        )}
+                        <span className="font-medium">
+                          Results: {log.consequences.events.length} event{log.consequences.events.length !== 1 ? 's' : ''} triggered
+                        </span>
+                      </button>
+
+                      <AnimatePresence>
+                        {expandedConsequences[i] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-1.5 pl-2 border-l border-purple-500/30 space-y-1">
+                              {log.consequences.events.map((ce, k) => (
+                                <p key={k} className="text-xs text-gray-400">
+                                  <span className="mr-1">{EVENT_TYPE_ICONS[ce.type] || '\u26A0\uFE0F'}</span>
+                                  {ce.title}
+                                </p>
+                              ))}
+
+                              {/* Territory changes from consequences */}
+                              {log.consequences.territory_changes && Object.keys(log.consequences.territory_changes).length > 0 && (
+                                <div className="mt-1 pt-1 border-t border-gray-800/50">
+                                  <span className="text-[10px] text-gray-600 uppercase tracking-wider font-medium">Territory</span>
+                                  {Object.entries(log.consequences.territory_changes).map(([region, owner]) => (
+                                    <p key={region} className="text-xs text-gray-500">
+                                      {region} &rarr; {owner}
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Morale changes from consequences */}
+                              {log.consequences.morale_changes && Object.keys(log.consequences.morale_changes).length > 0 && (
+                                <div className="mt-1 pt-1 border-t border-gray-800/50">
+                                  <span className="text-[10px] text-gray-600 uppercase tracking-wider font-medium">Morale</span>
+                                  {Object.entries(log.consequences.morale_changes).map(([fid, change]) => (
+                                    <p
+                                      key={fid}
+                                      className={`text-xs ${change > 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}
+                                    >
+                                      {fid}: {change > 0 ? '+' : ''}{Math.round(change * 100)}%
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
                 </motion.div>

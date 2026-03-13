@@ -35,3 +35,4 @@ class World(BaseModel):
     prophecies: list[Prophecy] = []
     status: str = "generating"
     faction_snapshots: list[dict] = []
+    agent_logs: list[dict] = []

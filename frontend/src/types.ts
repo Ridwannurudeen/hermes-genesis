@@ -109,6 +109,9 @@ export interface WorldEvent {
   outcome: EventOutcome;
   narrative: string;
   obituary: string;
+  caused_by: string;        // ID of parent event
+  agent_triggered: boolean; // True if World Master created this
+  prophecy_id: string;      // Links to fulfilled prophecy
 }
 
 export interface Prophecy {
@@ -195,4 +198,5 @@ export const EVENT_TYPE_ICONS: Record<string, string> = {
   birth: '\u2728',
   divine_intervention: '\u26A1',
   agent_intervention: '\uD83E\uDDE0',
+  prophecy_fulfilled: '\uD83D\uDD2E',
 };

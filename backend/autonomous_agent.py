@@ -44,7 +44,62 @@ Return ONLY valid JSON:
 }"""
 
 
-def _build_observation(world) -> str:
+def _get_last_action_consequences(world, world_id: str) -> str:
+    """Build a consequence feedback string from the agent's last action.
+
+    Looks at the most recent agent log entry and finds events that resulted
+    from it, giving the LLM visibility into the outcomes of its decisions.
+    """
+    # Find last log entry -- check in-memory first, then persisted
+    last_log = None
+    if world_id in _agent_logs and _agent_logs[world_id]:
+        last_log = _agent_logs[world_id][-1]
+    elif world.agent_logs:
+        last_log = world.agent_logs[-1]
+
+    if not last_log:
+        return ""
+
+    last_action = last_log.get("action", "simulate")
+    last_day = last_log.get("day", 0)
+    last_decision = last_log.get("decision", "")
+    last_command = last_log.get("intervention_command")
+    event_titles = last_log.get("event_titles", [])
+
+    lines = []
+    lines.append(f"Action: {last_action}")
+    lines.append(f"Decision: {last_decision}")
+    if last_command:
+        lines.append(f"Command: {last_command}")
+
+    # Show events that were generated from the last tick
+    if event_titles:
+        lines.append(f"Events produced ({len(event_titles)}):")
+        for title in event_titles[:5]:
+            lines.append(f"  - {title}")
+
+    # Find events since the last agent tick day and show their outcomes
+    consequence_events = [e for e in world.events if e.day >= last_day]
+    if consequence_events:
+        # Check for agent-triggered events and notable outcomes
+        agent_events = [e for e in consequence_events if e.agent_triggered or e.caused_by]
+        deaths = [e for e in consequence_events if e.type == "death"]
+        interventions = [e for e in consequence_events if e.type == "divine_intervention"]
+
+        if agent_events and last_action == "intervene":
+            lines.append("Direct consequences of your intervention:")
+            for e in agent_events[:3]:
+                lines.append(f"  - [{e.type}] {e.title}")
+
+        if deaths:
+            lines.append(f"Deaths since your action: {', '.join(e.title for e in deaths[:3])}")
+        if interventions and last_action != "intervene":
+            lines.append(f"Interventions since: {', '.join(e.title for e in interventions[:3])}")
+
+    return "\n".join(lines)
+
+
+def _build_observation(world, world_id: str = "") -> str:
     """Build the observation prompt from world state."""
     faction_lines = []
     for f in world.factions:
@@ -74,6 +129,17 @@ def _build_observation(world) -> str:
         )
         prophecy_lines.append(f'- [{status}] "{p.text}"')
 
+    # Build consequence feedback from last action
+    consequence_section = ""
+    if world_id:
+        consequences = _get_last_action_consequences(world, world_id)
+        if consequences:
+            consequence_section = f"""
+CONSEQUENCES OF YOUR LAST ACTION:
+{consequences}
+Reflect on whether your last action achieved what you intended. Adjust your strategy accordingly.
+"""
+
     return f"""World: "{world.name}" -- Day {world.current_day}
 Seed: "{world.seed}"
 
@@ -88,7 +154,7 @@ RECENT EVENTS:
 
 PROPHECIES:
 {chr(10).join(prophecy_lines) if prophecy_lines else "None"}
-
+{consequence_section}
 What should happen next in this world? Analyze and decide."""
 
 
@@ -124,6 +190,7 @@ async def _execute_intervention(world, decision: dict) -> tuple:
         actors=data.get("actors", []),
         factions_involved=data.get("factions_involved", []),
         regions_affected=data.get("regions_affected", []),
+        agent_triggered=True,
     )
 
     # Apply effects (same logic as routes/worlds.py divine_intervention endpoint)
@@ -210,8 +277,8 @@ async def agent_tick(world_id: str):
     if not world:
         return None
 
-    # Step 1: Observe and Reason
-    observation = _build_observation(world)
+    # Step 1: Observe and Reason (pass world_id for consequence feedback)
+    observation = _build_observation(world, world_id)
 
     # Include the agent's previous plan if it exists
     if world_id in _agent_plans:
@@ -290,6 +357,30 @@ async def agent_tick(world_id: str):
 
     save_world(world)
 
+    # Step 3b: Check prophecy fulfillment
+    prophecy_fulfilled_data = None
+    try:
+        from prophecy_checker import check_and_fulfill_prophecies
+
+        prophecy_events = await check_and_fulfill_prophecies(
+            world, events, world.current_day
+        )
+        if prophecy_events:
+            world.events.extend(prophecy_events)
+            events.extend(prophecy_events)
+            save_world(world)
+            # Extract prophecy data for Telegram notification
+            for p in getattr(world, "prophecies", []):
+                if p.fulfilled and p.fulfilled_day == world.current_day:
+                    prophecy_fulfilled_data = {
+                        "text": p.text,
+                        "explanation": prophecy_events[0].description if prophecy_events else "",
+                        "day": world.current_day,
+                    }
+                    break
+    except Exception as e:
+        logger.warning(f"Prophecy check failed in agent tick for {world_id}: {e}")
+
     # Step 4: Log the decision with action taken visible
     log_entry = {
         "timestamp": datetime.utcnow().isoformat(),
@@ -309,22 +400,29 @@ async def agent_tick(world_id: str):
     if world_id not in _agent_logs:
         _agent_logs[world_id] = []
     _agent_logs[world_id].append(log_entry)
-    # Keep only last 50 entries
+    # Keep only last 50 entries in-memory
     _agent_logs[world_id] = _agent_logs[world_id][-50:]
 
-    # Step 5: Notify Telegram
+    # Persist log to world data (capped at 100 entries)
+    world.agent_logs.append(log_entry)
+    world.agent_logs = world.agent_logs[-100:]
+    save_world(world)
+
+    # Step 5: Notify Telegram with rich narrative data
     try:
         from telegram_bot import notify_linked_chats
 
         action_label = {"simulate": "Simulated", "intervene": "Intervened", "focus": "Focused"}.get(action, "Acted")
-        summary = f"World Master (Day {world.current_day}) [{action_label}]\n"
-        summary += f"Reasoning: {decision.get('reasoning', '')[:200]}\n"
-        if action == "intervene":
-            summary += f"Command: {decision.get('intervention_command', '')[:150]}\n"
-        summary += f"Events: {len(events)}\n"
-        for ev in events[:3]:
-            summary += f"- {ev.title}\n"
-        asyncio.create_task(notify_linked_chats(world_id, summary))
+        header = f"World Master (Day {world.current_day}) [{action_label}]"
+        if decision.get("reasoning"):
+            header += f"\n{decision['reasoning'][:200]}"
+
+        asyncio.create_task(notify_linked_chats(
+            world_id,
+            message=header,
+            events=events,
+            prophecy_fulfilled=prophecy_fulfilled_data,
+        ))
     except Exception:
         pass
 
@@ -377,4 +475,14 @@ def is_agent_running(world_id: str) -> bool:
 
 
 def get_agent_logs(world_id: str) -> list:
-    return _agent_logs.get(world_id, [])
+    """Get agent logs -- in-memory first, fall back to persisted world data."""
+    in_memory = _agent_logs.get(world_id, [])
+    if in_memory:
+        return in_memory
+
+    # Fall back to persisted logs from world data
+    world = load_world(world_id)
+    if world and world.agent_logs:
+        return world.agent_logs
+
+    return []

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from store import load_world, save_world
 from simulation import simulate_tick
-from llm import chat_completion, extract_json
+from llm import chat_completion
 from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
 from prompts.obituary import SYSTEM as OBITUARY_SYSTEM, obituary_prompt
-from prompts.prophecy import CHECK_SYSTEM as PROPHECY_CHECK_SYSTEM, check_prophecies_prompt
+from prophecy_checker import check_and_fulfill_prophecies
 
 router = APIRouter(prefix="/api/worlds", tags=["simulation"])
 
@@ -50,38 +50,40 @@ async def run_simulation(world_id: str, days: int = 1):
                     except Exception:
                         pass
 
-        # Check prophecy fulfillment
-        unfulfilled = [p.model_dump() for p in world.prophecies if not p.fulfilled]
-        if unfulfilled and events:
-            try:
-                check_raw = await chat_completion(PROPHECY_CHECK_SYSTEM, check_prophecies_prompt(
-                    unfulfilled,
-                    [e.model_dump() for e in events],
-                ), max_tokens=500)
-                check_data = extract_json(check_raw)
-                for r in check_data.get("results", []):
-                    if r.get("fulfilled"):
-                        for p in world.prophecies:
-                            if p.id == r["prophecy_id"]:
-                                p.fulfilled = True
-                                p.fulfilled_day = world.current_day
-                                p.fulfilled_event_id = r.get("matching_event_id", "")
-            except Exception:
-                pass
+        # Check prophecy fulfillment and create fulfillment events
+        prophecy_events = await check_and_fulfill_prophecies(
+            world, events, world.current_day
+        )
+        if prophecy_events:
+            world.events.extend(prophecy_events)
+            events.extend(prophecy_events)
 
         save_world(world)
         all_events.extend(events)
 
-    # Notify linked Telegram chats
+    # Check for prophecy fulfillment to include in notification
+    prophecy_fulfilled_data = None
+    for p in getattr(world, "prophecies", []):
+        if p.fulfilled and p.fulfilled_day == world.current_day:
+            matching = [e for e in all_events if e.type == "prophecy_fulfilled"]
+            prophecy_fulfilled_data = {
+                "text": p.text,
+                "explanation": matching[0].description if matching else "",
+                "day": world.current_day,
+            }
+            break
+
+    # Notify linked Telegram chats with rich event data
     try:
         from telegram_bot import notify_linked_chats
-        summary = f"\u2694\ufe0f Day {world.current_day} \u2014 {len(all_events)} events\n"
-        for ev in all_events[:5]:
-            summary += f"\u2022 {ev.title}\n"
-        if len(all_events) > 5:
-            summary += f"... and {len(all_events) - 5} more"
         import asyncio
-        asyncio.create_task(notify_linked_chats(world_id, summary))
+        header = f"Day {world.current_day} \u2014 {len(all_events)} events"
+        asyncio.create_task(notify_linked_chats(
+            world_id,
+            message=header,
+            events=all_events,
+            prophecy_fulfilled=prophecy_fulfilled_data,
+        ))
     except Exception:
         pass  # Don't fail simulation if notification fails
 
@@ -105,16 +107,16 @@ async def run_quick_simulation(world_id: str, days: int = 1):
         world = load_world(world_id)
         all_events.extend(events)
 
-    # Notify linked Telegram chats
+    # Notify linked Telegram chats with rich event data (quick sim — no prophecy check)
     try:
         from telegram_bot import notify_linked_chats
-        summary = f"\u2694\ufe0f Day {world.current_day} \u2014 {len(all_events)} events\n"
-        for ev in all_events[:5]:
-            summary += f"\u2022 {ev.title}\n"
-        if len(all_events) > 5:
-            summary += f"... and {len(all_events) - 5} more"
         import asyncio
-        asyncio.create_task(notify_linked_chats(world_id, summary))
+        header = f"Quick sim \u2014 Day {world.current_day} \u2014 {len(all_events)} events"
+        asyncio.create_task(notify_linked_chats(
+            world_id,
+            message=header,
+            events=all_events,
+        ))
     except Exception:
         pass  # Don't fail simulation if notification fails
 

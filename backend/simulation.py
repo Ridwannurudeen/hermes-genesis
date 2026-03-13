@@ -32,6 +32,74 @@ def resolve_conflict(char_a, char_b, relevant_traits: list[str]) -> tuple[str, s
         return char_a.id, char_b.id
     return char_b.id, char_a.id
 
+CHAIN_RULES: dict[str, list[tuple[str, float]]] = {
+    "betrayal": [("military_conflict", 0.4)],
+    "military_conflict": [("succession", 0.3)],
+    "succession": [("political_intrigue", 0.25)],
+    "alliance": [("cultural_shift", 0.2)],
+    "natural_disaster": [("military_conflict", 0.35)],
+}
+
+def _maybe_chain_event(
+    parent: Event,
+    world: World,
+    day: int,
+    event_counter: int,
+) -> Event | None:
+    """Roll for a consequent event triggered by the parent event.
+
+    Returns a new Event with caused_by set, or None if no chain fires.
+    """
+    rules = CHAIN_RULES.get(parent.type)
+    if not rules:
+        return None
+
+    for chain_type, probability in rules:
+        if random.random() >= probability:
+            continue
+
+        # Find two alive characters to participate in the chained event
+        alive = [c for c in world.characters if c.alive]
+        if len(alive) < 2:
+            return None
+
+        # Prefer actors from the parent event's factions
+        parent_factions = set(parent.factions_involved)
+        faction_chars = [c for c in alive if c.faction_id in parent_factions]
+        other_chars = [c for c in alive if c.faction_id not in parent_factions]
+
+        if len(faction_chars) >= 1 and other_chars:
+            actor1 = random.choice(faction_chars)
+            actor2 = random.choice(other_chars)
+        elif len(alive) >= 2:
+            picks = random.sample(alive, 2)
+            actor1, actor2 = picks[0], picks[1]
+        else:
+            return None
+
+        # Resolve who wins
+        trait_map = {t: traits for t, traits, _ in EVENT_TYPES}
+        relevant = trait_map.get(chain_type, ["courage", "resilience"])
+        winner_id, loser_id = resolve_conflict(actor1, actor2, relevant)
+        winner = actor1 if actor1.id == winner_id else actor2
+        loser = actor1 if actor1.id == loser_id else actor2
+
+        return Event(
+            id=f"evt_{day:03d}_chain_{event_counter:02d}",
+            day=day,
+            type=chain_type,
+            title=f"{chain_type.replace('_', ' ').title()}: {winner.name} vs {loser.name} (consequence)",
+            actors=[actor1.id, actor2.id],
+            factions_involved=list(set(filter(None, [actor1.faction_id, actor2.faction_id]))),
+            regions_affected=list(filter(None, [actor1.location or actor2.location])),
+            outcome=EventOutcome(),
+            narrative="",
+            caused_by=parent.id,
+        )
+
+    return None
+
+
 def simulate_tick(world: World) -> list[Event]:
     world.current_day += 1
     day = world.current_day
@@ -136,6 +204,16 @@ def simulate_tick(world: World) -> list[Event]:
             narrative=""
         )
         events.append(event)
+
+    # Chain reaction pass: check newly created events for consequent events
+    chain_counter = 0
+    chained = []
+    for evt in list(events):  # iterate over a copy since we may append
+        chain_counter += 1
+        consequent = _maybe_chain_event(evt, world, day, chain_counter)
+        if consequent:
+            chained.append(consequent)
+    events.extend(chained)
 
     # Deaths for low-fitness characters
     for c in alive_chars:

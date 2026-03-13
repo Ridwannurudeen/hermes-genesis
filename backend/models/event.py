@@ -24,3 +24,6 @@ class Event(BaseModel):
     outcome: EventOutcome = EventOutcome()
     narrative: str = ""
     obituary: str = ""
+    caused_by: str = ""
+    agent_triggered: bool = False
+    prophecy_id: str = ""
