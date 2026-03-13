@@ -184,3 +184,45 @@ def test_maybe_chain_event_insufficient_characters():
         result = _maybe_chain_event(parent, world, day=5, event_counter=1)
 
     assert result is None
+
+
+def test_chain_event_mutates_world_military_conflict():
+    """Military conflict chain: transfers territory, adjusts fitness and morale."""
+    world = _make_world()
+    parent = Event(
+        id="evt_005_01", day=5, type="betrayal", title="Betrayal",
+        actors=["c1", "c2"], factions_involved=["f1", "f2"], regions_affected=["r1"],
+    )
+
+    initial_f2_territory = list(world.factions[1].territory)  # ["r2"]
+    initial_f1_territory = list(world.factions[0].territory)  # ["r1"]
+
+    with patch("simulation.random.random", return_value=0.0):
+        with patch("simulation.random.choice", side_effect=lambda lst: lst[0]):
+            result = _maybe_chain_event(parent, world, day=5, event_counter=1)
+
+    assert result is not None
+    assert result.type == "military_conflict"
+    # Outcome should have real data, not empty
+    assert result.outcome is not None
+    # Character effects should be populated
+    assert len(result.outcome.character_effects) >= 2
+
+
+def test_chain_event_mutates_world_succession():
+    """Succession chain: winner becomes leader, loser becomes former_leader."""
+    world = _make_world()
+    parent = Event(
+        id="evt_005_01", day=5, type="military_conflict", title="Battle",
+        actors=["c1", "c2"], factions_involved=["f1", "f2"], regions_affected=["r1"],
+    )
+
+    with patch("simulation.random.random", return_value=0.0):
+        with patch("simulation.random.choice", side_effect=lambda lst: lst[0]):
+            result = _maybe_chain_event(parent, world, day=5, event_counter=1)
+
+    assert result is not None
+    assert result.type == "succession"
+    # One character should now be "leader" and one "former_leader"
+    roles = {c.role for c in world.characters if c.id in result.actors}
+    assert "leader" in roles or "former_leader" in roles

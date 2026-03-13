@@ -1,10 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from store import load_world, save_world
 from simulation import simulate_tick
-from llm import chat_completion
-from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
-from prompts.obituary import SYSTEM as OBITUARY_SYSTEM, obituary_prompt
-from prophecy_checker import check_and_fulfill_prophecies
+from simulation_rich import simulate_rich_tick
 
 router = APIRouter(prefix="/api/worlds", tags=["simulation"])
 
@@ -15,63 +12,15 @@ async def run_simulation(world_id: str, days: int = 1):
         raise HTTPException(404, "World not found")
 
     all_events = []
-    for _ in range(min(days, 30)):
-        events = simulate_tick(world)
-        world = load_world(world_id)
-
-        world_ctx = f"{world.name}: {world.seed} (Day {world.current_day})"
-        for event in events:
-            if event.type != "death":
-                try:
-                    narrative = await chat_completion(NARRATOR_SYSTEM, event_prompt(event.model_dump(), world_ctx), max_tokens=300)
-                    event.narrative = narrative.strip()
-                    for e in world.events:
-                        if e.id == event.id:
-                            e.narrative = event.narrative
-                except Exception:
-                    event.narrative = event.title
-
-            # Generate obituary for death events
-            if event.type == "death" and event.actors:
-                char_id = event.actors[0]
-                char = next((c for c in world.characters if c.id == char_id), None)
-                if char:
-                    char_events = [e.model_dump() for e in world.events if char_id in e.actors]
-                    try:
-                        obit = await chat_completion(
-                            OBITUARY_SYSTEM,
-                            obituary_prompt(char.model_dump(), char_events, world_ctx),
-                            max_tokens=200
-                        )
-                        event.obituary = obit.strip()
-                        for e in world.events:
-                            if e.id == event.id:
-                                e.obituary = obit.strip()
-                    except Exception:
-                        pass
-
-        # Check prophecy fulfillment and create fulfillment events
-        prophecy_events = await check_and_fulfill_prophecies(
-            world, events, world.current_day
-        )
-        if prophecy_events:
-            world.events.extend(prophecy_events)
-            events.extend(prophecy_events)
-
-        save_world(world)
-        all_events.extend(events)
-
-    # Check for prophecy fulfillment to include in notification
     prophecy_fulfilled_data = None
-    for p in getattr(world, "prophecies", []):
-        if p.fulfilled and p.fulfilled_day == world.current_day:
-            matching = [e for e in all_events if e.type == "prophecy_fulfilled"]
-            prophecy_fulfilled_data = {
-                "text": p.text,
-                "explanation": matching[0].description if matching else "",
-                "day": world.current_day,
-            }
+
+    for _ in range(min(days, 30)):
+        world, events, pf_data = await simulate_rich_tick(world_id)
+        if not world:
             break
+        all_events.extend(events)
+        if pf_data:
+            prophecy_fulfilled_data = pf_data
 
     # Notify linked Telegram chats with rich event data
     try:
@@ -85,7 +34,7 @@ async def run_simulation(world_id: str, days: int = 1):
             prophecy_fulfilled=prophecy_fulfilled_data,
         ))
     except Exception:
-        pass  # Don't fail simulation if notification fails
+        pass
 
     return {
         "world_id": world_id,
@@ -107,7 +56,7 @@ async def run_quick_simulation(world_id: str, days: int = 1):
         world = load_world(world_id)
         all_events.extend(events)
 
-    # Notify linked Telegram chats with rich event data (quick sim — no prophecy check)
+    # Notify linked Telegram chats (quick sim — no prophecy check)
     try:
         from telegram_bot import notify_linked_chats
         import asyncio
@@ -118,7 +67,7 @@ async def run_quick_simulation(world_id: str, days: int = 1):
             events=all_events,
         ))
     except Exception:
-        pass  # Don't fail simulation if notification fails
+        pass
 
     return {
         "world_id": world_id,

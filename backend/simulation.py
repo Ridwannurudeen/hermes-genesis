@@ -132,6 +132,73 @@ def _maybe_chain_event(
         winner = actor1 if actor1.id == winner_id else actor2
         loser = actor1 if actor1.id == loser_id else actor2
 
+        # Apply real world mutations based on chain type
+        outcome = EventOutcome()
+        char_effects = []
+
+        if chain_type == "military_conflict":
+            # Territory transfer: loser's faction loses a region to winner's faction
+            loser_faction = next((f for f in world.factions if f.id == loser.faction_id), None)
+            winner_faction = next((f for f in world.factions if f.id == winner.faction_id), None)
+            if loser_faction and winner_faction and loser_faction.territory:
+                taken_region = random.choice(loser_faction.territory)
+                loser_faction.territory.remove(taken_region)
+                if taken_region not in winner_faction.territory:
+                    winner_faction.territory.append(taken_region)
+                for r in world.geography.regions:
+                    if r.id == taken_region:
+                        r.controlled_by = winner_faction.id
+                outcome.territory_changes = {taken_region: winner_faction.id}
+            # Fitness impact
+            winner.fitness = min(1.0, winner.fitness + 0.08)
+            loser.fitness = max(0.0, loser.fitness - 0.10)
+            char_effects.append(CharacterEffect(char_id=winner.id, effect="fitness", value=0.08))
+            char_effects.append(CharacterEffect(char_id=loser.id, effect="fitness", value=-0.10))
+            # Morale impact
+            if loser_faction:
+                loser_faction.morale = max(0, loser_faction.morale - 8)
+                outcome.morale_changes = {loser_faction.id: -8}
+
+        elif chain_type == "succession":
+            # Leader swap: winner takes a leadership role
+            winner.role = "leader"
+            loser.role = "former_leader"
+            winner.fitness = min(1.0, winner.fitness + 0.12)
+            loser.fitness = max(0.0, loser.fitness - 0.08)
+            char_effects.append(CharacterEffect(char_id=winner.id, effect="fitness", value=0.12))
+            char_effects.append(CharacterEffect(char_id=loser.id, effect="fitness", value=-0.08))
+            # Morale boost for the faction
+            faction = next((f for f in world.factions if f.id == winner.faction_id), None)
+            if faction:
+                faction.morale = min(100, faction.morale + 5)
+                outcome.morale_changes = {faction.id: 5}
+
+        elif chain_type == "political_intrigue":
+            # Morale and fitness impact
+            loser.fitness = max(0.0, loser.fitness - 0.06)
+            winner.fitness = min(1.0, winner.fitness + 0.05)
+            char_effects.append(CharacterEffect(char_id=winner.id, effect="fitness", value=0.05))
+            char_effects.append(CharacterEffect(char_id=loser.id, effect="fitness", value=-0.06))
+            loser_faction = next((f for f in world.factions if f.id == loser.faction_id), None)
+            if loser_faction:
+                loser_faction.morale = max(0, loser_faction.morale - 5)
+                outcome.morale_changes = {loser_faction.id: -5}
+
+        elif chain_type == "cultural_shift":
+            # Alliance formation and morale boost for both
+            f1 = next((f for f in world.factions if f.id == actor1.faction_id), None)
+            f2 = next((f for f in world.factions if f.id == actor2.faction_id), None)
+            if f1 and f2 and f1.id != f2.id:
+                if f2.id not in f1.alliances:
+                    f1.alliances.append(f2.id)
+                if f1.id not in f2.alliances:
+                    f2.alliances.append(f1.id)
+                f1.morale = min(100, f1.morale + 3)
+                f2.morale = min(100, f2.morale + 3)
+                outcome.morale_changes = {f1.id: 3, f2.id: 3}
+
+        outcome.character_effects = char_effects
+
         return Event(
             id=f"evt_{day:03d}_chain_{event_counter:02d}",
             day=day,
@@ -140,7 +207,7 @@ def _maybe_chain_event(
             actors=[actor1.id, actor2.id],
             factions_involved=list(set(filter(None, [actor1.faction_id, actor2.faction_id]))),
             regions_affected=list(filter(None, [actor1.location or actor2.location])),
-            outcome=EventOutcome(),
+            outcome=outcome,
             narrative="",
             caused_by=parent.id,
         )

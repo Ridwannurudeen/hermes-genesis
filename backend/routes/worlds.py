@@ -171,7 +171,7 @@ async def divine_intervention(world_id: str, req: InterveneRequest):
         actors=data.get("actors", []),
         factions_involved=data.get("factions_involved", []),
         regions_affected=data.get("regions_affected", []),
-        agent_triggered=True,
+        agent_triggered=False,
     )
 
     # Apply effects

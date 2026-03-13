@@ -385,3 +385,53 @@ def test_agent_log_persistence():
     assert _agent_logs[wid][-1]["day"] == 5
 
     _agent_logs.pop(wid, None)
+
+
+# -- Tests for agent intervention day alignment --
+
+@pytest.mark.asyncio
+async def test_execute_intervention_event_day_equals_updated_world_day():
+    """Agent intervention event.day must equal the updated world.current_day."""
+    from autonomous_agent import _execute_intervention
+
+    world = _make_world()
+    world.current_day = 10
+    store.save_world(world)
+
+    llm_response = json.dumps({
+        "type": "divine_intervention",
+        "title": "Storm",
+        "description": "desc",
+        "narrative": "narr",
+        "actors": [],
+        "factions_involved": [],
+        "regions_affected": [],
+        "effects": {"morale_changes": {}, "casualties": {}, "character_deaths": [], "territory_changes": {}},
+    })
+
+    with patch("autonomous_agent.chat_completion", new_callable=AsyncMock, return_value=llm_response):
+        with patch("autonomous_agent.extract_json", return_value=json.loads(llm_response)):
+            events, updated_world = await _execute_intervention(world, {"intervention_command": "test"})
+
+    # Event day and world day must be aligned
+    assert events[0].day == updated_world.current_day
+    assert updated_world.current_day == 11  # was 10, now 11
+
+    _cleanup()
+
+
+# -- Test for manual /intervene route: agent_triggered must be False --
+
+def test_manual_intervene_route_sets_agent_triggered_false():
+    """Manual God Mode intervention in routes/worlds.py must NOT set agent_triggered=True."""
+    import ast
+    source = open(os.path.join(os.path.dirname(__file__), "..", "routes", "worlds.py")).read()
+    tree = ast.parse(source)
+
+    # Find the divine_intervention function and check for agent_triggered=False
+    found_false = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.keyword) and node.arg == "agent_triggered":
+            if isinstance(node.value, ast.Constant) and node.value.value is False:
+                found_false = True
+    assert found_false, "routes/worlds.py divine_intervention should set agent_triggered=False"

@@ -200,7 +200,7 @@ async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 async def simulate_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /simulate command — advance 1 day with narrative output."""
+    """Handle /simulate command — advance 1 day with full narrative, obituaries, and prophecy checks."""
     links = load_links()
     chat_id = str(update.effective_chat.id)
     world_id = links.get(chat_id)
@@ -213,8 +213,14 @@ async def simulate_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(f"Linked world '{world_id}' no longer exists.")
         return
 
-    events = simulate_tick(world)
-    world = load_world(world_id)
+    await update.message.reply_text("Simulating... (generating narratives)")
+
+    # Use the rich simulation path (narrator + obituary + prophecy)
+    from simulation_rich import simulate_rich_tick
+    world, events, prophecy_fulfilled_data = await simulate_rich_tick(world_id)
+    if not world:
+        await update.message.reply_text("Simulation failed — world could not be loaded.")
+        return
 
     # Header
     msg_parts = [
@@ -262,6 +268,14 @@ async def simulate_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     except Exception:
         # Fallback to plain text if Markdown parsing fails
         await update.message.reply_text(full_msg)
+
+    # Send dramatic prophecy alert if one was fulfilled
+    if prophecy_fulfilled_data:
+        prophecy_msg = _format_prophecy_fulfilled(prophecy_fulfilled_data)
+        try:
+            await update.message.reply_text(prophecy_msg, parse_mode="Markdown")
+        except Exception:
+            await update.message.reply_text(prophecy_msg)
 
 
 async def unlink_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

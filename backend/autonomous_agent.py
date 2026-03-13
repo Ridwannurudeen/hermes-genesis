@@ -179,10 +179,14 @@ async def _execute_intervention(world, decision: dict) -> tuple:
     raw = await chat_completion(INTERVENTION_SYSTEM, prompt, max_tokens=1000)
     data = extract_json(raw)
 
+    # Advance day FIRST so event is recorded on the new day
+    next_day = world.current_day + 1
+    world.current_day = next_day
+
     # Create the intervention event
     event = Event(
-        id=f"evt_{world.current_day:03d}_agent_{len(world.events)}",
-        day=world.current_day,
+        id=f"evt_{next_day:03d}_agent_{len(world.events)}",
+        day=next_day,
         type="divine_intervention",
         title=data.get("title", "The World Master Acts"),
         description=data.get("description", ""),
@@ -228,14 +232,12 @@ async def _execute_intervention(world, decision: dict) -> tuple:
                     if f.id == new_fid and rid not in f.territory:
                         f.territory.append(rid)
 
-    # Advance day and record event
-    world.current_day += 1
     world.events.append(event)
 
-    # Snapshot faction state
+    # Snapshot faction state on the new day
     for f in world.factions:
         world.faction_snapshots.append({
-            "day": world.current_day,
+            "day": next_day,
             "faction_id": f.id,
             "territory_count": len(f.territory),
             "population": f.population,
