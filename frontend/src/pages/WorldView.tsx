@@ -12,18 +12,20 @@ import type {
   FactionSnapshot,
   Prophecy,
 } from '../types';
-// Core tab components (kept static — always needed quickly)
-import WorldMap from '../components/WorldMap';
-import FactionDashboard from '../components/FactionDashboard';
-import CharacterList from '../components/CharacterList';
-import EventTimeline from '../components/EventTimeline';
-import EvolutionView from '../components/EvolutionView';
+// Only keep truly essential UI that renders on first paint
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
 import VoiceNarrationButton from '../components/VoiceNarrationButton';
 import CharacterDetail from '../components/CharacterDetail';
 import ProphecyPanel from '../components/ProphecyPanel';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
+
+// Lazy-loaded tab content components
+const WorldMap = lazy(() => import('../components/WorldMap'));
+const FactionDashboard = lazy(() => import('../components/FactionDashboard'));
+const CharacterList = lazy(() => import('../components/CharacterList'));
+const EventTimeline = lazy(() => import('../components/EventTimeline'));
+const EvolutionView = lazy(() => import('../components/EvolutionView'));
 
 // Lazy-loaded heavy components (D3, Recharts, modals)
 const RelationshipGraph = lazy(() => import('../components/RelationshipGraph'));
@@ -415,13 +417,15 @@ export default function WorldView() {
           >
             {tab === 'map' && mapData && (
               <div className="relative">
-                <WorldMap
-                  geography={mapData.geography}
-                  factionMap={mapData.factions}
-                  characters={characters}
-                  events={events}
-                  currentDay={world.current_day}
-                />
+                <Suspense fallback={<SkeletonBlock className="h-[600px]" />}>
+                  <WorldMap
+                    geography={mapData.geography}
+                    factionMap={mapData.factions}
+                    characters={characters}
+                    events={events}
+                    currentDay={world.current_day}
+                  />
+                </Suspense>
                 <ProphecyPanel prophecies={prophecies} />
                 {godMode && (
                   <Suspense fallback={<div className="text-gray-400 p-4">Loading god mode...</div>}>
@@ -437,10 +441,12 @@ export default function WorldView() {
               </div>
             )}
             {tab === 'factions' && (
-              <FactionDashboard
-                factions={factions}
-                characters={characters}
-              />
+              <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                <FactionDashboard
+                  factions={factions}
+                  characters={characters}
+                />
+              </Suspense>
             )}
             {tab === 'characters' && (
               <div>
@@ -471,11 +477,13 @@ export default function WorldView() {
                 </div>
 
                 {charView === 'grid' ? (
-                  <CharacterList
-                    characters={characters}
-                    factions={factions}
-                    worldId={world.id}
-                  />
+                  <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                    <CharacterList
+                      characters={characters}
+                      factions={factions}
+                      worldId={world.id}
+                    />
+                  </Suspense>
                 ) : (
                   <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading graph...</div></div>}>
                     <RelationshipGraph
@@ -501,13 +509,19 @@ export default function WorldView() {
               </div>
             )}
             {tab === 'events' && (
-              <EventTimeline
-                events={events}
-                factions={factions}
-                characters={characters}
-              />
+              <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                <EventTimeline
+                  events={events}
+                  factions={factions}
+                  characters={characters}
+                />
+              </Suspense>
             )}
-            {tab === 'evolution' && <EvolutionView data={evolution} />}
+            {tab === 'evolution' && (
+              <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                <EvolutionView data={evolution} />
+              </Suspense>
+            )}
             {tab === 'power' && (
               <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading chart...</div></div>}>
                 <FactionPowerChart
