@@ -10,6 +10,7 @@ import type {
   WorldEvent,
   EvolutionEntry,
   FactionSnapshot,
+  Prophecy,
 } from '../types';
 import WorldMap from '../components/WorldMap';
 import FactionDashboard from '../components/FactionDashboard';
@@ -25,6 +26,7 @@ import CharacterDetail from '../components/CharacterDetail';
 import ChronicleModal from '../components/ChronicleModal';
 import GodModePanel from '../components/GodModePanel';
 import CouncilModal from '../components/CouncilModal';
+import ProphecyPanel from '../components/ProphecyPanel';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
@@ -54,6 +56,7 @@ export default function WorldView() {
   const [events, setEvents] = useState<WorldEvent[]>([]);
   const [evolution, setEvolution] = useState<EvolutionEntry[]>([]);
   const [factionTimeline, setFactionTimeline] = useState<FactionSnapshot[]>([]);
+  const [prophecies, setProphecies] = useState<Prophecy[]>([]);
   const [tab, setTab] = useState<TabKey>('map');
   const [charView, setCharView] = useState<'grid' | 'graph'>('grid');
   const [graphSelectedChar, setGraphSelectedChar] = useState<Character | null>(null);
@@ -97,7 +100,7 @@ export default function WorldView() {
   const fetchAll = useCallback(async () => {
     if (!id) return;
     try {
-      const [w, m, f, c, e, ev, timeline] = await Promise.all([
+      const [w, m, f, c, e, ev, timeline, proph] = await Promise.all([
         api.getWorld(id),
         api.getMap(id),
         api.getFactions(id),
@@ -105,6 +108,7 @@ export default function WorldView() {
         api.getEvents(id),
         api.getEvolution(id),
         api.getFactionTimeline(id),
+        api.getProphecies(id),
       ]);
       setWorld(w);
       setMapData(m);
@@ -113,6 +117,7 @@ export default function WorldView() {
       setEvents(e);
       setEvolution(ev);
       setFactionTimeline(timeline);
+      setProphecies(proph);
     } catch {
       // keep stale data visible
     } finally {
@@ -339,7 +344,7 @@ export default function WorldView() {
             transition={{ duration: 0.2 }}
           >
             {tab === 'map' && mapData && (
-              <div>
+              <div className="relative">
                 <WorldMap
                   geography={mapData.geography}
                   factionMap={mapData.factions}
@@ -347,6 +352,7 @@ export default function WorldView() {
                   events={events}
                   currentDay={world.current_day}
                 />
+                <ProphecyPanel prophecies={prophecies} />
                 {godMode && (
                   <GodModePanel
                     worldId={world.id}

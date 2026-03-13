@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from store import load_world, save_world
 from simulation import simulate_tick
-from llm import chat_completion
+from llm import chat_completion, extract_json
 from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
 from prompts.obituary import SYSTEM as OBITUARY_SYSTEM, obituary_prompt
+from prompts.prophecy import CHECK_SYSTEM as PROPHECY_CHECK_SYSTEM, check_prophecies_prompt
 
 router = APIRouter(prefix="/api/worlds", tags=["simulation"])
 
@@ -48,6 +49,25 @@ async def run_simulation(world_id: str, days: int = 1):
                                 e.obituary = obit.strip()
                     except Exception:
                         pass
+
+        # Check prophecy fulfillment
+        unfulfilled = [p.model_dump() for p in world.prophecies if not p.fulfilled]
+        if unfulfilled and events:
+            try:
+                check_raw = await chat_completion(PROPHECY_CHECK_SYSTEM, check_prophecies_prompt(
+                    unfulfilled,
+                    [e.model_dump() for e in events],
+                ), max_tokens=500)
+                check_data = extract_json(check_raw)
+                for r in check_data.get("results", []):
+                    if r.get("fulfilled"):
+                        for p in world.prophecies:
+                            if p.id == r["prophecy_id"]:
+                                p.fulfilled = True
+                                p.fulfilled_day = world.current_day
+                                p.fulfilled_event_id = r.get("matching_event_id", "")
+            except Exception:
+                pass
 
         save_world(world)
         all_events.extend(events)

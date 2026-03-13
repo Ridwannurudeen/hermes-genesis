@@ -111,6 +111,15 @@ export interface WorldEvent {
   obituary: string;
 }
 
+export interface Prophecy {
+  id: string;
+  text: string;
+  hint: string;
+  fulfilled: boolean;
+  fulfilled_day: number | null;
+  fulfilled_event_id: string;
+}
+
 export interface World {
   id: string;
   name: string;
@@ -122,6 +131,7 @@ export interface World {
   factions: Faction[];
   characters: Character[];
   events: WorldEvent[];
+  prophecies: Prophecy[];
   status: string;
 }
 

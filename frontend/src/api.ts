@@ -6,6 +6,7 @@ import type {
   WorldEvent,
   EvolutionEntry,
   FactionSnapshot,
+  Prophecy,
 } from './types';
 
 const BASE = '';
@@ -120,6 +121,9 @@ export const api = {
 
   getEvolution: (id: string) =>
     fetchJson<EvolutionEntry[]>(`/api/worlds/${id}/evolution`),
+
+  getProphecies: (id: string) =>
+    fetchJson<Prophecy[]>(`/api/worlds/${id}/prophecies`),
 
   getFactionTimeline: (id: string) =>
     fetchJson<FactionSnapshot[]>(`/api/worlds/${id}/faction-timeline`),

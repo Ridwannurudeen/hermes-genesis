@@ -76,6 +76,13 @@ async def get_events(world_id: str, day: int | None = None):
         events = [e for e in events if e.day == day]
     return [e.model_dump() for e in events]
 
+@router.get("/{world_id}/prophecies")
+async def get_prophecies(world_id: str):
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+    return [p.model_dump() for p in world.prophecies]
+
 @router.get("/{world_id}/evolution")
 async def get_evolution(world_id: str):
     world = load_world(world_id)

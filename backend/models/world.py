@@ -5,6 +5,14 @@ from .faction import Faction
 from .character import Character
 from .event import Event
 
+class Prophecy(BaseModel):
+    id: str
+    text: str  # The cryptic prophecy text
+    hint: str = ""  # Hidden condition for fulfillment
+    fulfilled: bool = False
+    fulfilled_day: int | None = None
+    fulfilled_event_id: str = ""
+
 class WorldRules(BaseModel):
     theme: str = ""
     magic_level: str = "none"
@@ -24,5 +32,6 @@ class World(BaseModel):
     characters: list[Character] = []
     events: list[Event] = []
     rules: WorldRules = Field(default_factory=WorldRules)
+    prophecies: list[Prophecy] = []
     status: str = "generating"
     faction_snapshots: list[dict] = []
