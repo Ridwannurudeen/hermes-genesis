@@ -8,6 +8,10 @@ interface AgentLog {
   day: number;
   reasoning: string;
   decision: string;
+  action: string;
+  intervention_command: string | null;
+  focus_faction: string | null;
+  focus_character: string | null;
   narrative_arc: string;
   urgency: string;
   events_generated: number;
@@ -23,6 +27,21 @@ const URGENCY_COLORS: Record<string, string> = {
   low: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   high: 'bg-red-500/10 text-red-400 border-red-500/20',
+};
+
+const ACTION_BADGES: Record<string, { label: string; className: string }> = {
+  simulate: {
+    label: 'SIMULATE',
+    className: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
+  },
+  intervene: {
+    label: 'INTERVENE',
+    className: 'bg-red-500/15 text-red-400 border-red-500/30',
+  },
+  focus: {
+    label: 'FOCUS',
+    className: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  },
 };
 
 const INTERVAL_OPTIONS = [
@@ -259,80 +278,119 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
           </div>
         ) : (
           <div className="divide-y divide-gray-800/40">
-            {reversedLogs.map((log, i) => (
-              <motion.div
-                key={`${log.timestamp}-${i}`}
-                initial={i === 0 ? { opacity: 0, y: -10 } : false}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-4 text-sm transition-colors hover:bg-gray-900/50 ${
-                  log.urgency === 'high'
-                    ? 'border-l-2 border-l-red-500/60'
-                    : log.urgency === 'low'
-                    ? 'border-l-2 border-l-emerald-500/30'
-                    : ''
-                }`}
-              >
-                {/* Header row */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-gray-600 text-xs font-mono">
-                    {formatTime(log.timestamp)}
-                  </span>
-                  <span className="text-gray-800">|</span>
-                  <span className="text-gray-500 text-xs font-medium">
-                    Day {log.day}
-                  </span>
-                  {log.urgency && (
+            {reversedLogs.map((log, i) => {
+              const actionBadge = ACTION_BADGES[log.action] || ACTION_BADGES.simulate;
+              return (
+                <motion.div
+                  key={`${log.timestamp}-${i}`}
+                  initial={i === 0 ? { opacity: 0, y: -10 } : false}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-4 text-sm transition-colors hover:bg-gray-900/50 ${
+                    log.action === 'intervene'
+                      ? 'border-l-2 border-l-red-500/60'
+                      : log.action === 'focus'
+                      ? 'border-l-2 border-l-blue-500/50'
+                      : log.urgency === 'high'
+                      ? 'border-l-2 border-l-amber-500/40'
+                      : log.urgency === 'low'
+                      ? 'border-l-2 border-l-emerald-500/30'
+                      : ''
+                  }`}
+                >
+                  {/* Header row */}
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="text-gray-600 text-xs font-mono">
+                      {formatTime(log.timestamp)}
+                    </span>
+                    <span className="text-gray-800">|</span>
+                    <span className="text-gray-500 text-xs font-medium">
+                      Day {log.day}
+                    </span>
+
+                    {/* Action badge */}
                     <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold uppercase tracking-wider ${
-                        URGENCY_COLORS[log.urgency] || URGENCY_COLORS.medium
-                      }`}
+                      className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${actionBadge.className}`}
                     >
-                      {log.urgency}
+                      {actionBadge.label}
                     </span>
-                  )}
-                  {log.events_generated !== undefined && (
-                    <span className="text-gray-600 text-xs ml-auto">
-                      {log.events_generated} event
-                      {log.events_generated !== 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
 
-                {/* Reasoning */}
-                {log.reasoning && (
-                  <p className="text-gray-300 text-xs leading-relaxed mb-2">
-                    {log.reasoning}
-                  </p>
-                )}
+                    {/* Urgency badge */}
+                    {log.urgency && (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold uppercase tracking-wider ${
+                          URGENCY_COLORS[log.urgency] || URGENCY_COLORS.medium
+                        }`}
+                      >
+                        {log.urgency}
+                      </span>
+                    )}
 
-                {/* Decision */}
-                {log.decision && (
-                  <p className="text-cyan-400/80 text-xs mb-1">
-                    <span className="text-gray-500 font-medium">Decision:</span>{' '}
-                    {log.decision}
-                  </p>
-                )}
-
-                {/* Narrative arc */}
-                {log.narrative_arc && (
-                  <p className="text-purple-400/70 text-xs mb-1">
-                    <span className="text-gray-500 font-medium">Arc:</span>{' '}
-                    {log.narrative_arc}
-                  </p>
-                )}
-
-                {/* Event titles */}
-                {log.event_titles && log.event_titles.length > 0 && (
-                  <div className="mt-2 pl-2 border-l border-gray-800">
-                    {log.event_titles.map((title, j) => (
-                      <p key={j} className="text-amber-400/60 text-xs">
-                        {title}
-                      </p>
-                    ))}
+                    {log.events_generated !== undefined && (
+                      <span className="text-gray-600 text-xs ml-auto">
+                        {log.events_generated} event
+                        {log.events_generated !== 1 ? 's' : ''}
+                      </span>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            ))}
+
+                  {/* Reasoning */}
+                  {log.reasoning && (
+                    <p className="text-gray-300 text-xs leading-relaxed mb-2">
+                      {log.reasoning}
+                    </p>
+                  )}
+
+                  {/* Decision */}
+                  {log.decision && (
+                    <p className="text-cyan-400/80 text-xs mb-1">
+                      <span className="text-gray-500 font-medium">Decision:</span>{' '}
+                      {log.decision}
+                    </p>
+                  )}
+
+                  {/* Intervention command (only for intervene actions) */}
+                  {log.action === 'intervene' && log.intervention_command && (
+                    <p className="text-red-400/70 text-xs mb-1">
+                      <span className="text-gray-500 font-medium">Command:</span>{' '}
+                      <span className="italic">{log.intervention_command}</span>
+                    </p>
+                  )}
+
+                  {/* Focus target (only for focus actions) */}
+                  {log.action === 'focus' && (log.focus_faction || log.focus_character) && (
+                    <p className="text-blue-400/70 text-xs mb-1">
+                      <span className="text-gray-500 font-medium">Focus:</span>{' '}
+                      {log.focus_faction && (
+                        <span>Faction: {log.focus_faction}</span>
+                      )}
+                      {log.focus_faction && log.focus_character && ' / '}
+                      {log.focus_character && (
+                        <span>Character: {log.focus_character}</span>
+                      )}
+                    </p>
+                  )}
+
+                  {/* Narrative arc */}
+                  {log.narrative_arc && (
+                    <p className="text-purple-400/70 text-xs mb-1">
+                      <span className="text-gray-500 font-medium">Arc:</span>{' '}
+                      {log.narrative_arc}
+                    </p>
+                  )}
+
+                  {/* Event titles */}
+                  {log.event_titles && log.event_titles.length > 0 && (
+                    <div className="mt-2 pl-2 border-l border-gray-800">
+                      {log.event_titles.map((title, j) => (
+                        <p key={j} className="text-amber-400/60 text-xs">
+                          {title}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>

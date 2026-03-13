@@ -12,26 +12,36 @@ logger = logging.getLogger(__name__)
 # In-memory state for running agents
 _running_agents: dict[str, bool] = {}  # world_id -> active
 _agent_logs: dict[str, list] = {}  # world_id -> list of log entries
+_agent_plans: dict[str, str] = {}  # world_id -> current narrative arc/plan
 
 AGENT_SYSTEM = """You are the World Master -- an autonomous AI agent governing a living fantasy world.
 You observe the current state and decide what should happen next.
 
-Analyze the world and return ONLY valid JSON:
-{
-  "reasoning": "2-3 sentences explaining your analysis of the current state and tensions",
-  "decision": "1 sentence describing what you've decided should happen",
-  "focus_faction": "faction_id you're focusing on (or null)",
-  "focus_character": "character_id you're focusing on (or null)",
-  "narrative_arc": "Brief description of the story arc you're building toward",
-  "urgency": "low|medium|high -- how dramatic should the next events be"
-}
+You have THREE actions available:
+1. "simulate" -- Let the world run naturally. Use when tensions are building and you want organic events.
+2. "intervene" -- Create a specific dramatic event. Use when you want to force a crisis, fulfill a prophecy, or create a turning point. You MUST provide intervention_command with a natural language description of what happens.
+3. "focus" -- Run simulation but steer it toward a specific faction or character. Use when you want to develop a particular storyline.
 
-Consider:
+Guidelines:
 - Which factions are in tension? Who's growing too powerful?
 - Are any characters near death (low fitness)? Any rising stars?
 - What prophecies remain unfulfilled? Can you nudge events toward fulfillment?
 - What would make the most compelling story right now?
-- Don't let the world stagnate -- create drama, tension, consequences."""
+- Don't let the world stagnate -- create drama, tension, consequences.
+- Use "intervene" sparingly for high-impact moments. Most ticks should be "simulate" or "focus".
+- When using "focus", always specify a valid faction_id or character_id from the world data.
+
+Return ONLY valid JSON:
+{
+  "reasoning": "2-3 sentences analyzing current state and tensions",
+  "action": "simulate|intervene|focus",
+  "decision": "1 sentence describing your choice",
+  "intervention_command": "what happens (required if action=intervene, null otherwise)",
+  "focus_faction": "faction_id (if action=focus, null otherwise)",
+  "focus_character": "character_id (if action=focus, null otherwise)",
+  "narrative_arc": "the multi-day story you're building toward",
+  "urgency": "low|medium|high"
+}"""
 
 
 def _build_observation(world) -> str:
@@ -82,38 +92,189 @@ PROPHECIES:
 What should happen next in this world? Analyze and decide."""
 
 
+async def _execute_intervention(world, decision: dict) -> tuple:
+    """Execute an agent intervention -- create a specific event via the LLM.
+    Returns (events, world) tuple. World may be reloaded on failure."""
+    from prompts.intervention import SYSTEM as INTERVENTION_SYSTEM, intervention_prompt
+    from models.event import Event
+
+    command = decision.get("intervention_command", decision.get("decision", "Something dramatic happens"))
+
+    prompt = intervention_prompt(
+        command,
+        world.name,
+        world.seed,
+        world.current_day,
+        [r.model_dump() for r in world.geography.regions],
+        [f.model_dump() for f in world.factions],
+        [c.model_dump() for c in world.characters],
+    )
+
+    raw = await chat_completion(INTERVENTION_SYSTEM, prompt, max_tokens=1000)
+    data = extract_json(raw)
+
+    # Create the intervention event
+    event = Event(
+        id=f"evt_{world.current_day:03d}_agent_{len(world.events)}",
+        day=world.current_day,
+        type="divine_intervention",
+        title=data.get("title", "The World Master Acts"),
+        description=data.get("description", ""),
+        narrative=data.get("narrative", ""),
+        actors=data.get("actors", []),
+        factions_involved=data.get("factions_involved", []),
+        regions_affected=data.get("regions_affected", []),
+    )
+
+    # Apply effects (same logic as routes/worlds.py divine_intervention endpoint)
+    effects = data.get("effects", {})
+
+    # Morale changes
+    for fid, change in effects.get("morale_changes", {}).items():
+        for f in world.factions:
+            if f.id == fid:
+                f.morale = max(0, min(100, f.morale + change))
+
+    # Casualties
+    for fid, count in effects.get("casualties", {}).items():
+        for f in world.factions:
+            if f.id == fid:
+                f.population = max(0, f.population - count)
+
+    # Character deaths
+    for cid in effects.get("character_deaths", []):
+        for c in world.characters:
+            if c.id == cid:
+                c.alive = False
+
+    # Territory changes
+    for rid, new_fid in effects.get("territory_changes", {}).items():
+        for r in world.geography.regions:
+            if r.id == rid:
+                old_fid = r.controlled_by
+                if old_fid:
+                    for f in world.factions:
+                        if f.id == old_fid and rid in f.territory:
+                            f.territory.remove(rid)
+                r.controlled_by = new_fid
+                for f in world.factions:
+                    if f.id == new_fid and rid not in f.territory:
+                        f.territory.append(rid)
+
+    # Advance day and record event
+    world.current_day += 1
+    world.events.append(event)
+
+    # Snapshot faction state
+    for f in world.factions:
+        world.faction_snapshots.append({
+            "day": world.current_day,
+            "faction_id": f.id,
+            "territory_count": len(f.territory),
+            "population": f.population,
+            "morale": f.morale,
+        })
+
+    save_world(world)
+    return [event], world
+
+
+def _apply_focus_bias(world, decision: dict) -> None:
+    """Bias world state slightly to steer simulation toward focused faction/character."""
+    focus_fid = decision.get("focus_faction")
+    focus_cid = decision.get("focus_character")
+
+    if focus_fid:
+        for f in world.factions:
+            if f.id == focus_fid:
+                # Pressure creates drama -- lower morale to generate tension events
+                if decision.get("urgency") == "high":
+                    f.morale = max(0, f.morale - 15)
+                elif decision.get("urgency") == "medium":
+                    f.morale = max(0, f.morale - 8)
+                break
+
+    if focus_cid:
+        for c in world.characters:
+            if c.id == focus_cid and c.alive:
+                # Boost fitness to make them more likely to appear in events
+                c.fitness = min(1.0, c.fitness + 0.15)
+                break
+
+    save_world(world)
+
+
 async def agent_tick(world_id: str):
-    """One autonomous agent tick: observe, reason, act."""
+    """One autonomous agent tick: observe, reason, act based on LLM decision."""
     world = load_world(world_id)
     if not world:
         return None
 
     # Step 1: Observe and Reason
     observation = _build_observation(world)
+
+    # Include the agent's previous plan if it exists
+    if world_id in _agent_plans:
+        observation += f"\n\nYOUR PREVIOUS PLAN: {_agent_plans[world_id]}"
+        observation += "\nContinue or revise this plan based on what has happened."
+
     try:
         raw = await chat_completion(
-            AGENT_SYSTEM, observation, max_tokens=500, temperature=0.9
+            AGENT_SYSTEM, observation, max_tokens=600, temperature=0.9
         )
         decision = extract_json(raw)
     except Exception as e:
         logger.warning(f"Agent reasoning failed for {world_id}: {e}")
         decision = {
+            "action": "simulate",
             "reasoning": "Could not analyze -- proceeding with standard simulation",
             "decision": "Run normal simulation tick",
             "narrative_arc": "unknown",
             "urgency": "medium",
         }
 
-    # Step 2: Act -- run simulation
-    events = simulate_tick(world)
-    world = load_world(world_id)  # Reload after tick
+    action = decision.get("action", "simulate")
 
-    # Step 3: Generate narrative for events (for non-death events)
+    # Validate action value
+    if action not in ("simulate", "intervene", "focus"):
+        logger.warning(f"Agent returned invalid action '{action}', falling back to simulate")
+        action = "simulate"
+
+    # Persist the narrative arc as the agent's ongoing plan
+    arc = decision.get("narrative_arc", "")
+    if arc:
+        _agent_plans[world_id] = arc
+
+    # Step 2: Act based on decision
+    events = []
+
+    if action == "intervene" and decision.get("intervention_command"):
+        try:
+            events, world = await _execute_intervention(world, decision)
+        except Exception as e:
+            logger.warning(f"Agent intervention failed, falling back to simulate: {e}")
+            action = "simulate"  # Update action for logging accuracy
+            world = load_world(world_id)
+            events = simulate_tick(world)
+            world = load_world(world_id)
+
+    elif action == "focus":
+        _apply_focus_bias(world, decision)
+        world = load_world(world_id)  # Reload after bias save
+        events = simulate_tick(world)
+        world = load_world(world_id)
+
+    else:
+        # Default: normal simulation
+        events = simulate_tick(world)
+        world = load_world(world_id)
+
+    # Step 3: Generate narrative for events (for non-death events without narratives)
     from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
 
     world_ctx = f"{world.name}: {world.seed} (Day {world.current_day})"
     for event in events:
-        if event.type != "death":
+        if event.type != "death" and not event.narrative:
             try:
                 narrative = await chat_completion(
                     NARRATOR_SYSTEM,
@@ -129,12 +290,16 @@ async def agent_tick(world_id: str):
 
     save_world(world)
 
-    # Step 4: Log the decision
+    # Step 4: Log the decision with action taken visible
     log_entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "day": world.current_day,
         "reasoning": decision.get("reasoning", ""),
         "decision": decision.get("decision", ""),
+        "action": action,
+        "intervention_command": decision.get("intervention_command") or None,
+        "focus_faction": decision.get("focus_faction") or None,
+        "focus_character": decision.get("focus_character") or None,
         "narrative_arc": decision.get("narrative_arc", ""),
         "urgency": decision.get("urgency", "medium"),
         "events_generated": len(events),
@@ -151,8 +316,11 @@ async def agent_tick(world_id: str):
     try:
         from telegram_bot import notify_linked_chats
 
-        summary = f"World Master (Day {world.current_day})\n"
+        action_label = {"simulate": "Simulated", "intervene": "Intervened", "focus": "Focused"}.get(action, "Acted")
+        summary = f"World Master (Day {world.current_day}) [{action_label}]\n"
         summary += f"Reasoning: {decision.get('reasoning', '')[:200]}\n"
+        if action == "intervene":
+            summary += f"Command: {decision.get('intervention_command', '')[:150]}\n"
         summary += f"Events: {len(events)}\n"
         for ev in events[:3]:
             summary += f"- {ev.title}\n"
@@ -161,7 +329,7 @@ async def agent_tick(world_id: str):
         pass
 
     logger.info(
-        f"Agent tick for {world_id}: day={world.current_day}, "
+        f"Agent tick for {world_id}: day={world.current_day}, action={action}, "
         f"events={len(events)}, urgency={decision.get('urgency', 'medium')}"
     )
 

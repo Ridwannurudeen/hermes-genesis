@@ -218,6 +218,10 @@ export const api = {
       day: number;
       reasoning: string;
       decision: string;
+      action: string;
+      intervention_command: string | null;
+      focus_faction: string | null;
+      focus_character: string | null;
       narrative_arc: string;
       urgency: string;
       events_generated: number;
