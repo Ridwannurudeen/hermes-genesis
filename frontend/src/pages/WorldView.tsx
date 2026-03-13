@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll } from 'lucide-react';
+import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play } from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -29,6 +29,7 @@ import CouncilModal from '../components/CouncilModal';
 import ProphecyPanel from '../components/ProphecyPanel';
 import AutonomousAgentPanel from '../components/AutonomousAgentPanel';
 import CampaignKitModal from '../components/CampaignKitModal';
+import CinematicMode from '../components/CinematicMode';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
 type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
@@ -75,6 +76,7 @@ export default function WorldView() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
   const [showCampaignKit, setShowCampaignKit] = useState(false);
+  const [showCinematic, setShowCinematic] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
@@ -314,6 +316,13 @@ export default function WorldView() {
                 <BookOpen className="w-5 h-5" />
               </button>
               <button
+                onClick={() => setShowCinematic(true)}
+                title="Cinematic Mode"
+                className="p-2 text-gray-400 hover:text-rose-400 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Play className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setShowCampaignKit(true)}
                 title="Campaign Kit (TTRPG)"
                 className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
@@ -506,6 +515,24 @@ export default function WorldView() {
           worldId={world.id}
           worldName={world.name}
           onClose={() => setShowCampaignKit(false)}
+        />
+      )}
+
+      {/* Cinematic Mode */}
+      {showCinematic && mapData && (
+        <CinematicMode
+          worldId={world.id}
+          worldName={world.name}
+          currentDay={world.current_day}
+          geography={mapData.geography}
+          factionMap={mapData.factions}
+          characters={characters}
+          events={events}
+          onClose={() => setShowCinematic(false)}
+          onNewEvents={(newEvents) => {
+            setEvents((prev) => [...prev, ...newEvents]);
+            fetchAll();
+          }}
         />
       )}
     </div>
