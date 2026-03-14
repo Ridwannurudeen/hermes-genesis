@@ -60,15 +60,9 @@ export default function CinematicMode({
   const eventQueueRef = useRef<WorldEvent[]>([]);
   const displayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(true);
-  const scenesEnabledRef = useRef(false);
   const sceneCache = useRef<Map<string, string>>(new Map());
 
   const { speak } = useVoiceNarration(true);
-
-  // Check if scene generation is available
-  useEffect(() => {
-    api.sceneStatus().then((s) => { scenesEnabledRef.current = s.enabled; }).catch(() => {});
-  }, []);
 
   // Lock body scroll
   useEffect(() => {
@@ -89,7 +83,6 @@ export default function CinematicMode({
 
   // Fetch scene image for an event (async, non-blocking)
   const fetchSceneImage = useCallback(async (evt: WorldEvent) => {
-    if (!scenesEnabledRef.current) return;
     const cacheKey = `${evt.type}:${evt.title}`;
     const cached = sceneCache.current.get(cacheKey);
     if (cached) {
@@ -100,14 +93,14 @@ export default function CinematicMode({
     try {
       const res = await api.generateScene(evt.type, evt.title);
       if (res.image && activeRef.current) {
-        const dataUrl = `data:image/png;base64,${res.image}`;
+        const dataUrl = `data:image/jpeg;base64,${res.image}`;
         sceneCache.current.set(cacheKey, dataUrl);
         setSceneImage(dataUrl);
       }
     } catch {
       // Fallback to gradient — no error shown
     } finally {
-      setSceneLoading(false);
+      if (activeRef.current) setSceneLoading(false);
     }
   }, []);
 
