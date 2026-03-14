@@ -8,6 +8,7 @@ from config import HOST, PORT, API_KEY, CORS_ORIGINS
 from routes.worlds import router as worlds_router
 from routes.simulate import router as simulate_router
 from routes.stream import router as stream_router
+from routes.scenes import router as scenes_router
 from telegram_bot import create_bot
 from rate_limit import rate_limit_middleware
 
@@ -60,6 +61,7 @@ app.middleware("http")(rate_limit_middleware)
 app.include_router(worlds_router)
 app.include_router(simulate_router)
 app.include_router(stream_router)
+app.include_router(scenes_router)
 
 @app.get("/api/health")
 async def health():

@@ -7,6 +7,23 @@ import { EVENT_TYPE_ICONS } from '../types';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 import WorldMap from './WorldMap';
 
+/** CSS gradient fallbacks per event type — shown while AI image loads or when unavailable */
+const SCENE_GRADIENTS: Record<string, string> = {
+  military_conflict: 'radial-gradient(ellipse at 30% 40%, #7f1d1d 0%, #450a0a 40%, #1a0505 100%)',
+  betrayal: 'radial-gradient(ellipse at 50% 60%, #3b0764 0%, #1e1b4b 40%, #0a0a0a 100%)',
+  alliance: 'radial-gradient(ellipse at 60% 30%, #854d0e 0%, #713f12 30%, #1a1505 100%)',
+  succession: 'radial-gradient(ellipse at 50% 20%, #a16207 0%, #78350f 40%, #1a1005 100%)',
+  political_intrigue: 'radial-gradient(ellipse at 40% 50%, #1e3a5f 0%, #0f172a 50%, #020617 100%)',
+  cultural_shift: 'radial-gradient(ellipse at 50% 50%, #164e63 0%, #134e4a 40%, #042f2e 100%)',
+  natural_disaster: 'radial-gradient(ellipse at 50% 70%, #9a3412 0%, #7c2d12 30%, #1c1917 100%)',
+  death: 'radial-gradient(ellipse at 50% 50%, #1f2937 0%, #111827 40%, #030712 100%)',
+  birth: 'radial-gradient(ellipse at 50% 30%, #fbbf24 0%, #b45309 30%, #1a1005 100%)',
+  divine_intervention: 'radial-gradient(ellipse at 50% 20%, #7c3aed 0%, #4338ca 30%, #0f0a1e 100%)',
+  discovery: 'radial-gradient(ellipse at 60% 40%, #0d9488 0%, #115e59 40%, #042f2e 100%)',
+  agent_intervention: 'radial-gradient(ellipse at 50% 50%, #6366f1 0%, #312e81 40%, #0a0a2e 100%)',
+  prophecy_fulfilled: 'radial-gradient(ellipse at 50% 40%, #a855f7 0%, #6b21a8 30%, #1e1b4b 100%)',
+};
+
 interface Props {
   worldId: string;
   worldName: string;
@@ -38,11 +55,20 @@ export default function CinematicMode({
   const [replayProgress, setReplayProgress] = useState(0);
   const [replayTotal, setReplayTotal] = useState(0);
   const [replayDone, setReplayDone] = useState(false);
+  const [sceneImage, setSceneImage] = useState<string | null>(null);
+  const [sceneLoading, setSceneLoading] = useState(false);
+  const [scenesEnabled, setScenesEnabled] = useState(false);
   const eventQueueRef = useRef<WorldEvent[]>([]);
   const displayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(true);
+  const sceneCache = useRef<Map<string, string>>(new Map());
 
   const { speak } = useVoiceNarration(true);
+
+  // Check if scene generation is available
+  useEffect(() => {
+    api.sceneStatus().then((s) => setScenesEnabled(s.enabled)).catch(() => {});
+  }, []);
 
   // Lock body scroll
   useEffect(() => {
@@ -61,15 +87,44 @@ export default function CinematicMode({
     };
   }, []);
 
-  // Process event queue one at a time with 4s display
+  // Fetch scene image for an event (async, non-blocking)
+  const fetchSceneImage = useCallback(async (evt: WorldEvent) => {
+    if (!scenesEnabled) return;
+    const cacheKey = `${evt.type}:${evt.title}`;
+    const cached = sceneCache.current.get(cacheKey);
+    if (cached) {
+      setSceneImage(cached);
+      return;
+    }
+    setSceneLoading(true);
+    try {
+      const res = await api.generateScene(evt.type, evt.title);
+      if (res.image && activeRef.current) {
+        const dataUrl = `data:image/webp;base64,${res.image}`;
+        sceneCache.current.set(cacheKey, dataUrl);
+        setSceneImage(dataUrl);
+      }
+    } catch {
+      // Fallback to gradient — no error shown
+    } finally {
+      setSceneLoading(false);
+    }
+  }, [scenesEnabled]);
+
+  // Process event queue one at a time with 6s display (longer to show images)
   const processQueue = useCallback(() => {
     if (!activeRef.current) return;
     if (eventQueueRef.current.length === 0) {
       setDisplayedEvent(null);
+      setSceneImage(null);
       return;
     }
     const next = eventQueueRef.current.shift()!;
     setDisplayedEvent(next);
+    setSceneImage(null);
+
+    // Fetch scene image async (non-blocking)
+    fetchSceneImage(next);
 
     // Narrate the event
     const text = next.narrative || next.title;
@@ -78,12 +133,13 @@ export default function CinematicMode({
     displayTimerRef.current = setTimeout(() => {
       if (!activeRef.current) return;
       setDisplayedEvent(null);
+      setSceneImage(null);
       // Small gap before next card
       displayTimerRef.current = setTimeout(() => {
         processQueue();
-      }, 500);
-    }, 4000);
-  }, [speak]);
+      }, 800);
+    }, 6000);
+  }, [speak, fetchSceneImage]);
 
   // REPLAY MODE: play through all past events
   useEffect(() => {
@@ -119,8 +175,8 @@ export default function CinematicMode({
       // Process queue, then after all events displayed, move to next day
       processQueue();
 
-      // Wait enough time for all events to display (4.5s per event) plus buffer
-      const waitMs = dayEvents.length * 4500 + 1000;
+      // Wait enough time for all events to display (6.8s per event) plus buffer
+      const waitMs = dayEvents.length * 6800 + 1000;
       displayTimerRef.current = setTimeout(() => {
         dayIndex++;
         playNextDay();
@@ -238,6 +294,56 @@ export default function CinematicMode({
         <X className="w-6 h-6" />
       </button>
 
+      {/* Scene image background — fullscreen behind event card */}
+      <AnimatePresence>
+        {displayedEvent && (
+          <motion.div
+            key={`scene-${displayedEvent.id}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0 z-[5]"
+          >
+            {/* CSS gradient fallback (always present) */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: SCENE_GRADIENTS[displayedEvent.type] ||
+                  'radial-gradient(ellipse at 50% 50%, #1a1a2e 0%, #0a0a0a 100%)',
+                opacity: sceneImage ? 0.3 : 0.85,
+                transition: 'opacity 1s ease',
+              }}
+            />
+            {/* AI-generated scene image */}
+            {sceneImage && (
+              <motion.img
+                src={sceneImage}
+                alt=""
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.7 }}
+                transition={{ duration: 1.2 }}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            {/* Dark overlay for text readability */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.3) 100%)',
+              }}
+            />
+            {/* Scene loading indicator */}
+            {sceneLoading && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-genesis-400 animate-pulse" />
+                <span className="text-[10px] text-white/20 uppercase tracking-widest">Generating scene...</span>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Event title card — centered */}
       <AnimatePresence mode="wait">
         {displayedEvent && (
@@ -255,7 +361,7 @@ export default function CinematicMode({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.4 }}
-                className="text-5xl mb-4"
+                className="text-6xl mb-6 drop-shadow-2xl"
               >
                 {eventIcon}
               </motion.div>
@@ -265,10 +371,10 @@ export default function CinematicMode({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-3xl md:text-4xl font-bold text-white leading-tight"
+                className="text-4xl md:text-5xl font-bold text-white leading-tight"
                 style={{
                   textShadow:
-                    '0 2px 20px rgba(0,0,0,0.8), 0 4px 40px rgba(0,0,0,0.6)',
+                    '0 2px 20px rgba(0,0,0,0.9), 0 4px 40px rgba(0,0,0,0.7), 0 0 80px rgba(0,0,0,0.5)',
                 }}
               >
                 {displayedEvent.title}
@@ -280,13 +386,13 @@ export default function CinematicMode({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.6 }}
-                  className="mt-4 text-lg text-white/60 italic max-w-xl mx-auto"
+                  className="mt-6 text-xl text-white/70 italic max-w-2xl mx-auto leading-relaxed"
                   style={{
-                    textShadow: '0 2px 12px rgba(0,0,0,0.9)',
+                    textShadow: '0 2px 16px rgba(0,0,0,0.95), 0 0 40px rgba(0,0,0,0.5)',
                   }}
                 >
-                  {displayedEvent.narrative.length > 160
-                    ? displayedEvent.narrative.slice(0, 160) + '...'
+                  {displayedEvent.narrative.length > 200
+                    ? displayedEvent.narrative.slice(0, 200) + '...'
                     : displayedEvent.narrative}
                 </motion.p>
               )}
@@ -296,10 +402,10 @@ export default function CinematicMode({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
-                className="mt-6"
+                className="mt-8"
               >
                 <span
-                  className="inline-block px-3 py-1 text-xs uppercase tracking-widest rounded-full bg-white/10 text-white/50 backdrop-blur-sm"
+                  className="inline-block px-4 py-1.5 text-xs uppercase tracking-[0.2em] rounded-full bg-white/10 text-white/60 backdrop-blur-md border border-white/10"
                 >
                   {displayedEvent.type.replace(/_/g, ' ')}
                 </span>

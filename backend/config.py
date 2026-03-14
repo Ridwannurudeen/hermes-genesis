@@ -13,3 +13,6 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 API_KEY = os.getenv("GENESIS_API_KEY", "")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
 MAX_WORLDS = int(os.getenv("MAX_WORLDS", "20"))
+IMAGE_API_KEY = os.getenv("IMAGE_API_KEY", "")
+IMAGE_API_URL = os.getenv("IMAGE_API_URL", "https://api.together.xyz/v1")
+IMAGE_MODEL = os.getenv("IMAGE_MODEL", "black-forest-labs/FLUX.1-schnell-Free")

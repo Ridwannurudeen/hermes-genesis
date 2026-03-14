@@ -231,6 +231,19 @@ export const api = {
       method: 'DELETE',
     }),
 
+  generateScene: (eventType: string, title: string) =>
+    fetchJson<{ image: string | null; cached: boolean; enabled: boolean }>(
+      '/api/scene-image',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_type: eventType, title }),
+      }
+    ),
+
+  sceneStatus: () =>
+    fetchJson<{ enabled: boolean }>('/api/scene-image/status'),
+
   createWorldStream: (
     seed: string,
     handlers: SSEHandler,
