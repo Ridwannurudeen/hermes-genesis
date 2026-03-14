@@ -15,11 +15,11 @@ body {
 .bg-gradient-animated {
   background: linear-gradient(
     135deg,
-    #052e16 0%,
-    #14532d 25%,
-    #064e3b 50%,
-    #1e3a5f 75%,
-    #052e16 100%
+    #0f0520 0%,
+    #1e1145 25%,
+    #0c1631 50%,
+    #1a0a2e 75%,
+    #0f0520 100%
   );
   background-size: 400% 400%;
   animation: gradient-shift 12s ease infinite;
@@ -48,11 +48,11 @@ body {
 .text-shimmer {
   background: linear-gradient(
     90deg,
-    #4ade80 0%,
-    #86efac 25%,
+    #a78bfa 0%,
+    #c4b5fd 25%,
     #ffffff 50%,
-    #86efac 75%,
-    #4ade80 100%
+    #c4b5fd 75%,
+    #a78bfa 100%
   );
   background-size: 200% auto;
   background-clip: text;
@@ -63,8 +63,8 @@ body {
 
 /* ── Glow pulse for Generate button ── */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(74, 222, 128, 0.15), 0 0 40px rgba(74, 222, 128, 0.05); }
-  50% { box-shadow: 0 0 30px rgba(74, 222, 128, 0.3), 0 0 60px rgba(74, 222, 128, 0.1); }
+  0%, 100% { box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 40px rgba(167, 139, 250, 0.05); }
+  50% { box-shadow: 0 0 30px rgba(167, 139, 250, 0.3), 0 0 60px rgba(167, 139, 250, 0.1); }
 }
 
 .btn-glow {
@@ -83,8 +83,8 @@ body {
 }
 
 .card-glow:hover {
-  border-color: rgba(74, 222, 128, 0.3);
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.06), inset 0 0 20px rgba(74, 222, 128, 0.02);
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.06), inset 0 0 20px rgba(167, 139, 250, 0.02);
 }
 
 /* ── Frosted glass ── */
@@ -104,18 +104,18 @@ body {
 }
 
 .glass-input:focus {
-  border-color: rgba(74, 222, 128, 0.4);
-  box-shadow: 0 0 30px rgba(74, 222, 128, 0.08), inset 0 0 30px rgba(74, 222, 128, 0.02);
+  border-color: rgba(167, 139, 250, 0.4);
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.08), inset 0 0 30px rgba(167, 139, 250, 0.02);
 }
 
 /* ── Icon neon aura ── */
 .icon-aura {
-  filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.3));
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.3));
   transition: filter 0.3s ease;
 }
 
 .group:hover .icon-aura {
-  filter: drop-shadow(0 0 12px rgba(74, 222, 128, 0.5));
+  filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.5));
 }
 
 /* ── Particle field ── */
@@ -130,7 +130,7 @@ body {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: rgba(74, 222, 128, 0.4);
+  background: rgba(167, 139, 250, 0.4);
   border-radius: 50%;
   animation: particle-float linear infinite;
 }

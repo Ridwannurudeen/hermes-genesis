@@ -84,7 +84,7 @@ const FEATURES = [
     description:
       'Describe any world in natural language. Watch it materialize with regions, factions, and characters — each carrying a unique genetic code that shapes their destiny.',
     size: 'large' as const,
-    accent: 'from-genesis-400 to-emerald-500',
+    accent: 'from-genesis-400 to-violet-500',
   },
   {
     icon: Swords,
@@ -517,7 +517,7 @@ export default function Landing() {
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(74,222,128,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(167,139,250,0.08) 0%, transparent 70%)',
         }}
         aria-hidden="true"
       />

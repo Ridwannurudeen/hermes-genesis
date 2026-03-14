@@ -16,7 +16,7 @@ export default function AutoPlayButton({ active, onToggle, disabled }: Props) {
       disabled={disabled}
       className={`flex items-center gap-2 px-4 py-2.5 font-medium text-sm rounded-lg transition-all ${
         active
-          ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400 shadow-[0_0_15px_rgba(74,222,128,0.15)]'
+          ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400 shadow-[0_0_15px_rgba(167,139,250,0.15)]'
           : 'bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-gray-300 hover:border-white/[0.15]'
       } disabled:opacity-40 disabled:cursor-not-allowed`}
     >
