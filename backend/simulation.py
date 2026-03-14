@@ -53,6 +53,61 @@ def _generate_child_name(parent1_name: str, parent2_name: str, existing_names: s
     # Fallback: prefix + random number suffix
     return random.choice(_NAME_PREFIXES) + random.choice(_NAME_SUFFIXES) + str(random.randint(2, 99))
 
+def repair_leadership(world: World, dead_char_id: str) -> None:
+    """If the dead character was a faction leader, promote the highest-fitness alive member."""
+    for f in world.factions:
+        if f.leader_id == dead_char_id:
+            alive_members = sorted(
+                [c for c in world.characters if c.faction_id == f.id and c.alive],
+                key=lambda c: c.fitness, reverse=True,
+            )
+            if alive_members:
+                new_leader = alive_members[0]
+                new_leader.role = "leader"
+                f.leader_id = new_leader.id
+            else:
+                f.leader_id = ""
+            break
+
+
+def _update_relationships(world: World, event: Event, winner_id: str | None, loser_id: str | None):
+    """Mutate character relationships based on event outcomes."""
+    if not winner_id or not loser_id:
+        return
+
+    winner = next((c for c in world.characters if c.id == winner_id), None)
+    loser = next((c for c in world.characters if c.id == loser_id), None)
+    if not winner or not loser:
+        return
+
+    etype = event.type
+    rel_updates: list[tuple[Character, str, str, float]] = []  # (char, target_id, type, intensity)
+
+    if etype == "military_conflict":
+        rel_updates.append((winner, loser.id, "rival", 0.7))
+        rel_updates.append((loser, winner.id, "enemy", 0.8))
+    elif etype == "betrayal":
+        rel_updates.append((winner, loser.id, "enemy", 0.9))
+        rel_updates.append((loser, winner.id, "enemy", 0.95))
+    elif etype == "alliance":
+        rel_updates.append((winner, loser.id, "ally", 0.7))
+        rel_updates.append((loser, winner.id, "ally", 0.7))
+    elif etype == "succession":
+        rel_updates.append((winner, loser.id, "rival", 0.6))
+        rel_updates.append((loser, winner.id, "enemy", 0.75))
+    elif etype == "political_intrigue":
+        rel_updates.append((winner, loser.id, "rival", 0.5))
+        rel_updates.append((loser, winner.id, "rival", 0.6))
+
+    for char, target_id, rel_type, intensity in rel_updates:
+        existing = next((r for r in char.relationships if r.target_id == target_id), None)
+        if existing:
+            existing.type = rel_type
+            existing.intensity = min(1.0, max(existing.intensity, intensity))
+        else:
+            char.relationships.append(Relationship(target_id=target_id, type=rel_type, intensity=intensity))
+
+
 EVENT_TYPES = [
     ("military_conflict", ["courage", "resilience"], 0.25),
     ("political_intrigue", ["cunning", "ambition"], 0.2),
@@ -160,18 +215,22 @@ def _maybe_chain_event(
                 outcome.morale_changes = {loser_faction.id: -8}
 
         elif chain_type == "succession":
-            # Leader swap: winner takes a leadership role
-            winner.role = "leader"
-            loser.role = "former_leader"
+            # Only fire succession within same faction
+            if winner.faction_id == loser.faction_id:
+                winner.role = "leader"
+                loser.role = "former_leader"
+                faction = next((f for f in world.factions if f.id == winner.faction_id), None)
+                if faction:
+                    faction.leader_id = winner.id
+                    faction.morale = min(100, faction.morale + 5)
+                    outcome.morale_changes = {faction.id: 5}
+            else:
+                # Cross-faction: just a political rivalry, no leadership change
+                loser.role = "disgraced"
             winner.fitness = min(1.0, winner.fitness + 0.12)
             loser.fitness = max(0.0, loser.fitness - 0.08)
             char_effects.append(CharacterEffect(char_id=winner.id, effect="fitness", value=0.12))
             char_effects.append(CharacterEffect(char_id=loser.id, effect="fitness", value=-0.08))
-            # Morale boost for the faction
-            faction = next((f for f in world.factions if f.id == winner.faction_id), None)
-            if faction:
-                faction.morale = min(100, faction.morale + 5)
-                outcome.morale_changes = {faction.id: 5}
 
         elif chain_type == "political_intrigue":
             # Morale and fitness impact
@@ -199,7 +258,7 @@ def _maybe_chain_event(
 
         outcome.character_effects = char_effects
 
-        return Event(
+        chain_event = Event(
             id=f"evt_{day:03d}_chain_{event_counter:02d}",
             day=day,
             type=chain_type,
@@ -211,6 +270,8 @@ def _maybe_chain_event(
             narrative="",
             caused_by=parent.id,
         )
+        _update_relationships(world, chain_event, winner_id, loser_id)
+        return chain_event
 
     return None
 
@@ -223,7 +284,8 @@ def simulate_tick(world: World) -> list[Event]:
     if len(alive_chars) < 2:
         return events
 
-    num_events = random.randint(1, min(3, len(alive_chars) // 2))
+    max_events = max(1, min(5, len(alive_chars) // 4))
+    num_events = random.randint(1, max(1, max_events))
     used_chars = set()
 
     for i in range(num_events):
@@ -293,7 +355,7 @@ def simulate_tick(world: World) -> list[Event]:
                     f.morale = max(0, f.morale - 10)
 
         elif etype == "succession":
-            if loser.role == "leader":
+            if loser.role == "leader" and loser.faction_id == winner.faction_id:
                 loser.role = "exile"
                 winner.role = "leader"
                 for f in world.factions:
@@ -319,6 +381,7 @@ def simulate_tick(world: World) -> list[Event]:
             narrative=""
         )
         events.append(event)
+        _update_relationships(world, event, winner_id, loser_id)
 
     # Chain reaction pass: check newly created events for consequent events
     chain_counter = 0
@@ -334,6 +397,7 @@ def simulate_tick(world: World) -> list[Event]:
     for c in alive_chars:
         if c.fitness < 0.15 and random.random() < 0.3:
             c.alive = False
+            repair_leadership(world, c.id)
             events.append(Event(
                 id=f"evt_{day:03d}_death_{c.id}", day=day, type="death",
                 title=f"{c.name} has fallen",
@@ -380,7 +444,11 @@ def simulate_tick(world: World) -> list[Event]:
                 narrative=""
             ))
 
-    # Snapshot faction state for power timeline
+    # Sync faction population from actual alive character counts
+    for f in world.factions:
+        f.population = sum(1 for c in world.characters if c.faction_id == f.id and c.alive)
+
+    # Snapshot faction state for power timeline (cap at 500 entries)
     for f in world.factions:
         world.faction_snapshots.append({
             "day": day,
@@ -389,6 +457,8 @@ def simulate_tick(world: World) -> list[Event]:
             "population": f.population,
             "morale": f.morale,
         })
+    if len(world.faction_snapshots) > 500:
+        world.faction_snapshots = world.faction_snapshots[-500:]
 
     world.events.extend(events)
     save_world(world)

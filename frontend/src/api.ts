@@ -7,6 +7,7 @@ import type {
   EvolutionEntry,
   FactionSnapshot,
   Prophecy,
+  MapData,
 } from './types';
 
 const BASE = '';
@@ -19,13 +20,13 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
 // SSE Streaming helpers
 type SSEHandler = {
-  onProgress?: (data: any) => void;
-  onEvent?: (eventType: string, data: any) => void;
-  onComplete?: (data: any) => void;
+  onProgress?: (data: { stage: string; detail?: string }) => void;
+  onEvent?: (eventType: string, data: WorldEvent) => void;
+  onComplete?: (data: { id: string }) => void;
   onError?: (error: Error) => void;
 };
 
-function streamSSE(url: string, body: any, handlers: SSEHandler): () => void {
+function streamSSE(url: string, body: Record<string, unknown>, handlers: SSEHandler): () => void {
   const controller = new AbortController();
 
   fetch(`${BASE}${url}`, {
@@ -100,10 +101,7 @@ export const api = {
   getWorld: (id: string) => fetchJson<World>(`/api/worlds/${id}`),
 
   getMap: (id: string) =>
-    fetchJson<{
-      geography: { regions: any[]; connections: any[] };
-      factions: Record<string, { name: string; color: string }>;
-    }>(`/api/worlds/${id}/map`),
+    fetchJson<MapData>(`/api/worlds/${id}/map`),
 
   getFactions: (id: string) =>
     fetchJson<Faction[]>(`/api/worlds/${id}/factions`),
@@ -163,7 +161,7 @@ export const api = {
     ),
 
   intervene: (id: string, command: string) =>
-    fetchJson<{ event: WorldEvent; effects_applied: any }>(
+    fetchJson<{ event: WorldEvent; effects_applied: Record<string, unknown> }>(
       `/api/worlds/${id}/intervene`,
       {
         method: 'POST',

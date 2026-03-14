@@ -15,6 +15,7 @@ import type {
   EvolutionEntry,
   FactionSnapshot,
   Prophecy,
+  MapData,
 } from '../types';
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
@@ -76,10 +77,7 @@ export default function WorldView() {
   // UI state
   const [loading, setLoading] = useState(true);
   const [simulating, setSimulating] = useState(false);
-  const [mapData, setMapData] = useState<{
-    geography: { regions: any[]; connections: any[] };
-    factions: Record<string, { name: string; color: string }>;
-  } | null>(null);
+  const [mapData, setMapData] = useState<MapData | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
   const [showChronicle, setShowChronicle] = useState(false);
   const [godMode, setGodMode] = useState(false);
@@ -325,7 +323,14 @@ export default function WorldView() {
                 >
                   <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-gray-600 group-hover:text-gray-400'}`} />
                   <div className="text-left">
-                    <div>{vm.label}</div>
+                    <div className="flex items-center gap-1.5">
+                      {vm.label}
+                      {vm.key === 'network' && characters.length > 0 && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+                          {characters.filter(c => c.alive).length}
+                        </span>
+                      )}
+                    </div>
                     <div className={`text-[10px] ${isActive ? 'text-genesis-500/70' : 'text-gray-600'}`}>
                       {vm.desc}
                     </div>

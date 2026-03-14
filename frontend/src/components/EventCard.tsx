@@ -243,8 +243,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                                 }
                               >
                                 {factionMap[fid]?.name || fid}:{' '}
-                                {change > 0 ? '+' : ''}
-                                {Math.round(change * 100)}%
+                                {change > 0 ? '+' : ''}{change}
                               </p>
                             ))}
                           </div>

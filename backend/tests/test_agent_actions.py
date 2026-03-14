@@ -274,16 +274,14 @@ def test_build_observation_includes_consequences():
 
 # -- Tests for _execute_intervention --
 
-@pytest.mark.asyncio
-async def test_execute_intervention_marks_agent_triggered():
-    """Events created by _execute_intervention have agent_triggered=True."""
-    from autonomous_agent import _execute_intervention
+def test_apply_intervention_effects_marks_agent_triggered():
+    """Events created by _apply_intervention_effects have agent_triggered=True."""
+    from autonomous_agent import _apply_intervention_effects
 
     world = _make_world()
     world.current_day = 5
-    store.save_world(world)
 
-    llm_response = json.dumps({
+    intervention_data = {
         "type": "divine_intervention",
         "title": "The Sky Cracks Open",
         "description": "A rift tears across the sky",
@@ -297,12 +295,10 @@ async def test_execute_intervention_marks_agent_triggered():
             "character_deaths": [],
             "territory_changes": {},
         },
-    })
+    }
 
-    with patch("autonomous_agent.chat_completion", new_callable=AsyncMock, return_value=llm_response):
-        with patch("autonomous_agent.extract_json", return_value=json.loads(llm_response)):
-            decision = {"intervention_command": "Crack the sky open"}
-            events, updated_world = await _execute_intervention(world, decision)
+    decision = {"intervention_command": "Crack the sky open"}
+    events, updated_world = _apply_intervention_effects(world, decision, intervention_data)
 
     assert len(events) == 1
     assert events[0].agent_triggered is True
@@ -317,16 +313,14 @@ async def test_execute_intervention_marks_agent_triggered():
     _cleanup()
 
 
-@pytest.mark.asyncio
-async def test_execute_intervention_applies_character_deaths():
-    """_execute_intervention applies character deaths from effects."""
-    from autonomous_agent import _execute_intervention
+def test_apply_intervention_effects_applies_character_deaths():
+    """_apply_intervention_effects applies character deaths from effects."""
+    from autonomous_agent import _apply_intervention_effects
 
     world = _make_world()
     world.current_day = 5
-    store.save_world(world)
 
-    llm_response = json.dumps({
+    intervention_data = {
         "type": "divine_intervention",
         "title": "Divine Smite",
         "description": "A character is struck down",
@@ -340,12 +334,10 @@ async def test_execute_intervention_applies_character_deaths():
             "character_deaths": ["c2"],
             "territory_changes": {},
         },
-    })
+    }
 
-    with patch("autonomous_agent.chat_completion", new_callable=AsyncMock, return_value=llm_response):
-        with patch("autonomous_agent.extract_json", return_value=json.loads(llm_response)):
-            decision = {"intervention_command": "Strike down Duke Beta"}
-            events, updated_world = await _execute_intervention(world, decision)
+    decision = {"intervention_command": "Strike down Duke Beta"}
+    events, updated_world = _apply_intervention_effects(world, decision, intervention_data)
 
     c2 = next(c for c in updated_world.characters if c.id == "c2")
     assert c2.alive is False
@@ -389,16 +381,14 @@ def test_agent_log_persistence():
 
 # -- Tests for agent intervention day alignment --
 
-@pytest.mark.asyncio
-async def test_execute_intervention_event_day_equals_updated_world_day():
+def test_apply_intervention_effects_event_day_equals_updated_world_day():
     """Agent intervention event.day must equal the updated world.current_day."""
-    from autonomous_agent import _execute_intervention
+    from autonomous_agent import _apply_intervention_effects
 
     world = _make_world()
     world.current_day = 10
-    store.save_world(world)
 
-    llm_response = json.dumps({
+    intervention_data = {
         "type": "divine_intervention",
         "title": "Storm",
         "description": "desc",
@@ -407,11 +397,9 @@ async def test_execute_intervention_event_day_equals_updated_world_day():
         "factions_involved": [],
         "regions_affected": [],
         "effects": {"morale_changes": {}, "casualties": {}, "character_deaths": [], "territory_changes": {}},
-    })
+    }
 
-    with patch("autonomous_agent.chat_completion", new_callable=AsyncMock, return_value=llm_response):
-        with patch("autonomous_agent.extract_json", return_value=json.loads(llm_response)):
-            events, updated_world = await _execute_intervention(world, {"intervention_command": "test"})
+    events, updated_world = _apply_intervention_effects(world, {"intervention_command": "test"}, intervention_data)
 
     # Event day and world day must be aligned
     assert events[0].day == updated_world.current_day

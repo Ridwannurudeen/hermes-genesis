@@ -123,6 +123,11 @@ export interface Prophecy {
   fulfilled_event_id: string;
 }
 
+export interface MapData {
+  geography: Geography;
+  factions: Record<string, { name: string; color: string }>;
+}
+
 export interface World {
   id: string;
   name: string;

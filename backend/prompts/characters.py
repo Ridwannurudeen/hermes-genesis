@@ -47,4 +47,11 @@ Rules:
 - Each character has 1-3 relationships with other characters
 - Goals must be specific and actionable
 - Characters located in regions their faction controls
-- Diverse ages (18-70), diverse roles"""
+- Diverse ages (18-70), diverse roles
+
+Genome Archetypes (use as inspiration, not copy):
+- Warrior: courage=0.9, resilience=0.8, loyalty=0.7, cunning=0.3, empathy=0.2, ambition=0.5
+- Spymaster: cunning=0.95, ambition=0.8, loyalty=0.3, courage=0.4, empathy=0.2, resilience=0.5
+- Healer: empathy=0.9, resilience=0.7, loyalty=0.8, courage=0.4, cunning=0.3, ambition=0.2
+- Rebel: ambition=0.9, courage=0.7, loyalty=0.2, cunning=0.6, empathy=0.4, resilience=0.6
+Mix and deviate freely — these are starting points, not templates."""

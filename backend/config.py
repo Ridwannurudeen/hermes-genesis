@@ -10,3 +10,6 @@ DATA_DIR = os.getenv("DATA_DIR", "data/worlds")
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8003"))
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+API_KEY = os.getenv("GENESIS_API_KEY", "")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else []
+MAX_WORLDS = int(os.getenv("MAX_WORLDS", "20"))

@@ -36,7 +36,7 @@ export default function ProphecyPanel({ prophecies }: Props) {
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="mt-2 w-80 bg-gray-950/95 backdrop-blur border border-purple-900/30 rounded-xl overflow-hidden"
+            className="mt-2 w-72 sm:w-80 bg-gray-950/95 backdrop-blur border border-purple-900/30 rounded-xl overflow-hidden"
           >
             <div className="p-3 border-b border-gray-800">
               <h3 className="text-sm font-semibold text-purple-400 flex items-center gap-2">

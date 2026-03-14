@@ -54,8 +54,8 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
       // Notify parent
       onIntervention(res.event);
       setCommand('');
-    } catch (err: any) {
-      setError(err.message || 'Divine intervention failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Divine intervention failed');
       setTimeout(() => setError(null), 4000);
     } finally {
       setLoading(false);

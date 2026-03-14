@@ -1,32 +1,108 @@
-from fastapi import APIRouter, HTTPException
-from store import load_world, save_world
+from fastapi import APIRouter, HTTPException, Query
+from store import load_world, save_world, get_lock
 from simulation import simulate_tick
-from simulation_rich import simulate_rich_tick
+from llm import chat_completion
+from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
+from prompts.obituary import SYSTEM as OBITUARY_SYSTEM, obituary_prompt
+from prophecy_checker import check_and_fulfill_prophecies
 
 router = APIRouter(prefix="/api/worlds", tags=["simulation"])
 
 @router.post("/{world_id}/simulate")
-async def run_simulation(world_id: str, days: int = 1):
+async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30)):
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
 
+    lock = get_lock(world_id)
     all_events = []
     prophecy_fulfilled_data = None
+    actual_days = 0
+    capped = min(days, 30)
 
-    for _ in range(min(days, 30)):
-        world, events, pf_data = await simulate_rich_tick(world_id)
-        if not world:
-            break
+    for _ in range(capped):
+        # Phase 1: simulate under lock (fast)
+        async with lock:
+            world = load_world(world_id)
+            if not world:
+                break
+            events = simulate_tick(world)
+            world = load_world(world_id)
+            actual_days += 1
+            world_ctx = f"{world.name}: {world.seed} (Day {world.current_day})"
+            save_world(world)
+
+        # Phase 2: narrate + obituary (slow LLM calls, NO lock)
+        for event in events:
+            if event.type != "death":
+                try:
+                    narrative = await chat_completion(
+                        NARRATOR_SYSTEM, event_prompt(event.model_dump(), world_ctx),
+                        max_tokens=300,
+                    )
+                    event.narrative = narrative.strip()
+                except Exception:
+                    event.narrative = event.title
+            elif event.type == "death" and event.actors:
+                char_id = event.actors[0]
+                char = next((c for c in world.characters if c.id == char_id), None)
+                if char:
+                    char_events = [e.model_dump() for e in world.events if char_id in e.actors]
+                    try:
+                        obit = await chat_completion(
+                            OBITUARY_SYSTEM,
+                            obituary_prompt(char.model_dump(), char_events, world_ctx),
+                            max_tokens=200,
+                        )
+                        event.obituary = obit.strip()
+                    except Exception:
+                        pass
+
+        # Phase 3: merge narratives under lock (fast)
+        async with lock:
+            world = load_world(world_id)
+            if world:
+                for event in events:
+                    for e in world.events:
+                        if e.id == event.id:
+                            if event.narrative:
+                                e.narrative = event.narrative
+                            if event.obituary:
+                                e.obituary = event.obituary
+                save_world(world)
+
+        # Phase 4: prophecy check (may call LLM, NO lock)
+        if world:
+            current_day = world.current_day
+            prophecy_events = await check_and_fulfill_prophecies(
+                world, events, current_day
+            )
+            if prophecy_events:
+                async with lock:
+                    world = load_world(world_id)
+                    if world:
+                        world.events.extend(prophecy_events)
+                        events.extend(prophecy_events)
+                        # Re-apply fulfilled flags (they were set on the old object)
+                        fulfilled_ids = {e.id.split("_prophecy_")[1] for e in prophecy_events if "_prophecy_" in e.id}
+                        for p in world.prophecies:
+                            if p.id in fulfilled_ids:
+                                p.fulfilled = True
+                                p.fulfilled_day = current_day
+                                prophecy_fulfilled_data = {
+                                    "text": p.text,
+                                    "explanation": prophecy_events[0].description if prophecy_events else "",
+                                    "day": current_day,
+                                }
+                        save_world(world)
+
         all_events.extend(events)
-        if pf_data:
-            prophecy_fulfilled_data = pf_data
 
     # Notify linked Telegram chats with rich event data
     try:
         from telegram_bot import notify_linked_chats
         import asyncio
-        header = f"Day {world.current_day} \u2014 {len(all_events)} events"
+        header = f"Day {world.current_day} — {len(all_events)} events"
         asyncio.create_task(notify_linked_chats(
             world_id,
             message=header,
@@ -38,29 +114,39 @@ async def run_simulation(world_id: str, days: int = 1):
 
     return {
         "world_id": world_id,
-        "days_simulated": days,
+        "days_simulated": actual_days,
         "current_day": world.current_day,
         "events": [e.model_dump() for e in all_events]
     }
 
 @router.post("/{world_id}/simulate/quick")
-async def run_quick_simulation(world_id: str, days: int = 1):
+async def run_quick_simulation(world_id: str, days: int = Query(default=1, ge=1, le=100)):
     """Simulate without LLM narrative generation (fast, for bulk advancement)."""
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
 
+    lock = get_lock(world_id)
     all_events = []
-    for _ in range(min(days, 100)):
-        events = simulate_tick(world)
-        world = load_world(world_id)
-        all_events.extend(events)
+    actual_days = 0
+    capped = min(days, 100)
+
+    # Quick sim is CPU-only, lock per-day is fine
+    for _ in range(capped):
+        async with lock:
+            world = load_world(world_id)
+            if not world:
+                break
+            events = simulate_tick(world)
+            world = load_world(world_id)
+            actual_days += 1
+            all_events.extend(events)
 
     # Notify linked Telegram chats (quick sim — no prophecy check)
     try:
         from telegram_bot import notify_linked_chats
         import asyncio
-        header = f"Quick sim \u2014 Day {world.current_day} \u2014 {len(all_events)} events"
+        header = f"Quick sim — Day {world.current_day} — {len(all_events)} events"
         asyncio.create_task(notify_linked_chats(
             world_id,
             message=header,
@@ -71,7 +157,7 @@ async def run_quick_simulation(world_id: str, days: int = 1):
 
     return {
         "world_id": world_id,
-        "days_simulated": days,
+        "days_simulated": actual_days,
         "current_day": world.current_day,
         "events": [e.model_dump() for e in all_events]
     }

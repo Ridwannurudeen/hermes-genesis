@@ -74,4 +74,8 @@ Generate a complete campaign kit with these sections:
 6. **Active Prophecies** — Each prophecy with GM notes on how to weave it into play
 7. **Session Zero Notes** — Suggested campaign themes, player faction choices, starting location recommendations
 
-Format as clean markdown. Be specific and practical — a GM should be able to run a session directly from this."""
+Output format:
+- Use markdown headers (## and ###) for each section
+- Use bullet lists for plot hooks, encounter ideas, and NPC traits
+- Use blockquotes (>) for flavor text, prophecy quotes, and read-aloud descriptions
+- Be specific and practical — a GM should be able to run a session directly from this."""

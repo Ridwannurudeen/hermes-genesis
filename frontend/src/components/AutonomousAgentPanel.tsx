@@ -129,8 +129,8 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
         await api.startAgent(worldId, interval);
         setRunning(true);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to toggle agent');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle agent');
       setTimeout(() => setError(null), 4000);
     } finally {
       setLoading(false);
@@ -139,7 +139,9 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
   const formatTime = (ts: string) => {
     try {
-      const d = new Date(ts + 'Z');
+      // Backend emits +00:00 ISO strings; don't append Z
+      const d = new Date(ts.endsWith('Z') || ts.includes('+') ? ts : ts + 'Z');
+      if (isNaN(d.getTime())) return ts;
       return d.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -515,7 +517,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                                       key={fid}
                                       className={`text-xs ${change > 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}
                                     >
-                                      {fid}: {change > 0 ? '+' : ''}{Math.round(change * 100)}%
+                                      {fid}: {change > 0 ? '+' : ''}{change}
                                     </p>
                                   ))}
                                 </div>

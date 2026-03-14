@@ -31,4 +31,6 @@ Rules:
 - x,y coordinates between 0.1 and 0.9, spread out spatially
 - Each region connects to 2-3 neighbors
 - Resources must be thematically appropriate
-- Descriptions should be vivid and atmospheric"""
+- Descriptions should be vivid and atmospheric
+- The region graph MUST be connected — every region must be reachable from every other region via neighbor links
+- Verify: no orphan regions with zero neighbors"""

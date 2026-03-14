@@ -1,6 +1,7 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from store import list_worlds, load_world, save_world, delete_world
+from pydantic import BaseModel, Field
+from store import list_worlds, load_world, save_world, delete_world, get_lock, cleanup_lock, creation_semaphore
 from generator import generate_world
 from models.genome import TRAITS
 from models.event import Event, EventOutcome
@@ -11,15 +12,16 @@ from prompts.character_chat import build_character_system
 from prompts.council import SYSTEM as COUNCIL_SYSTEM, council_prompt
 from prompts.campaign_kit import SYSTEM as CAMPAIGN_SYSTEM, campaign_kit_prompt
 from prompts.session_prep import SYSTEM as SESSION_PREP_SYSTEM, session_prep_prompt
-from autonomous_agent import start_agent, stop_agent, is_agent_running, get_agent_logs
+from autonomous_agent import start_agent, stop_agent, is_agent_running, get_agent_logs, cleanup_agent_state
+from simulation import repair_leadership
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
 class CreateWorldRequest(BaseModel):
-    seed: str
-    num_regions: int = 6
-    num_factions: int = 4
-    num_characters: int = 15
+    seed: str = Field(..., min_length=3, max_length=2000)
+    num_regions: int = Field(default=6, ge=3, le=12)
+    num_factions: int = Field(default=4, ge=2, le=8)
+    num_characters: int = Field(default=15, ge=6, le=30)
 
 @router.get("")
 async def get_worlds():
@@ -27,7 +29,15 @@ async def get_worlds():
 
 @router.post("")
 async def create_world(req: CreateWorldRequest):
-    world = await generate_world(req.seed, req.num_regions, req.num_factions, req.num_characters)
+    from config import MAX_WORLDS
+    existing = list_worlds()
+    if len(existing) >= MAX_WORLDS:
+        raise HTTPException(429, f"Maximum {MAX_WORLDS} worlds reached. Delete old worlds first.")
+    async with creation_semaphore:
+        # Re-check after acquiring semaphore (another creation may have finished)
+        if len(list_worlds()) >= MAX_WORLDS:
+            raise HTTPException(429, f"Maximum {MAX_WORLDS} worlds reached. Delete old worlds first.")
+        world = await generate_world(req.seed, req.num_regions, req.num_factions, req.num_characters)
     return {"id": world.id, "name": world.name, "status": world.status}
 
 @router.get("/{world_id}")
@@ -139,10 +149,11 @@ async def generate_chronicle(world_id: str):
     }
 
 class InterveneRequest(BaseModel):
-    command: str
+    command: str = Field(..., min_length=3, max_length=2000)
 
 @router.post("/{world_id}/intervene")
 async def divine_intervention(world_id: str, req: InterveneRequest):
+    # Phase 1: snapshot world state for prompt (no lock needed)
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
@@ -157,63 +168,80 @@ async def divine_intervention(world_id: str, req: InterveneRequest):
         [c.model_dump() for c in world.characters],
     )
 
+    # Phase 2: LLM call (slow, NO lock — don't block other endpoints)
     raw = await chat_completion(INTERVENTION_SYSTEM, prompt, max_tokens=1000)
     data = extract_json(raw)
 
-    # Create event
-    event = Event(
-        id=f"evt_{world.current_day:03d}_divine_{len(world.events)}",
-        day=world.current_day,
-        type="divine_intervention",
-        title=data.get("title", "Divine Intervention"),
-        description=data.get("description", ""),
-        narrative=data.get("narrative", ""),
-        actors=data.get("actors", []),
-        factions_involved=data.get("factions_involved", []),
-        regions_affected=data.get("regions_affected", []),
-        agent_triggered=False,
-        user_triggered=True,
-    )
+    # Phase 3: apply effects under lock (fast mutations only)
+    lock = get_lock(world_id)
+    async with lock:
+        # Re-load latest state so we merge cleanly
+        world = load_world(world_id)
+        if not world:
+            raise HTTPException(404, "World not found")
 
-    # Apply effects
-    effects = data.get("effects", {})
+        # Validate entity IDs from LLM output — drop any that don't exist
+        valid_char_ids = {c.id for c in world.characters}
+        valid_faction_ids = {f.id for f in world.factions}
+        valid_region_ids = {r.id for r in world.geography.regions}
 
-    # Morale changes
-    for fid, change in effects.get("morale_changes", {}).items():
-        for f in world.factions:
-            if f.id == fid:
-                f.morale = max(0, min(100, f.morale + change))
+        event = Event(
+            id=f"evt_{world.current_day:03d}_divine_{len(world.events)}",
+            day=world.current_day,
+            type="divine_intervention",
+            title=data.get("title", "Divine Intervention"),
+            description=data.get("description", ""),
+            narrative=data.get("narrative", ""),
+            actors=[a for a in data.get("actors", []) if isinstance(a, str) and a in valid_char_ids],
+            factions_involved=[f for f in data.get("factions_involved", []) if isinstance(f, str) and f in valid_faction_ids],
+            regions_affected=[r for r in data.get("regions_affected", []) if isinstance(r, str) and r in valid_region_ids],
+            agent_triggered=False,
+            user_triggered=True,
+        )
 
-    # Casualties
-    for fid, count in effects.get("casualties", {}).items():
-        for f in world.factions:
-            if f.id == fid:
-                f.population = max(0, f.population - count)
+        effects = data.get("effects", {})
+        if not isinstance(effects, dict):
+            effects = {}
 
-    # Character deaths
-    for cid in effects.get("character_deaths", []):
-        for c in world.characters:
-            if c.id == cid:
-                c.alive = False
+        for fid, change in effects.get("morale_changes", {}).items():
+            if not isinstance(change, (int, float)):
+                continue
+            for f in world.factions:
+                if f.id == fid:
+                    f.morale = max(0, min(100, f.morale + int(change)))
 
-    # Territory changes
-    for rid, new_fid in effects.get("territory_changes", {}).items():
-        for r in world.geography.regions:
-            if r.id == rid:
-                # Remove from old faction
-                old_fid = r.controlled_by
-                if old_fid:
+        for fid, count in effects.get("casualties", {}).items():
+            if not isinstance(count, (int, float)):
+                continue
+            for f in world.factions:
+                if f.id == fid:
+                    f.population = max(0, f.population - int(count))
+
+        for cid in effects.get("character_deaths", []):
+            if not isinstance(cid, str):
+                continue
+            for c in world.characters:
+                if c.id == cid:
+                    c.alive = False
+                    repair_leadership(world, cid)
+
+        for rid, new_fid in effects.get("territory_changes", {}).items():
+            if not isinstance(new_fid, str):
+                continue
+            for r in world.geography.regions:
+                if r.id == rid:
+                    old_fid = r.controlled_by
+                    if old_fid:
+                        for f in world.factions:
+                            if f.id == old_fid and rid in f.territory:
+                                f.territory.remove(rid)
+                    r.controlled_by = new_fid
                     for f in world.factions:
-                        if f.id == old_fid and rid in f.territory:
-                            f.territory.remove(rid)
-                # Add to new faction
-                r.controlled_by = new_fid
-                for f in world.factions:
-                    if f.id == new_fid and rid not in f.territory:
-                        f.territory.append(rid)
+                        if f.id == new_fid and rid not in f.territory:
+                            f.territory.append(rid)
 
-    world.events.append(event)
-    save_world(world)
+        world.events.append(event)
+        save_world(world)
 
     return {
         "event": event.model_dump(),
@@ -221,7 +249,7 @@ async def divine_intervention(world_id: str, req: InterveneRequest):
     }
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., min_length=1, max_length=1000)
 
 @router.post("/{world_id}/characters/{char_id}/chat")
 async def chat_with_character(world_id: str, char_id: str, req: ChatRequest):
@@ -324,11 +352,19 @@ async def generate_session_prep(world_id: str):
 
 @router.post("/{world_id}/agent/start")
 async def start_world_agent(world_id: str, interval: int = 120):
+    if interval < 30:
+        raise HTTPException(400, "Interval must be at least 30 seconds")
+    if interval > 3600:
+        raise HTTPException(400, "Interval must be at most 3600 seconds")
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
-    started = start_agent(world_id, interval)
-    return {"started": started, "world_id": world_id, "interval": interval}
+    result = start_agent(world_id, interval)
+    if result == "already_running":
+        raise HTTPException(409, "Agent already running for this world")
+    if result == "max_agents_reached":
+        raise HTTPException(429, "Maximum concurrent agents reached. Stop another agent first.")
+    return {"started": True, "world_id": world_id, "interval": interval}
 
 @router.post("/{world_id}/agent/stop")
 async def stop_world_agent(world_id: str):
@@ -379,6 +415,16 @@ async def agent_logs(world_id: str):
 
 @router.delete("/{world_id}")
 async def remove_world(world_id: str):
-    if delete_world(world_id):
+    # Stop any running agent before deleting world data
+    if is_agent_running(world_id):
+        stop_agent(world_id)
+    # Acquire per-world lock so we don't delete while a sim/agent is mid-write
+    lock = get_lock(world_id)
+    async with lock:
+        deleted = delete_world(world_id)
+    # Clean up lock entry AFTER releasing (no coroutine holds the old object now)
+    if deleted:
+        cleanup_lock(world_id)
+        cleanup_agent_state(world_id)
         return {"deleted": True}
     raise HTTPException(404, "World not found")

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { api } from '../api';
-import type { Character, WorldEvent } from '../types';
+import type { Character, WorldEvent, Geography } from '../types';
 import { EVENT_TYPE_ICONS } from '../types';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 import WorldMap from './WorldMap';
@@ -11,7 +11,7 @@ interface Props {
   worldId: string;
   worldName: string;
   currentDay: number;
-  geography: { regions: any[]; connections: any[] };
+  geography: Geography;
   factionMap: Record<string, { name: string; color: string }>;
   characters: Character[];
   events: WorldEvent[];

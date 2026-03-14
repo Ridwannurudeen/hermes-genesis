@@ -14,17 +14,17 @@ async def generate_world(seed: str, num_regions: int = 6, num_factions: int = 4,
             await on_progress({"stage": stage, "detail": detail})
 
     await _notify("geography", "Generating terrain and regions...")
-    geo_text = await chat_completion(geography.SYSTEM, geography.user_prompt(seed, num_regions))
+    geo_text = await chat_completion(geography.SYSTEM, geography.user_prompt(seed, num_regions), temperature=0.4)
     geo_data = extract_json(geo_text)
     await _notify("geography_done", f"{len(geo_data.get('regions', []))} regions created")
 
     await _notify("factions", "Generating factions...")
-    faction_text = await chat_completion(factions.SYSTEM, factions.user_prompt(seed, geo_data.get("regions", []), num_factions))
+    faction_text = await chat_completion(factions.SYSTEM, factions.user_prompt(seed, geo_data.get("regions", []), num_factions), temperature=0.5)
     faction_data = extract_json(faction_text)
     await _notify("factions_done", f"{len(faction_data)} factions created")
 
     await _notify("characters", "Generating characters with genomes...")
-    char_text = await chat_completion(characters.SYSTEM, characters.user_prompt(seed, faction_data, geo_data.get("regions", []), num_characters))
+    char_text = await chat_completion(characters.SYSTEM, characters.user_prompt(seed, faction_data, geo_data.get("regions", []), num_characters), temperature=0.8)
     char_data = extract_json(char_text)
     await _notify("characters_done", f"{len(char_data)} characters created")
 

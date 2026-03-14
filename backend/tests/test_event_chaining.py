@@ -209,12 +209,36 @@ def test_chain_event_mutates_world_military_conflict():
     assert len(result.outcome.character_effects) >= 2
 
 
-def test_chain_event_mutates_world_succession():
-    """Succession chain: winner becomes leader, loser becomes former_leader."""
+def test_chain_event_mutates_world_succession_cross_faction():
+    """Cross-faction succession: loser gets disgraced (no leadership swap across factions)."""
     world = _make_world()
     parent = Event(
         id="evt_005_01", day=5, type="military_conflict", title="Battle",
         actors=["c1", "c2"], factions_involved=["f1", "f2"], regions_affected=["r1"],
+    )
+
+    # Force sample to pick c1 (f1) and c2 (f2) — cross-faction pair
+    with patch("simulation.random.random", return_value=0.0):
+        with patch("simulation.random.choice", side_effect=lambda lst: lst[0]):
+            with patch("simulation.random.sample", return_value=[world.characters[0], world.characters[1]]):
+                with patch("simulation.random.gauss", return_value=0.0):
+                    result = _maybe_chain_event(parent, world, day=5, event_counter=1)
+
+    assert result is not None
+    assert result.type == "succession"
+    # Cross-faction: winner keeps original role, loser becomes disgraced
+    loser = next(c for c in world.characters if c.id in result.actors and c.role == "disgraced")
+    assert loser is not None
+
+
+def test_chain_event_mutates_world_succession_same_faction():
+    """Same-faction succession: winner becomes leader, loser becomes former_leader."""
+    world = _make_world()
+    # Put c2 in the same faction as c1 so succession can actually transfer leadership
+    world.characters[1].faction_id = "f1"
+    parent = Event(
+        id="evt_005_01", day=5, type="military_conflict", title="Battle",
+        actors=["c1", "c2"], factions_involved=["f1"], regions_affected=["r1"],
     )
 
     with patch("simulation.random.random", return_value=0.0):
@@ -223,6 +247,5 @@ def test_chain_event_mutates_world_succession():
 
     assert result is not None
     assert result.type == "succession"
-    # One character should now be "leader" and one "former_leader"
     roles = {c.role for c in world.characters if c.id in result.actors}
     assert "leader" in roles or "former_leader" in roles
