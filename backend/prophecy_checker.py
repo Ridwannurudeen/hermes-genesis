@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from llm import chat_completion, extract_json
 from models.world import World, Prophecy
@@ -64,8 +65,13 @@ async def check_and_fulfill_prophecies(
 
     recent = [e.model_dump() for e in world.events[-15:]]
 
-    for prophecy in unfulfilled:
-        result = await check_prophecy_fulfillment(prophecy, recent, world.name)
+    # Check all prophecies in parallel
+    results = await asyncio.gather(*[
+        check_prophecy_fulfillment(prophecy, recent, world.name)
+        for prophecy in unfulfilled
+    ])
+
+    for prophecy, result in zip(unfulfilled, results):
         if result:
             prophecy.fulfilled = True
             prophecy.fulfilled_day = day

@@ -90,9 +90,9 @@ async def generate_scene_image(event_type: str, title: str) -> str | None:
                 json={
                     "model": IMAGE_MODEL,
                     "prompt": prompt,
-                    "width": 1024,
-                    "height": 576,
-                    "steps": 4,
+                    "width": 1440,
+                    "height": 816,
+                    "steps": 8,
                     "n": 1,
                     "response_format": "b64_json",
                 },

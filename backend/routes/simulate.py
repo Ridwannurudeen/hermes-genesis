@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException, Query
 from store import load_world, save_world, get_lock
 from simulation import simulate_tick
@@ -32,19 +33,19 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
             world_ctx = f"{world.name}: {world.seed} (Day {world.current_day})"
             save_world(world)
 
-        # Phase 2: narrate + obituary (slow LLM calls, NO lock)
-        for event in events:
-            if event.type != "death":
+        # Phase 2: narrate + obituary IN PARALLEL (all events at once, NO lock)
+        async def _narrate(evt):
+            if evt.type != "death":
                 try:
                     narrative = await chat_completion(
-                        NARRATOR_SYSTEM, event_prompt(event.model_dump(), world_ctx),
+                        NARRATOR_SYSTEM, event_prompt(evt.model_dump(), world_ctx),
                         max_tokens=300,
                     )
-                    event.narrative = narrative.strip()
+                    evt.narrative = narrative.strip()
                 except Exception:
-                    event.narrative = event.title
-            elif event.type == "death" and event.actors:
-                char_id = event.actors[0]
+                    evt.narrative = evt.title
+            elif evt.actors:
+                char_id = evt.actors[0]
                 char = next((c for c in world.characters if c.id == char_id), None)
                 if char:
                     char_events = [e.model_dump() for e in world.events if char_id in e.actors]
@@ -54,9 +55,11 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
                             obituary_prompt(char.model_dump(), char_events, world_ctx),
                             max_tokens=200,
                         )
-                        event.obituary = obit.strip()
+                        evt.obituary = obit.strip()
                     except Exception:
                         pass
+
+        await asyncio.gather(*[_narrate(evt) for evt in events])
 
         # Phase 3: merge narratives under lock (fast)
         async with lock:

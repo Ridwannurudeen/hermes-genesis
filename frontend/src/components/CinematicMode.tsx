@@ -61,6 +61,7 @@ export default function CinematicMode({
   const displayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(true);
   const sceneCache = useRef<Map<string, string>>(new Map());
+  const onQueueDrainRef = useRef<(() => void) | null>(null);
 
   const { speak } = useVoiceNarration(true);
 
@@ -81,13 +82,13 @@ export default function CinematicMode({
     };
   }, []);
 
-  // Fetch scene image for an event (async, non-blocking)
-  const fetchSceneImage = useCallback(async (evt: WorldEvent) => {
+  // Fetch scene image for an event — returns the data URL or null
+  const fetchSceneImage = useCallback(async (evt: WorldEvent): Promise<string | null> => {
     const cacheKey = `${evt.type}:${evt.title}`;
     const cached = sceneCache.current.get(cacheKey);
     if (cached) {
       setSceneImage(cached);
-      return;
+      return cached;
     }
     setSceneLoading(true);
     try {
@@ -96,33 +97,61 @@ export default function CinematicMode({
         const dataUrl = `data:image/jpeg;base64,${res.image}`;
         sceneCache.current.set(cacheKey, dataUrl);
         setSceneImage(dataUrl);
+        return dataUrl;
       }
-    } catch {
-      // Fallback to gradient — no error shown
+    } catch (err) {
+      console.warn('[CinematicMode] Scene image failed:', evt.type, evt.title, err);
     } finally {
       if (activeRef.current) setSceneLoading(false);
     }
+    return null;
   }, []);
 
-  // Process event queue one at a time with 6s display (longer to show images)
-  const processQueue = useCallback(() => {
+  // Pre-fetch the next image in the queue while current event is displaying
+  const prefetchNext = useCallback(() => {
+    const peek = eventQueueRef.current[0];
+    if (!peek) return;
+    const cacheKey = `${peek.type}:${peek.title}`;
+    if (sceneCache.current.has(cacheKey)) return;
+    // Fire and forget — result goes into sceneCache for instant use later
+    api.generateScene(peek.type, peek.title).then((res) => {
+      if (res.image) {
+        sceneCache.current.set(cacheKey, `data:image/jpeg;base64,${res.image}`);
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Process event queue one at a time — waits for image before starting display timer
+  const processQueue = useCallback(async () => {
     if (!activeRef.current) return;
     if (eventQueueRef.current.length === 0) {
       setDisplayedEvent(null);
       setSceneImage(null);
+      // Signal queue drained (used by replay mode to advance days)
+      const cb = onQueueDrainRef.current;
+      onQueueDrainRef.current = null;
+      cb?.();
       return;
     }
     const next = eventQueueRef.current.shift()!;
     setDisplayedEvent(next);
     setSceneImage(null);
 
-    // Fetch scene image async (non-blocking)
-    fetchSceneImage(next);
+    // Wait for image (with 10s timeout so we don't hang forever)
+    const imagePromise = fetchSceneImage(next);
+    const timeoutPromise = new Promise<null>((r) => setTimeout(() => r(null), 10000));
+    await Promise.race([imagePromise, timeoutPromise]);
 
-    // Narrate the event
+    if (!activeRef.current) return;
+
+    // Pre-fetch the NEXT image while this one is being displayed
+    prefetchNext();
+
+    // Narrate the event (after image loads so they appear together)
     const text = next.narrative || next.title;
     if (text) speak(text);
 
+    // NOW start the 7s display timer — image is already visible
     displayTimerRef.current = setTimeout(() => {
       if (!activeRef.current) return;
       setDisplayedEvent(null);
@@ -131,8 +160,8 @@ export default function CinematicMode({
       displayTimerRef.current = setTimeout(() => {
         processQueue();
       }, 800);
-    }, 6000);
-  }, [speak, fetchSceneImage]);
+    }, 7000);
+  }, [speak, fetchSceneImage, prefetchNext]);
 
   // REPLAY MODE: play through all past events
   useEffect(() => {
@@ -165,21 +194,20 @@ export default function CinematicMode({
       eventIndex += dayEvents.length;
       setReplayProgress(eventIndex);
 
-      // Process queue, then after all events displayed, move to next day
-      processQueue();
-
-      // Wait enough time for all events to display (6.8s per event) plus buffer
-      const waitMs = dayEvents.length * 6800 + 1000;
-      displayTimerRef.current = setTimeout(() => {
+      // When all events for this day are done, advance to next day
+      onQueueDrainRef.current = () => {
         dayIndex++;
         playNextDay();
-      }, waitMs);
+      };
+
+      processQueue();
     };
 
     // Start replay after brief intro pause
     const startTimer = setTimeout(playNextDay, 1500);
     return () => {
       clearTimeout(startTimer);
+      onQueueDrainRef.current = null;
       if (displayTimerRef.current) clearTimeout(displayTimerRef.current);
     };
   }, [mode, events, processQueue]);
@@ -308,22 +336,28 @@ export default function CinematicMode({
                 transition: 'opacity 1s ease',
               }}
             />
-            {/* AI-generated scene image */}
+            {/* AI-generated scene image with Ken Burns cinematic zoom */}
             {sceneImage && (
               <motion.img
                 src={sceneImage}
                 alt=""
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.7 }}
-                transition={{ duration: 1.2 }}
+                initial={{ opacity: 0, scale: 1.0 }}
+                animate={{ opacity: 0.95, scale: 1.08 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { duration: 0.8 },
+                  scale: { duration: 7, ease: 'linear' },
+                }}
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
-            {/* Dark overlay for text readability */}
+            {/* Dark overlay for text readability — lighter to let images show */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.3) 100%)',
+                background: sceneImage
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.15) 100%)'
+                  : 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.3) 100%)',
               }}
             />
             {/* Scene loading indicator */}

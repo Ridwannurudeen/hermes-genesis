@@ -31,26 +31,33 @@ async def generate_world(seed: str, num_regions: int = 6, num_factions: int = 4,
     await _notify("assembling", "Assembling world...")
     world = assemble_world(seed, geo_data, faction_data, char_data)
 
-    name = await chat_completion(WORLD_NAME_SYSTEM, f"Name this world: {seed}")
-    world.name = name.strip().strip('"').strip("'")
-
-    # Generate prophecies
+    # Generate world name + prophecies in parallel (prophecy uses seed/regions/factions, not name)
     await _notify("prophecies", "The oracle speaks...")
-    try:
-        proph_raw = await chat_completion(PROPHECY_SYSTEM, generate_prophecies_prompt(
-            world.name, world.seed,
-            [r.model_dump() for r in world.geography.regions],
-            [f.model_dump() for f in world.factions],
-        ), max_tokens=1000)
-        proph_data = extract_json(proph_raw)
-        for i, p in enumerate(proph_data.get("prophecies", [])):
-            world.prophecies.append(Prophecy(
-                id=f"prophecy_{i}",
-                text=p.get("text", ""),
-                hint=p.get("hint", ""),
-            ))
-    except Exception:
-        pass  # Prophecies are optional, don't fail world creation
+
+    async def _gen_name():
+        raw = await chat_completion(WORLD_NAME_SYSTEM, f"Name this world: {seed}")
+        return raw.strip().strip('"').strip("'")
+
+    async def _gen_prophecies():
+        try:
+            proph_raw = await chat_completion(PROPHECY_SYSTEM, generate_prophecies_prompt(
+                seed, seed,  # use seed as placeholder — name isn't critical for prophecy quality
+                [r.model_dump() for r in world.geography.regions],
+                [f.model_dump() for f in world.factions],
+            ), max_tokens=1000)
+            return extract_json(proph_raw)
+        except Exception:
+            return {}
+
+    name, proph_data = await asyncio.gather(_gen_name(), _gen_prophecies())
+    world.name = name
+
+    for i, p in enumerate(proph_data.get("prophecies", [])):
+        world.prophecies.append(Prophecy(
+            id=f"prophecy_{i}",
+            text=p.get("text", ""),
+            hint=p.get("hint", ""),
+        ))
 
     world.status = "ready"
     save_world(world)

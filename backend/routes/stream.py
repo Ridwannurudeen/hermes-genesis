@@ -89,18 +89,20 @@ async def simulate_stream(world_id: str, days: int = Query(default=1, ge=1, le=3
                 world_ctx = f"{world.name}: {world.seed} (Day {world.current_day})"
                 save_world(world)
 
-            # Phase 2: narrate WITHOUT lock (slow LLM calls don't block others)
-            for event in events:
-                if event.type != "death":
+            # Phase 2: narrate ALL events in parallel (NO lock)
+            async def _narrate(evt):
+                if evt.type != "death":
                     try:
                         narrative = await chat_completion(
                             NARRATOR_SYSTEM,
-                            event_prompt(event.model_dump(), world_ctx),
+                            event_prompt(evt.model_dump(), world_ctx),
                             max_tokens=300,
                         )
-                        event.narrative = narrative.strip()
+                        evt.narrative = narrative.strip()
                     except Exception:
-                        event.narrative = event.title
+                        evt.narrative = evt.title
+
+            await asyncio.gather(*[_narrate(evt) for evt in events])
 
             # Phase 3: merge narratives under lock (fast write)
             async with lock:
