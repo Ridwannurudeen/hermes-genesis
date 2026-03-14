@@ -59,6 +59,22 @@ def _repair_json(text: str) -> str:
     return text
 
 
+def _truncate_at_last_complete(text: str) -> str:
+    """If JSON is truncated (LLM hit max_tokens), close it at the last complete item."""
+    # Find the last complete object/array boundary
+    last_close = max(text.rfind("}"), text.rfind("]"))
+    if last_close > 0:
+        # Walk backwards to find a valid stopping point
+        candidate = text[:last_close + 1]
+        # Close any remaining open brackets
+        opens = candidate.count("[") - candidate.count("]")
+        candidate += "]" * max(0, opens)
+        opens = candidate.count("{") - candidate.count("}")
+        candidate += "}" * max(0, opens)
+        return candidate
+    return text
+
+
 def extract_json(text: str) -> dict | list:
     """Extract JSON from LLM response with repair fallback."""
     text = text.strip()
@@ -91,6 +107,9 @@ def extract_json(text: str) -> dict | list:
                 if depth == 0:
                     text = text[start : i + 1]
                     break
+        else:
+            # No matching close found — LLM response was truncated
+            text = text[start:]
 
     # First try: parse as-is
     try:
@@ -102,6 +121,27 @@ def extract_json(text: str) -> dict | list:
     repaired = _repair_json(text)
     try:
         return json.loads(repaired)
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON extraction failed after repair: {e}\nText: {text[:500]}")
-        raise
+    except json.JSONDecodeError:
+        pass
+
+    # Third try: truncation recovery — close brackets at last complete item
+    truncated = _truncate_at_last_complete(repaired)
+    try:
+        return json.loads(truncated)
+    except json.JSONDecodeError:
+        pass
+
+    # Fourth try: use higher max_tokens hint — try to extract partial valid data
+    # Find longest valid JSON prefix
+    for end in range(len(repaired), 100, -1):
+        candidate = repaired[:end]
+        candidate = _truncate_at_last_complete(candidate)
+        try:
+            result = json.loads(candidate)
+            logger.warning(f"JSON recovered by truncation at char {end}/{len(repaired)}")
+            return result
+        except json.JSONDecodeError:
+            continue
+
+    logger.error(f"JSON extraction failed after all repair attempts\nText: {text[:500]}")
+    raise json.JSONDecodeError("Could not parse LLM JSON after repairs", text, 0)

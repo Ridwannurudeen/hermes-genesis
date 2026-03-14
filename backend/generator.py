@@ -24,7 +24,7 @@ async def generate_world(seed: str, num_regions: int = 6, num_factions: int = 4,
     await _notify("factions_done", f"{len(faction_data)} factions created")
 
     await _notify("characters", "Generating characters with genomes...")
-    char_text = await chat_completion(characters.SYSTEM, characters.user_prompt(seed, faction_data, geo_data.get("regions", []), num_characters), temperature=0.8)
+    char_text = await chat_completion(characters.SYSTEM, characters.user_prompt(seed, faction_data, geo_data.get("regions", []), num_characters), temperature=0.8, max_tokens=6000)
     char_data = extract_json(char_text)
     await _notify("characters_done", f"{len(char_data)} characters created")
 
