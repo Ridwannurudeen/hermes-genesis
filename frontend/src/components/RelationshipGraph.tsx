@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import * as d3 from 'd3';
 import type { Character, Faction } from '../types';
 
@@ -54,6 +54,8 @@ export default function RelationshipGraph({
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const simRef = useRef<d3.Simulation<SimNode, SimLink> | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [factionFilter, setFactionFilter] = useState<string>('all');
 
   /* faction id → colour lookup */
   const factionColorMap = useMemo(() => {
@@ -291,28 +293,85 @@ export default function RelationshipGraph({
   }
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 relative">
-      <svg
-        ref={svgRef}
-        className="w-full"
-        style={{ height: 600 }}
-      />
+    <div>
+      {/* Search + Filter bar */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="relative flex-1 max-w-xs">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              // Highlight matching node in graph
+              const q = e.target.value.toLowerCase().trim();
+              if (!svgRef.current || !q) {
+                d3.select(svgRef.current).selectAll('circle').attr('opacity', 1);
+                d3.select(svgRef.current).selectAll('.labels text').attr('opacity', 1);
+                return;
+              }
+              d3.select(svgRef.current).selectAll<SVGCircleElement, SimNode>('.nodes circle')
+                .attr('opacity', (d) => d.name.toLowerCase().includes(q) ? 1 : 0.12);
+              d3.select(svgRef.current).selectAll<SVGTextElement, SimNode>('.labels text')
+                .attr('opacity', (d) => d.name.toLowerCase().includes(q) ? 1 : 0.12);
+            }}
+            placeholder="Search characters..."
+            className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-3 pr-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-genesis-600 transition-colors"
+          />
+        </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-gray-950/90 backdrop-blur-sm border border-gray-800 rounded-lg px-4 py-3">
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-medium">
-          Relationships
-        </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-          {LEGEND_ENTRIES.map((entry) => (
-            <div key={entry.label} className="flex items-center gap-2">
-              <div
-                className="w-6 h-0.5 rounded-full"
-                style={{ backgroundColor: entry.color }}
-              />
-              <span className="text-xs text-gray-400">{entry.label}</span>
-            </div>
+        <select
+          value={factionFilter}
+          onChange={(e) => {
+            setFactionFilter(e.target.value);
+            const fid = e.target.value;
+            if (!svgRef.current) return;
+            if (fid === 'all') {
+              d3.select(svgRef.current).selectAll('circle').attr('opacity', 1);
+              d3.select(svgRef.current).selectAll('.labels text').attr('opacity', 1);
+              d3.select(svgRef.current).selectAll('.links line').attr('opacity', 1);
+              return;
+            }
+            d3.select(svgRef.current).selectAll<SVGCircleElement, SimNode>('.nodes circle')
+              .attr('opacity', (d) => d.factionId === fid ? 1 : 0.1);
+            d3.select(svgRef.current).selectAll<SVGTextElement, SimNode>('.labels text')
+              .attr('opacity', (d) => d.factionId === fid ? 1 : 0.1);
+          }}
+          className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-genesis-600"
+        >
+          <option value="all">All Factions</option>
+          {factions.map((f) => (
+            <option key={f.id} value={f.id}>{f.name}</option>
           ))}
+        </select>
+
+        <span className="text-xs text-gray-500 font-mono">
+          {aliveChars.length} characters
+        </span>
+      </div>
+
+      <div className="bg-gray-900 rounded-xl border border-gray-800 relative">
+        <svg
+          ref={svgRef}
+          className="w-full"
+          style={{ height: 600 }}
+        />
+
+        {/* Legend */}
+        <div className="absolute bottom-4 left-4 bg-gray-950/90 backdrop-blur-sm border border-gray-800 rounded-lg px-4 py-3">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-medium">
+            Relationships
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {LEGEND_ENTRIES.map((entry) => (
+              <div key={entry.label} className="flex items-center gap-2">
+                <div
+                  className="w-6 h-0.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-xs text-gray-400">{entry.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

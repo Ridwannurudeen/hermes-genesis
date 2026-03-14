@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } fro
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp,
-  LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll,
-  Play, Sparkles, History, Theater, ChevronDown, ChevronUp,
+  ArrowLeft, Map, Network, ScrollText, TrendingUp,
+  BookOpen, Zap, Swords, Brain, Scroll,
+  Play, Sparkles, History, Theater, BarChart3,
 } from 'lucide-react';
 import { api } from '../api';
 import type {
@@ -29,11 +29,8 @@ const TheaterMode = lazy(() => import('../components/TheaterMode'));
 const RelationshipGraph = lazy(() => import('../components/RelationshipGraph'));
 const EventTimeline = lazy(() => import('../components/EventTimeline'));
 
-// Lazy-loaded analytics components
-const FactionDashboard = lazy(() => import('../components/FactionDashboard'));
-const CharacterList = lazy(() => import('../components/CharacterList'));
-const EvolutionView = lazy(() => import('../components/EvolutionView'));
-const FactionPowerChart = lazy(() => import('../components/FactionPowerChart'));
+// Analytics drawer (replaces inline analytics)
+const AnalyticsDrawer = lazy(() => import('../components/AnalyticsDrawer'));
 
 // Lazy-loaded heavy components (modals, overlays)
 const CinematicMode = lazy(() => import('../components/CinematicMode'));
@@ -54,15 +51,6 @@ const VIEW_MODES: { key: ViewMode; label: string; icon: typeof Map; desc: string
   { key: 'chronicle', label: 'Chronicle', icon: ScrollText, desc: 'Event timeline' },
 ];
 
-/* ── Analytics Tabs ─────────────────────────────────────────── */
-type AnalyticsTab = 'factions' | 'characters' | 'evolution' | 'power';
-
-const ANALYTICS_TABS: { key: AnalyticsTab; label: string; icon: typeof Shield }[] = [
-  { key: 'factions', label: 'Factions', icon: Shield },
-  { key: 'characters', label: 'Characters', icon: Users },
-  { key: 'evolution', label: 'Evolution', icon: Dna },
-  { key: 'power', label: 'Power', icon: TrendingUp },
-];
 
 function SkeletonBlock({ className }: { className?: string }) {
   return (
@@ -83,7 +71,6 @@ export default function WorldView() {
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>('theater');
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-  const [analyticsTab, setAnalyticsTab] = useState<AnalyticsTab>('factions');
   const [graphSelectedChar, setGraphSelectedChar] = useState<Character | null>(null);
 
   // UI state
@@ -351,15 +338,14 @@ export default function WorldView() {
             <div className="ml-auto">
               <button
                 onClick={() => setAnalyticsOpen((p) => !p)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-colors ${
                   analyticsOpen
                     ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
-                    : 'text-gray-500 hover:text-gray-300 border border-transparent'
+                    : 'text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-600'
                 }`}
               >
-                <TrendingUp className="w-3.5 h-3.5" />
+                <BarChart3 className="w-3.5 h-3.5" />
                 Analytics
-                {analyticsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </button>
             </div>
           </div>
@@ -466,70 +452,18 @@ export default function WorldView() {
         </AnimatePresence>
       </div>
 
-      {/* ── Analytics Panel (collapsible) ──────────────────── */}
-      <AnimatePresence>
-        {analyticsOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="border-t border-gray-800"
-          >
-            <div className="max-w-7xl mx-auto px-6 py-4">
-              {/* Analytics tab bar */}
-              <div className="flex gap-1 mb-4">
-                {ANALYTICS_TABS.map((at) => (
-                  <button
-                    key={at.key}
-                    onClick={() => setAnalyticsTab(at.key)}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
-                      analyticsTab === at.key
-                        ? 'bg-gray-800 border-gray-700 text-gray-200'
-                        : 'border-transparent text-gray-500 hover:text-gray-300'
-                    }`}
-                  >
-                    <at.icon className="w-3.5 h-3.5" />
-                    {at.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Analytics content */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={analyticsTab}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {analyticsTab === 'factions' && (
-                    <Suspense fallback={<SkeletonBlock className="h-64" />}>
-                      <FactionDashboard factions={factions} characters={characters} />
-                    </Suspense>
-                  )}
-                  {analyticsTab === 'characters' && (
-                    <Suspense fallback={<SkeletonBlock className="h-64" />}>
-                      <CharacterList characters={characters} factions={factions} worldId={world.id} />
-                    </Suspense>
-                  )}
-                  {analyticsTab === 'evolution' && (
-                    <Suspense fallback={<SkeletonBlock className="h-64" />}>
-                      <EvolutionView data={evolution} />
-                    </Suspense>
-                  )}
-                  {analyticsTab === 'power' && (
-                    <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading chart...</div></div>}>
-                      <FactionPowerChart snapshots={factionTimeline} factions={factions} />
-                    </Suspense>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Analytics Drawer (right sidebar) ──────────────── */}
+      <Suspense fallback={null}>
+        <AnalyticsDrawer
+          open={analyticsOpen}
+          onClose={() => setAnalyticsOpen(false)}
+          factions={factions}
+          characters={characters}
+          evolution={evolution}
+          factionTimeline={factionTimeline}
+          worldId={world.id}
+        />
+      </Suspense>
 
       {/* ── Modals (unchanged) ─────────────────────────────── */}
       {showChronicle && (
