@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Play, Pause, SkipForward, SkipBack } from 'lucide-react';
 import type { WorldEvent, Character, Faction } from '../types';
 import { EVENT_TYPE_ICONS } from '../types';
+import { api } from '../api';
 
 interface Props {
   events: WorldEvent[];
@@ -220,9 +221,12 @@ export default function TheaterMode({
   const [autoPlay, setAutoPlay] = useState(false);
   const [curtainOpen, setCurtainOpen] = useState(false);
   const [showSpeechBubble, setShowSpeechBubble] = useState(false);
+  const [sceneImage, setSceneImage] = useState<string | null>(null);
+  const [sceneLoading, setSceneLoading] = useState(false);
   const autoPlayRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const speechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sceneCacheRef = useRef<Map<string, string>>(new Map());
 
   const aliveChars = useMemo(
     () => characters.filter((c) => c.alive).slice(0, 30),
@@ -244,6 +248,47 @@ export default function TheaterMode({
     characters.forEach((c) => { m[c.id] = c; });
     return m;
   }, [characters]);
+
+  // Fetch scene image when event changes
+  useEffect(() => {
+    if (!currentEvent) {
+      setSceneImage(null);
+      return;
+    }
+    const cacheKey = `${currentEvent.type}:${currentEvent.title}`;
+    const cached = sceneCacheRef.current.get(cacheKey);
+    if (cached) {
+      setSceneImage(cached);
+      return;
+    }
+    setSceneLoading(true);
+    setSceneImage(null);
+    api
+      .generateScene(currentEvent.type, currentEvent.title)
+      .then((res) => {
+        if (res.image) {
+          const dataUrl = `data:image/jpeg;base64,${res.image}`;
+          sceneCacheRef.current.set(cacheKey, dataUrl);
+          setSceneImage(dataUrl);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setSceneLoading(false));
+
+    // Pre-fetch next event image
+    const nextIdx = eventIndex !== null ? eventIndex + 1 : null;
+    if (nextIdx !== null && nextIdx < events.length) {
+      const nextEvent = events[nextIdx];
+      const nextKey = `${nextEvent.type}:${nextEvent.title}`;
+      if (!sceneCacheRef.current.has(nextKey)) {
+        api.generateScene(nextEvent.type, nextEvent.title).then((res) => {
+          if (res.image) {
+            sceneCacheRef.current.set(nextKey, `data:image/jpeg;base64,${res.image}`);
+          }
+        }).catch(() => {});
+      }
+    }
+  }, [currentEvent?.id]);
 
   // Lead actor for speech bubble (first actor in event)
   const leadActor = useMemo(() => {
@@ -403,6 +448,41 @@ export default function TheaterMode({
             transition: 'background 1.5s ease',
           }}
         >
+          {/* AI scene image background */}
+          <AnimatePresence>
+            {sceneImage && (
+              <motion.img
+                key={sceneImage}
+                src={sceneImage}
+                alt=""
+                initial={{ opacity: 0, scale: 1.0 }}
+                animate={{ opacity: 0.35, scale: 1.06 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { duration: 1.2 },
+                  scale: { duration: 12, ease: 'linear' },
+                }}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+          </AnimatePresence>
+          {/* Dark overlay for readability when image is present */}
+          {sceneImage && (
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.3) 100%)',
+              }}
+            />
+          )}
+          {/* Scene loading indicator */}
+          {sceneLoading && (
+            <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-genesis-400 animate-pulse" />
+              <span className="text-[10px] text-white/20 uppercase tracking-widest">Generating scene...</span>
+            </div>
+          )}
+
           {/* Atmospheric particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {Array.from({ length: 25 }).map((_, i) => (
