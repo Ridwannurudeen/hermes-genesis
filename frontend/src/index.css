@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -10,7 +11,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Animated gradient background */
+/* ── Animated gradient background ── */
 .bg-gradient-animated {
   background: linear-gradient(
     135deg,
@@ -30,7 +31,7 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Subtle grid pattern */
+/* ── Subtle grid pattern ── */
 .bg-grid-pattern {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
@@ -38,7 +39,103 @@ body {
   background-size: 40px 40px;
 }
 
-/* Scrollbar styling */
+/* ── Text shimmer effect ── */
+@keyframes text-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #4ade80 0%,
+    #86efac 25%,
+    #ffffff 50%,
+    #86efac 75%,
+    #4ade80 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 4s linear infinite;
+}
+
+/* ── Glow pulse for Generate button ── */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(74, 222, 128, 0.15), 0 0 40px rgba(74, 222, 128, 0.05); }
+  50% { box-shadow: 0 0 30px rgba(74, 222, 128, 0.3), 0 0 60px rgba(74, 222, 128, 0.1); }
+}
+
+.btn-glow {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+.btn-glow:disabled {
+  animation: none;
+  box-shadow: none;
+}
+
+/* ── Card border glow on hover ── */
+.card-glow {
+  position: relative;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-glow:hover {
+  border-color: rgba(74, 222, 128, 0.3);
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.06), inset 0 0 20px rgba(74, 222, 128, 0.02);
+}
+
+/* ── Frosted glass ── */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-input:focus {
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.08), inset 0 0 30px rgba(74, 222, 128, 0.02);
+}
+
+/* ── Icon neon aura ── */
+.icon-aura {
+  filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.3));
+  transition: filter 0.3s ease;
+}
+
+.group:hover .icon-aura {
+  filter: drop-shadow(0 0 12px rgba(74, 222, 128, 0.5));
+}
+
+/* ── Particle field ── */
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(74, 222, 128, 0.4);
+  border-radius: 50%;
+  animation: particle-float linear infinite;
+}
+
+/* ── Scrollbar styling ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -57,7 +154,7 @@ body {
   background: #4b5563;
 }
 
-/* Line clamp utility */
+/* ── Utility ── */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -65,7 +162,6 @@ body {
   overflow: hidden;
 }
 
-/* Select styling for dark mode */
 select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
