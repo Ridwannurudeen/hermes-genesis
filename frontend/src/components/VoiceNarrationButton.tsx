@@ -17,7 +17,7 @@ export default function VoiceNarrationButton({ active, onToggle, disabled }: Pro
       className={`flex items-center gap-2 px-4 py-2.5 font-medium text-sm rounded-lg transition-all ${
         active
           ? 'bg-violet-600/20 border border-violet-500/50 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
-          : 'bg-gray-800 border border-gray-700 text-gray-400 hover:text-gray-300 hover:border-gray-600'
+          : 'bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-gray-300 hover:border-white/[0.15]'
       } disabled:opacity-40 disabled:cursor-not-allowed`}
     >
       {active ? (

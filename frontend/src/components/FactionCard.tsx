@@ -27,7 +27,7 @@ function ResourceBar({
           {Math.round(clamped * 100)}
         </span>
       </div>
-      <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${clamped * 100}%` }}
@@ -47,7 +47,7 @@ export default function FactionCard({ faction, leader }: Props) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
-      className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-colors"
+      className="bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden hover:border-white/[0.12] hover:bg-white/[0.05] transition-all backdrop-blur-sm"
     >
       {/* Color accent bar */}
       <div className="h-1.5" style={{ backgroundColor: faction.color }} />
@@ -79,21 +79,21 @@ export default function FactionCard({ faction, leader }: Props) {
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="text-center bg-gray-800/50 rounded-lg p-2.5">
+          <div className="text-center bg-white/[0.04] rounded-lg p-2.5">
             <MapPin className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
             <p className="text-lg font-bold text-gray-200">
               {faction.territory.length}
             </p>
             <p className="text-xs text-gray-500">Territories</p>
           </div>
-          <div className="text-center bg-gray-800/50 rounded-lg p-2.5">
+          <div className="text-center bg-white/[0.04] rounded-lg p-2.5">
             <Users className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
             <p className="text-lg font-bold text-gray-200">
               {faction.population}
             </p>
             <p className="text-xs text-gray-500">Population</p>
           </div>
-          <div className="text-center bg-gray-800/50 rounded-lg p-2.5">
+          <div className="text-center bg-white/[0.04] rounded-lg p-2.5">
             <Heart className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
             <p className="text-lg font-bold text-gray-200">
               {Math.round(faction.morale * 100)}%
@@ -164,7 +164,7 @@ export default function FactionCard({ faction, leader }: Props) {
             {faction.traits.map((t, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 bg-gray-800 text-gray-400 rounded text-xs capitalize"
+                className="px-2 py-0.5 bg-white/[0.06] text-gray-400 rounded text-xs capitalize"
               >
                 {t}
               </span>

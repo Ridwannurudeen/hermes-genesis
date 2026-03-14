@@ -28,7 +28,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: typeof Shield }[] = [
 ];
 
 function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-800 rounded-lg ${className || ''}`} />;
+  return <div className={`animate-pulse bg-white/[0.06] rounded-lg ${className || ''}`} />;
 }
 
 export default function AnalyticsDrawer({
@@ -66,17 +66,17 @@ export default function AnalyticsDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 h-full z-50 flex flex-col bg-gray-950 border-l border-gray-800 w-full sm:w-96 md:w-[420px]"
+            className="fixed top-0 right-0 h-full z-50 flex flex-col bg-gray-950/95 backdrop-blur-xl border-l border-white/[0.06] w-full sm:w-96 md:w-[420px]"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800 flex-shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4.5 h-4.5 text-genesis-400" />
                 <h2 className="text-sm font-semibold text-gray-200">Analytics</h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 text-gray-500 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-1.5 text-gray-500 hover:text-gray-300 hover:bg-white/[0.06] rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -87,11 +87,11 @@ export default function AnalyticsDrawer({
               {SECTIONS.map((section) => {
                 const isExpanded = expanded === section.key;
                 return (
-                  <div key={section.key} className="border-b border-gray-800/60">
+                  <div key={section.key} className="border-b border-white/[0.04]">
                     {/* Section header */}
                     <button
                       onClick={() => toggleSection(section.key)}
-                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-gray-900/50 transition-colors"
+                      className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-white/[0.04] transition-colors"
                     >
                       <section.icon className={`w-4 h-4 flex-shrink-0 ${isExpanded ? 'text-genesis-400' : 'text-gray-500'}`} />
                       <span className={`text-sm font-medium flex-1 ${isExpanded ? 'text-gray-200' : 'text-gray-400'}`}>

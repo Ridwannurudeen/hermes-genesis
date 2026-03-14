@@ -18,7 +18,7 @@ export default function ProphecyPanel({ prophecies }: Props) {
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 px-3 py-2 bg-gray-900/90 backdrop-blur border border-purple-900/50 rounded-lg text-purple-400 hover:text-purple-300 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] backdrop-blur-xl border border-purple-500/30 rounded-lg text-purple-400 hover:text-purple-300 hover:bg-white/[0.08] transition-all"
       >
         <Eye className="w-4 h-4" />
         <span className="text-sm">Prophecies</span>
@@ -36,9 +36,9 @@ export default function ProphecyPanel({ prophecies }: Props) {
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="mt-2 w-72 sm:w-80 bg-gray-950/95 backdrop-blur border border-purple-900/30 rounded-xl overflow-hidden"
+            className="mt-2 w-72 sm:w-80 bg-gray-950/90 backdrop-blur-xl border border-purple-500/20 rounded-xl overflow-hidden shadow-xl shadow-purple-900/10"
           >
-            <div className="p-3 border-b border-gray-800">
+            <div className="p-3 border-b border-white/[0.06]">
               <h3 className="text-sm font-semibold text-purple-400 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Oracle's Prophecies
@@ -54,7 +54,7 @@ export default function ProphecyPanel({ prophecies }: Props) {
                   className={`p-3 rounded-lg border ${
                     p.fulfilled
                       ? 'border-amber-500/50 bg-amber-950/20'
-                      : 'border-gray-800 bg-gray-900/50'
+                      : 'border-white/[0.06] bg-white/[0.03]'
                   }`}
                 >
                   <p className={`text-sm italic leading-relaxed ${

@@ -87,10 +87,10 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
           exit={{ opacity: 0, y: 30 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-950 border border-gray-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+          className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] shrink-0">
             <div>
               <h2 className="text-xl font-bold text-gray-100">{worldName}</h2>
               {!loading && chronicle && (
@@ -99,7 +99,7 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
+              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -135,10 +135,10 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
 
           {/* Footer */}
           {chronicle && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-800 shrink-0">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/[0.06] shrink-0">
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-all"
               >
                 {copied ? (
                   <>
@@ -154,7 +154,7 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
               </button>
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-all"
               >
                 <Download className="w-4 h-4" />
                 Download .md

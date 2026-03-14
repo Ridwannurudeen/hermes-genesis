@@ -61,7 +61,7 @@ export function MiniGenomeBars({ genome }: { genome: Genome }) {
           <span className="text-[9px] text-gray-500 w-3 uppercase font-mono">
             {trait[0]}
           </span>
-          <div className="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+          <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all"
               style={{

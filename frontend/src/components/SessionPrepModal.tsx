@@ -291,7 +291,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
+              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
             >
               <X className="w-5 h-5" />
             </button>

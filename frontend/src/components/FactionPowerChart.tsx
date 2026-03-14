@@ -77,7 +77,7 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               metric === m.key
                 ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400'
-                : 'bg-gray-900 border border-gray-800 text-gray-500 hover:text-gray-300 hover:border-gray-700'
+                : 'bg-white/[0.03] border border-white/[0.06] text-gray-500 hover:text-gray-300 hover:border-white/[0.12]'
             }`}
           >
             {m.label}
@@ -86,7 +86,7 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
       </div>
 
       {/* Chart */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />

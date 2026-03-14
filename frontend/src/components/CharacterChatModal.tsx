@@ -150,10 +150,10 @@ export default function CharacterChatModal({
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-950 border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+          className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800 shrink-0">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
               {faction && (
                 <span
@@ -174,7 +174,7 @@ export default function CharacterChatModal({
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
+              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -202,7 +202,7 @@ export default function CharacterChatModal({
                       className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
                         msg.role === 'user'
                           ? 'bg-genesis-900/40 border border-genesis-800/30 text-gray-200'
-                          : 'bg-gray-800/70 border border-gray-700/30 text-gray-300'
+                          : 'bg-white/[0.04] border border-white/[0.06] text-gray-300'
                       }`}
                     >
                       {msg.role === 'character' && (
@@ -221,7 +221,7 @@ export default function CharacterChatModal({
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-800/70 border border-gray-700/30 rounded-xl px-4 py-2.5">
+                    <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-2.5">
                       <p
                         className="text-xs font-medium mb-1"
                         style={{ color: faction?.color || '#22d3ee' }}
@@ -238,7 +238,7 @@ export default function CharacterChatModal({
           </div>
 
           {/* Input area */}
-          <div className="px-5 py-4 border-t border-gray-800 shrink-0">
+          <div className="px-5 py-4 border-t border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
               <input
                 ref={inputRef}
@@ -248,12 +248,12 @@ export default function CharacterChatModal({
                 onKeyDown={handleKeyDown}
                 placeholder={`Say something to ${character.name}...`}
                 disabled={loading || initialLoading}
-                className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-genesis-600 disabled:opacity-50 transition-colors"
+                className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none disabled:opacity-50 transition-all"
               />
               <button
                 onClick={handleSend}
                 disabled={loading || initialLoading || !input.trim()}
-                className="p-2.5 bg-genesis-600 hover:bg-genesis-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-xl transition-colors shrink-0"
+                className="p-2.5 bg-genesis-600 hover:bg-genesis-500 disabled:bg-white/[0.04] disabled:text-gray-600 text-white rounded-xl transition-colors shrink-0"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

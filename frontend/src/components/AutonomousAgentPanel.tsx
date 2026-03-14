@@ -162,14 +162,14 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
   return (
     <div
-      className={`bg-gray-950 rounded-xl overflow-hidden transition-all duration-500 ${
+      className={`bg-white/[0.02] backdrop-blur-sm rounded-xl overflow-hidden transition-all duration-500 ${
         running
           ? 'border-2 border-cyan-500/40 shadow-lg shadow-cyan-500/10'
-          : 'border border-gray-800'
+          : 'border border-white/[0.06]'
       }`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-800/50">
+      <div className="p-4 border-b border-white/[0.06]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Brain icon with pulsing ring when active */}
@@ -178,7 +178,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                 className={`p-2.5 rounded-xl transition-all duration-500 ${
                   running
                     ? 'bg-cyan-500/10 border border-cyan-500/30'
-                    : 'bg-gray-800/80 border border-gray-700'
+                    : 'bg-white/[0.04] border border-white/[0.08]'
                 }`}
               >
                 <Brain
@@ -230,7 +230,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     className={`px-2 py-1 text-xs rounded-md transition-colors ${
                       interval === opt.value
                         ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                        : 'text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-700'
+                        : 'text-gray-500 hover:text-gray-300 border border-white/[0.08] hover:border-white/[0.15]'
                     }`}
                   >
                     {opt.label}
@@ -298,7 +298,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-800/40">
+          <div className="divide-y divide-white/[0.04]">
             {reversedLogs.map((log, i) => {
               const actionBadge = ACTION_BADGES[log.action] || ACTION_BADGES.simulate;
               return (
@@ -306,7 +306,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   key={`${log.timestamp}-${i}`}
                   initial={i === 0 ? { opacity: 0, y: -10 } : false}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 text-sm transition-colors hover:bg-gray-900/50 ${
+                  className={`p-4 text-sm transition-colors hover:bg-white/[0.03] ${
                     log.action === 'intervene'
                       ? 'border-l-2 border-l-red-500/60'
                       : log.action === 'focus'

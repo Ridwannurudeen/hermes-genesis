@@ -98,10 +98,10 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
           exit={{ opacity: 0, y: 30 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-950 border border-gray-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+          className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/30">
                 <Swords className="w-5 h-5 text-amber-400" />
@@ -115,7 +115,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
+              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -157,7 +157,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.3, duration: 0.4, ease: 'easeOut' }}
-                      className="relative bg-gray-900 rounded-xl p-5 border border-gray-800"
+                      className="relative bg-white/[0.03] rounded-xl p-5 border border-white/[0.06]"
                       style={{ borderLeftWidth: '4px', borderLeftColor: fColor }}
                     >
                       {/* Leader header */}
@@ -201,7 +201,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
                       delay: data.statements.length * 0.3 + 0.2,
                       duration: 0.4,
                     }}
-                    className="mt-6 p-4 bg-gray-900/50 border border-gray-800 rounded-xl text-center"
+                    className="mt-6 p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl text-center"
                   >
                     <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
                       Council Verdict
@@ -215,7 +215,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
 
           {/* Footer */}
           {data && (
-            <div className="flex items-center justify-end px-6 py-4 border-t border-gray-800 shrink-0">
+            <div className="flex items-center justify-end px-6 py-4 border-t border-white/[0.06] shrink-0">
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 transition-colors"

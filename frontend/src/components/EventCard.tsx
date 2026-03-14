@@ -44,10 +44,10 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className={`relative rounded-xl p-4 transition-colors ${
+      className={`relative rounded-xl p-4 transition-all ${
         event.type === 'death' && event.obituary
           ? 'bg-red-950/30 border border-red-900/40 hover:border-red-800/50'
-          : 'bg-gray-900 border border-gray-800 hover:border-gray-700'
+          : 'bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.05]'
       } ${hasCausedBy ? 'border-l-2 border-l-amber-500/50' : ''}`}
     >
       {/* Agent Intervention Badge - top right */}
@@ -125,7 +125,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                 return (
                   <span
                     key={i}
-                    className="px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-xs"
+                    className="px-2 py-0.5 bg-white/[0.06] text-gray-300 rounded text-xs"
                   >
                     {actor ? actor.name : actorId}
                   </span>

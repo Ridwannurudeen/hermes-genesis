@@ -19,18 +19,18 @@ export default function RegionDetail({
     : null;
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <div className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-white/[0.06]">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-lg font-bold text-gray-100">{region.name}</h3>
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-400 capitalize flex items-center gap-1">
+              <span className="px-2 py-0.5 bg-white/[0.06] rounded text-xs text-gray-400 capitalize flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 {region.type}
               </span>
-              <span className="px-2 py-0.5 bg-gray-800 rounded text-xs text-gray-400 capitalize flex items-center gap-1">
+              <span className="px-2 py-0.5 bg-white/[0.06] rounded text-xs text-gray-400 capitalize flex items-center gap-1">
                 <Thermometer className="w-3 h-3" />
                 {region.climate}
               </span>
@@ -74,7 +74,7 @@ export default function RegionDetail({
               {region.resources.map((r, i) => (
                 <span
                   key={i}
-                  className="px-2.5 py-1 bg-gray-800 rounded-full text-xs text-gray-300 capitalize"
+                  className="px-2.5 py-1 bg-white/[0.06] rounded-full text-xs text-gray-300 capitalize"
                 >
                   {r}
                 </span>
@@ -91,7 +91,7 @@ export default function RegionDetail({
             </p>
             <div className="space-y-2">
               {region.points_of_interest.map((poi, i) => (
-                <div key={i} className="bg-gray-800/60 rounded-lg p-2.5">
+                <div key={i} className="bg-white/[0.04] rounded-lg p-2.5">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-sm text-gray-200 font-medium">
                       {poi.name}
@@ -119,7 +119,7 @@ export default function RegionDetail({
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center gap-2 py-1 px-2 rounded bg-gray-800/40"
+                    className="flex items-center gap-2 py-1 px-2 rounded bg-white/[0.03]"
                   >
                     <div
                       className="w-2 h-2 rounded-full flex-shrink-0"

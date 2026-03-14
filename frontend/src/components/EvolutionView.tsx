@@ -47,7 +47,7 @@ export default function EvolutionView({ data }: Props) {
   if (data.length <= 1) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <div className="w-16 h-16 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
           <svg
             className="w-8 h-8 text-gray-600"
             fill="none"
@@ -90,7 +90,7 @@ export default function EvolutionView({ data }: Props) {
               onClick={() => toggleTrait(trait)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 hidden
-                  ? 'bg-gray-900 text-gray-600 border border-gray-800'
+                  ? 'bg-white/[0.03] text-gray-600 border border-white/[0.06]'
                   : 'border text-gray-200'
               }`}
               style={
@@ -117,7 +117,7 @@ export default function EvolutionView({ data }: Props) {
       </div>
 
       {/* Chart */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
         <ResponsiveContainer width="100%" height={420}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -225,7 +225,7 @@ export default function EvolutionView({ data }: Props) {
             return (
               <div
                 key={trait}
-                className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center"
+                className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3 text-center"
               >
                 <div
                   className="w-2.5 h-2.5 rounded-full mx-auto mb-1.5"

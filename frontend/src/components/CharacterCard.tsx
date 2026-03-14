@@ -17,7 +17,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
       onClick={onClick}
-      className="bg-gray-900 border border-gray-800 rounded-xl p-4 cursor-pointer hover:border-gray-700 transition-colors"
+      className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 cursor-pointer hover:border-white/[0.12] hover:bg-white/[0.05] transition-all backdrop-blur-sm"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -35,7 +35,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-gray-800 text-gray-400 rounded text-xs capitalize">
+            <span className="px-2 py-0.5 bg-white/[0.06] text-gray-400 rounded text-xs capitalize">
               {character.role}
             </span>
           </div>
@@ -64,7 +64,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
       {/* Fitness */}
       <div className="flex items-center gap-2">
         <Activity className="w-3 h-3 text-genesis-500" />
-        <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
           <div
             className="h-full rounded-full bg-genesis-500"
             style={{ width: `${Math.max(2, character.fitness * 100)}%` }}

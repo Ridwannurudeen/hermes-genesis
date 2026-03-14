@@ -55,7 +55,7 @@ const VIEW_MODES: { key: ViewMode; label: string; icon: typeof Map; desc: string
 
 function SkeletonBlock({ className }: { className?: string }) {
   return (
-    <div className={`animate-pulse bg-gray-800 rounded-lg ${className || ''}`} />
+    <div className={`animate-pulse bg-white/[0.06] rounded-lg ${className || ''}`} />
   );
 }
 
@@ -248,11 +248,11 @@ export default function WorldView() {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-30">
+      <div className="border-b border-white/[0.06] bg-gray-950/60 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/" className="text-gray-500 hover:text-gray-300 transition-colors">
+              <Link to="/" className="text-gray-500 hover:text-genesis-400 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
@@ -267,35 +267,35 @@ export default function WorldView() {
               </div>
               <VoiceNarrationButton active={voiceEnabled} onToggle={() => setVoiceEnabled((p) => !p)} disabled={loading} />
               <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  showAgent ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30' : 'text-gray-400 hover:text-cyan-400 hover:bg-gray-800'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  showAgent ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30' : 'text-gray-400 hover:text-cyan-400 hover:bg-white/[0.06]'
                 }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>
               </button>
               <button onClick={() => setGodMode((p) => !p)} title="God Mode"
-                className={`p-2 rounded-lg transition-colors ${
-                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-gray-400 hover:text-amber-400 hover:bg-gray-800'
+                className={`p-2 rounded-lg transition-all ${
+                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-gray-400 hover:text-amber-400 hover:bg-white/[0.06]'
                 }`}>
                 <Zap className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCouncil(true)} title="Faction Council" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors">
+              <button onClick={() => setShowCouncil(true)} title="Faction Council" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
                 <Swords className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-gray-800 rounded-lg transition-colors">
+              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-white/[0.06] rounded-lg transition-all">
                 <BookOpen className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" className="p-2 text-gray-400 hover:text-rose-400 hover:bg-gray-800 rounded-lg transition-colors">
+              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" className="p-2 text-gray-400 hover:text-rose-400 hover:bg-white/[0.06] rounded-lg transition-all">
                 <Play className="w-5 h-5" />
               </button>
               <button onClick={() => setShowReplay(true)} title="Replay History" disabled={events.length === 0}
-                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                 <History className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors">
+              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
                 <Sparkles className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors">
+              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
                 <Scroll className="w-5 h-5" />
               </button>
               <AutoPlayButton active={autoPlay} onToggle={toggleAutoPlay} disabled={loading} />
@@ -306,7 +306,7 @@ export default function WorldView() {
       </div>
 
       {/* ── View Mode Selector ─────────────────────────────── */}
-      <div className="border-b border-gray-800">
+      <div className="border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-1 py-1">
             {VIEW_MODES.map((vm) => {
@@ -318,7 +318,7 @@ export default function WorldView() {
                   className={`group flex items-center gap-2.5 px-5 py-3 text-sm font-medium rounded-lg transition-all ${
                     isActive
                       ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
-                      : 'text-gray-500 hover:text-gray-300 hover:bg-gray-900/50 border border-transparent'
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] border border-transparent'
                   }`}
                 >
                   <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-gray-600 group-hover:text-gray-400'}`} />
@@ -343,10 +343,10 @@ export default function WorldView() {
             <div className="ml-auto">
               <button
                 onClick={() => setAnalyticsOpen((p) => !p)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${
                   analyticsOpen
                     ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
-                    : 'text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-600'
+                    : 'text-gray-500 hover:text-gray-300 border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04]'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />

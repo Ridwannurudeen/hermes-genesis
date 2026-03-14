@@ -86,7 +86,7 @@ export default function SimulateButton({ onSimulate, loading }: Props) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 bg-gray-900 border border-gray-800 rounded-lg shadow-xl overflow-hidden z-20 min-w-[180px]"
+            className="absolute right-0 top-full mt-1 bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-lg shadow-xl overflow-hidden z-20 min-w-[180px]"
           >
             {OPTIONS.map((opt, idx) => (
               <button
@@ -95,7 +95,7 @@ export default function SimulateButton({ onSimulate, loading }: Props) {
                 className={`w-full px-4 py-2.5 text-sm text-left transition-colors flex items-center gap-2 ${
                   idx === selected
                     ? 'bg-genesis-900/50 text-genesis-400'
-                    : 'text-gray-300 hover:bg-gray-800'
+                    : 'text-gray-300 hover:bg-white/[0.06]'
                 }`}
               >
                 <Play className="w-3 h-3" />

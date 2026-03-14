@@ -37,7 +37,7 @@ function RelationshipBadge({
       ? 'bg-green-900/30 border-green-800/40 text-green-400'
       : type === 'love' || type === 'family'
       ? 'bg-pink-900/30 border-pink-800/40 text-pink-400'
-      : 'bg-gray-800 border-gray-700 text-gray-400';
+      : 'bg-white/[0.06] border-white/[0.08] text-gray-400';
 
   return (
     <span
@@ -80,10 +80,10 @@ export default function CharacterDetail({
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto"
+        className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl shadow-black/50"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-5 flex items-start justify-between z-10">
+        <div className="sticky top-0 bg-gray-950/90 backdrop-blur-xl border-b border-white/[0.06] p-5 flex items-start justify-between z-10">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h2
@@ -98,7 +98,7 @@ export default function CharacterDetail({
               {!character.alive && <Skull className="w-5 h-5 text-red-500" />}
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="px-2.5 py-0.5 bg-gray-800 text-gray-400 rounded capitalize">
+              <span className="px-2.5 py-0.5 bg-white/[0.06] text-gray-400 rounded capitalize">
                 {character.role}
               </span>
               {faction && (
@@ -118,14 +118,14 @@ export default function CharacterDetail({
               <button
                 onClick={() => setShowChat(true)}
                 title={`Chat with ${character.name}`}
-                className="p-1.5 text-gray-500 hover:text-genesis-400 transition-colors rounded-lg hover:bg-gray-800"
+                className="p-1.5 text-gray-500 hover:text-genesis-400 transition-colors rounded-lg hover:bg-white/[0.06]"
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
+              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -139,7 +139,7 @@ export default function CharacterDetail({
               <Dna className="w-4 h-4 text-genesis-400" />
               Genome
             </h3>
-            <div className="bg-gray-800/40 rounded-xl p-4">
+            <div className="bg-white/[0.03] rounded-xl p-4">
               <GenomeRadar
                 genome={character.genome}
                 fillColor={faction?.color || '#22d3ee'}
@@ -155,7 +155,7 @@ export default function CharacterDetail({
               Fitness Score
             </h3>
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+              <div className="flex-1 h-3 bg-white/[0.06] rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{
@@ -177,7 +177,7 @@ export default function CharacterDetail({
               <h3 className="text-sm font-medium text-gray-300 mb-2">
                 Backstory
               </h3>
-              <p className="text-sm text-gray-400 leading-relaxed bg-gray-800/40 rounded-lg p-4 italic">
+              <p className="text-sm text-gray-400 leading-relaxed bg-white/[0.03] rounded-lg p-4 italic">
                 {character.backstory}
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function CharacterDetail({
                   return (
                     <div
                       key={i}
-                      className="flex items-center justify-between bg-gray-800/40 rounded-lg px-3 py-2"
+                      className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-200">
@@ -257,7 +257,7 @@ export default function CharacterDetail({
               <GitBranch className="w-4 h-4 text-purple-400" />
               Lineage
             </h3>
-            <div className="bg-gray-800/40 rounded-lg p-4 space-y-2">
+            <div className="bg-white/[0.03] rounded-lg p-4 space-y-2">
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-500 uppercase tracking-wider w-20">
                   Generation

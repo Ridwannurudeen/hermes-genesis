@@ -89,7 +89,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
   return (
     <div>
       {/* ── Search + Filters Bar ──────────────────────────── */}
-      <div className="bg-gray-900/50 rounded-xl border border-gray-800 p-4 mb-6">
+      <div className="glass rounded-xl p-4 mb-6">
         {/* Search input */}
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -98,7 +98,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events by title or narrative..."
-            className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-genesis-600 transition-colors"
+            className="glass-input w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none transition-all"
           />
         </div>
 
@@ -112,7 +112,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-genesis-600"
+            className="glass-input rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none transition-all"
           >
             <option value="all">All Types</option>
             {eventTypes.map((t) => (
@@ -125,7 +125,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={factionFilter}
             onChange={(e) => setFactionFilter(e.target.value)}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-genesis-600"
+            className="glass-input rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none transition-all"
           >
             <option value="all">All Factions</option>
             {factions.map((f) => (
@@ -138,7 +138,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={charFilter}
             onChange={(e) => setCharFilter(e.target.value)}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-genesis-600"
+            className="glass-input rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none transition-all"
           >
             <option value="all">All Characters</option>
             {eventActors.map((c) => (
@@ -176,10 +176,10 @@ export default function EventTimeline({ events, factions, characters }: Props) {
             <button
               key={type}
               onClick={() => setTypeFilter(typeFilter === type ? 'all' : type)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
                 typeFilter === type
                   ? 'bg-genesis-600/15 border-genesis-500/30 text-genesis-400'
-                  : 'bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-600'
+                  : 'bg-white/[0.03] border-white/[0.08] text-gray-400 hover:border-white/[0.15] hover:bg-white/[0.06]'
               }`}
             >
               <span>{EVENT_TYPE_ICONS[type] || ''}</span>
@@ -193,19 +193,19 @@ export default function EventTimeline({ events, factions, characters }: Props) {
       {/* ── Timeline ─────────────────────────────────────── */}
       <div className="relative">
         {/* Vertical line */}
-        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-gray-800" />
+        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-white/[0.06]" />
 
         <div className="space-y-8">
           {groupedByDay.map(({ day, events: dayEvents }) => (
             <div key={day} className="relative">
               {/* Day marker — sticky header */}
               <div className="flex items-center gap-3 mb-4 sticky top-[73px] z-20 py-1">
-                <div className="w-12 h-12 rounded-full bg-gray-900 border-2 border-genesis-600 flex items-center justify-center flex-shrink-0 z-10 shadow-lg shadow-black/30">
+                <div className="w-12 h-12 rounded-full bg-gray-950/80 border-2 border-genesis-500/50 flex items-center justify-center flex-shrink-0 z-10 shadow-lg shadow-genesis-500/10">
                   <span className="text-sm font-bold text-genesis-400">
                     {day}
                   </span>
                 </div>
-                <div className="bg-gray-950/90 backdrop-blur-sm px-3 py-1 rounded-lg">
+                <div className="glass px-3 py-1 rounded-lg">
                   <p className="text-sm font-semibold text-gray-300">
                     Day {day}
                   </p>
