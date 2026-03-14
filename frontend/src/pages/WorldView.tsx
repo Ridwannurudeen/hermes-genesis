@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp, LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll, Play, Sparkles, History } from 'lucide-react';
+import {
+  ArrowLeft, Map, Shield, Users, ScrollText, Dna, TrendingUp,
+  LayoutGrid, Network, BookOpen, Zap, Swords, Brain, Scroll,
+  Play, Sparkles, History, Theater, ChevronDown, ChevronUp,
+} from 'lucide-react';
 import { api } from '../api';
 import type {
   World,
@@ -12,7 +16,6 @@ import type {
   FactionSnapshot,
   Prophecy,
 } from '../types';
-// Only keep truly essential UI that renders on first paint
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
 import VoiceNarrationButton from '../components/VoiceNarrationButton';
@@ -20,16 +23,19 @@ import CharacterDetail from '../components/CharacterDetail';
 import ProphecyPanel from '../components/ProphecyPanel';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 
-// Lazy-loaded tab content components
+// Lazy-loaded view mode components
 const WorldMap = lazy(() => import('../components/WorldMap'));
+const TheaterMode = lazy(() => import('../components/TheaterMode'));
+const RelationshipGraph = lazy(() => import('../components/RelationshipGraph'));
+const EventTimeline = lazy(() => import('../components/EventTimeline'));
+
+// Lazy-loaded analytics components
 const FactionDashboard = lazy(() => import('../components/FactionDashboard'));
 const CharacterList = lazy(() => import('../components/CharacterList'));
-const EventTimeline = lazy(() => import('../components/EventTimeline'));
 const EvolutionView = lazy(() => import('../components/EvolutionView'));
-
-// Lazy-loaded heavy components (D3, Recharts, modals)
-const RelationshipGraph = lazy(() => import('../components/RelationshipGraph'));
 const FactionPowerChart = lazy(() => import('../components/FactionPowerChart'));
+
+// Lazy-loaded heavy components (modals, overlays)
 const CinematicMode = lazy(() => import('../components/CinematicMode'));
 const ChronicleModal = lazy(() => import('../components/ChronicleModal'));
 const CampaignKitModal = lazy(() => import('../components/CampaignKitModal'));
@@ -38,22 +44,29 @@ const GodModePanel = lazy(() => import('../components/GodModePanel'));
 const CouncilModal = lazy(() => import('../components/CouncilModal'));
 const AutonomousAgentPanel = lazy(() => import('../components/AutonomousAgentPanel'));
 
-type TabKey = 'map' | 'factions' | 'characters' | 'events' | 'evolution' | 'power';
+/* ── View Modes ─────────────────────────────────────────────── */
+type ViewMode = 'theater' | 'map' | 'network' | 'chronicle';
 
-const TABS: { key: TabKey; label: string; icon: typeof Map }[] = [
-  { key: 'map', label: 'Map', icon: Map },
+const VIEW_MODES: { key: ViewMode; label: string; icon: typeof Map; desc: string }[] = [
+  { key: 'theater', label: 'Theater', icon: Theater, desc: 'Dramatic stage view' },
+  { key: 'map', label: 'Map', icon: Map, desc: 'Territory control' },
+  { key: 'network', label: 'Network', icon: Network, desc: 'Relationships' },
+  { key: 'chronicle', label: 'Chronicle', icon: ScrollText, desc: 'Event timeline' },
+];
+
+/* ── Analytics Tabs ─────────────────────────────────────────── */
+type AnalyticsTab = 'factions' | 'characters' | 'evolution' | 'power';
+
+const ANALYTICS_TABS: { key: AnalyticsTab; label: string; icon: typeof Shield }[] = [
   { key: 'factions', label: 'Factions', icon: Shield },
   { key: 'characters', label: 'Characters', icon: Users },
-  { key: 'events', label: 'Events', icon: ScrollText },
   { key: 'evolution', label: 'Evolution', icon: Dna },
   { key: 'power', label: 'Power', icon: TrendingUp },
 ];
 
 function SkeletonBlock({ className }: { className?: string }) {
   return (
-    <div
-      className={`animate-pulse bg-gray-800 rounded-lg ${className || ''}`}
-    />
+    <div className={`animate-pulse bg-gray-800 rounded-lg ${className || ''}`} />
   );
 }
 
@@ -66,9 +79,14 @@ export default function WorldView() {
   const [evolution, setEvolution] = useState<EvolutionEntry[]>([]);
   const [factionTimeline, setFactionTimeline] = useState<FactionSnapshot[]>([]);
   const [prophecies, setProphecies] = useState<Prophecy[]>([]);
-  const [tab, setTab] = useState<TabKey>('map');
-  const [charView, setCharView] = useState<'grid' | 'graph'>('grid');
+
+  // View state
+  const [viewMode, setViewMode] = useState<ViewMode>('theater');
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [analyticsTab, setAnalyticsTab] = useState<AnalyticsTab>('factions');
   const [graphSelectedChar, setGraphSelectedChar] = useState<Character | null>(null);
+
+  // UI state
   const [loading, setLoading] = useState(true);
   const [simulating, setSimulating] = useState(false);
   const [mapData, setMapData] = useState<{
@@ -97,7 +115,7 @@ export default function WorldView() {
 
   const { speak } = useVoiceNarration(voiceEnabled);
 
-  // Voice narration: speak new events from any source (simulate, auto-play, god mode)
+  // Voice narration: speak new events
   useEffect(() => {
     if (!voiceEnabled || events.length <= prevEventCountRef.current) {
       prevEventCountRef.current = events.length;
@@ -163,7 +181,6 @@ export default function WorldView() {
           });
         });
       } catch {
-        // fallback: fetch all data anyway
         await fetchAll();
       } finally {
         setSimulating(false);
@@ -172,7 +189,7 @@ export default function WorldView() {
     [id, fetchAll]
   );
 
-  // Keep ref in sync
+  // Auto-play sync
   useEffect(() => {
     autoPlayActiveRef.current = autoPlay;
   }, [autoPlay]);
@@ -190,14 +207,12 @@ export default function WorldView() {
         setAutoPlay(false);
       } finally {
         setSimulating(false);
-        // Schedule next tick if still active
         if (autoPlayActiveRef.current) {
           autoPlayTimerRef.current = setTimeout(tick, 8000);
         }
       }
     };
 
-    // Start first tick immediately
     tick();
 
     return () => {
@@ -210,9 +225,7 @@ export default function WorldView() {
 
   const toggleAutoPlay = useCallback(() => {
     setAutoPlay((prev) => {
-      if (!prev) {
-        setTab('map'); // Switch to map to see markers
-      }
+      if (!prev) setViewMode('map');
       return !prev;
     });
   }, []);
@@ -224,8 +237,8 @@ export default function WorldView() {
           <SkeletonBlock className="h-10 w-64 mb-6" />
           <SkeletonBlock className="h-8 w-96 mb-8" />
           <div className="flex gap-2 mb-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <SkeletonBlock key={i} className="h-10 w-28" />
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonBlock key={i} className="h-12 w-32" />
             ))}
           </div>
           <SkeletonBlock className="h-[500px] w-full" />
@@ -239,10 +252,7 @@ export default function WorldView() {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-400 text-lg mb-4">World not found</p>
-          <Link
-            to="/"
-            className="text-genesis-400 hover:text-genesis-300 transition-colors"
-          >
+          <Link to="/" className="text-genesis-400 hover:text-genesis-300 transition-colors">
             Back to home
           </Link>
         </div>
@@ -252,152 +262,115 @@ export default function WorldView() {
 
   return (
     <div className="min-h-screen bg-gray-950">
-      {/* Header */}
+      {/* ── Header ─────────────────────────────────────────── */}
       <div className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="text-gray-500 hover:text-gray-300 transition-colors"
-              >
+              <Link to="/" className="text-gray-500 hover:text-gray-300 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-100">
-                  {world.name}
-                </h1>
-                <p className="text-gray-500 text-sm italic">
-                  &ldquo;{world.seed}&rdquo;
-                </p>
+                <h1 className="text-2xl font-bold text-gray-100">{world.name}</h1>
+                <p className="text-gray-500 text-sm italic">&ldquo;{world.seed}&rdquo;</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-xs text-gray-500 uppercase tracking-wider">
-                  Day
-                </p>
-                <p className="text-2xl font-mono font-bold text-genesis-400">
-                  {world.current_day}
-                </p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">Day</p>
+                <p className="text-2xl font-mono font-bold text-genesis-400">{world.current_day}</p>
               </div>
-              <VoiceNarrationButton
-                active={voiceEnabled}
-                onToggle={() => setVoiceEnabled((prev) => !prev)}
-                disabled={loading}
-              />
-              <button
-                onClick={() => setShowAgent((prev) => !prev)}
-                title="World Master Agent"
+              <VoiceNarrationButton active={voiceEnabled} onToggle={() => setVoiceEnabled((p) => !p)} disabled={loading} />
+              <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  showAgent
-                    ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
-                    : 'text-gray-400 hover:text-cyan-400 hover:bg-gray-800'
-                }`}
-              >
+                  showAgent ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30' : 'text-gray-400 hover:text-cyan-400 hover:bg-gray-800'
+                }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>
               </button>
-              <button
-                onClick={() => setGodMode((prev) => !prev)}
-                title="God Mode"
+              <button onClick={() => setGodMode((p) => !p)} title="God Mode"
                 className={`p-2 rounded-lg transition-colors ${
-                  godMode
-                    ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30'
-                    : 'text-gray-400 hover:text-amber-400 hover:bg-gray-800'
-                }`}
-              >
+                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-gray-400 hover:text-amber-400 hover:bg-gray-800'
+                }`}>
                 <Zap className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowCouncil(true)}
-                title="Faction Council"
-                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowCouncil(true)} title="Faction Council" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors">
                 <Swords className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowChronicle(true)}
-                title="Generate Chronicle"
-                className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-gray-800 rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-gray-800 rounded-lg transition-colors">
                 <BookOpen className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowCinematic(true)}
-                title="Cinematic Mode (Live)"
-                className="p-2 text-gray-400 hover:text-rose-400 hover:bg-gray-800 rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" className="p-2 text-gray-400 hover:text-rose-400 hover:bg-gray-800 rounded-lg transition-colors">
                 <Play className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowReplay(true)}
-                title="Replay History"
-                disabled={events.length === 0}
-                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
+              <button onClick={() => setShowReplay(true)} title="Replay History" disabled={events.length === 0}
+                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                 <History className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowSessionPrep(true)}
-                title="Session Prep"
-                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors">
                 <Sparkles className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowCampaignKit(true)}
-                title="Campaign Kit (TTRPG)"
-                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition-colors">
                 <Scroll className="w-5 h-5" />
               </button>
-              <AutoPlayButton
-                active={autoPlay}
-                onToggle={toggleAutoPlay}
-                disabled={loading}
-              />
-              <SimulateButton
-                onSimulate={handleSimulate}
-                loading={simulating || autoPlay}
-              />
+              <AutoPlayButton active={autoPlay} onToggle={toggleAutoPlay} disabled={loading} />
+              <SimulateButton onSimulate={handleSimulate} loading={simulating || autoPlay} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* ── View Mode Selector ─────────────────────────────── */}
       <div className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-1">
-            {TABS.map((t) => (
+          <div className="flex items-center gap-1 py-1">
+            {VIEW_MODES.map((vm) => {
+              const isActive = viewMode === vm.key;
+              return (
+                <button
+                  key={vm.key}
+                  onClick={() => setViewMode(vm.key)}
+                  className={`group flex items-center gap-2.5 px-5 py-3 text-sm font-medium rounded-lg transition-all ${
+                    isActive
+                      ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-gray-900/50 border border-transparent'
+                  }`}
+                >
+                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-gray-600 group-hover:text-gray-400'}`} />
+                  <div className="text-left">
+                    <div>{vm.label}</div>
+                    <div className={`text-[10px] ${isActive ? 'text-genesis-500/70' : 'text-gray-600'}`}>
+                      {vm.desc}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+
+            {/* Analytics toggle */}
+            <div className="ml-auto">
               <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  tab === t.key
-                    ? 'border-genesis-500 text-genesis-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                onClick={() => setAnalyticsOpen((p) => !p)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                  analyticsOpen
+                    ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
+                    : 'text-gray-500 hover:text-gray-300 border border-transparent'
                 }`}
               >
-                <t.icon className="w-4 h-4" />
-                {t.label}
+                <TrendingUp className="w-3.5 h-3.5" />
+                Analytics
+                {analyticsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </button>
-            ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Autonomous Agent Panel */}
+      {/* ── Autonomous Agent Panel ─────────────────────────── */}
       <AnimatePresence>
         {showAgent && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-7xl mx-auto px-6 pt-4"
-          >
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}
+            className="max-w-7xl mx-auto px-6 pt-4">
             <Suspense fallback={<div className="flex items-center justify-center h-32"><div className="text-gray-400">Loading agent...</div></div>}>
               <AutonomousAgentPanel worldId={world.id} onRefresh={fetchAll} />
             </Suspense>
@@ -405,17 +378,31 @@ export default function WorldView() {
         )}
       </AnimatePresence>
 
-      {/* Content */}
+      {/* ── Main View Content ──────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <AnimatePresence mode="wait">
           <motion.div
-            key={tab}
+            key={viewMode}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {tab === 'map' && mapData && (
+            {/* Theater Mode */}
+            {viewMode === 'theater' && (
+              <Suspense fallback={<SkeletonBlock className="h-[600px]" />}>
+                <TheaterMode
+                  events={events}
+                  characters={characters}
+                  factions={factions}
+                  factionMap={mapData?.factions || {}}
+                  currentDay={world.current_day}
+                />
+              </Suspense>
+            )}
+
+            {/* Map Mode */}
+            {viewMode === 'map' && mapData && (
               <div className="relative">
                 <Suspense fallback={<SkeletonBlock className="h-[600px]" />}>
                   <WorldMap
@@ -440,61 +427,17 @@ export default function WorldView() {
                 )}
               </div>
             )}
-            {tab === 'factions' && (
-              <Suspense fallback={<SkeletonBlock className="h-64" />}>
-                <FactionDashboard
-                  factions={factions}
-                  characters={characters}
-                />
-              </Suspense>
-            )}
-            {tab === 'characters' && (
+
+            {/* Network Mode */}
+            {viewMode === 'network' && (
               <div>
-                {/* Grid / Graph toggle */}
-                <div className="flex items-center gap-1 mb-4">
-                  <button
-                    onClick={() => setCharView('grid')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                      charView === 'grid'
-                        ? 'bg-gray-800 border-genesis-600 text-genesis-400'
-                        : 'border-gray-800 text-gray-500 hover:text-gray-300'
-                    }`}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                    Grid
-                  </button>
-                  <button
-                    onClick={() => setCharView('graph')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                      charView === 'graph'
-                        ? 'bg-gray-800 border-genesis-600 text-genesis-400'
-                        : 'border-gray-800 text-gray-500 hover:text-gray-300'
-                    }`}
-                  >
-                    <Network className="w-4 h-4" />
-                    Relationships
-                  </button>
-                </div>
-
-                {charView === 'grid' ? (
-                  <Suspense fallback={<SkeletonBlock className="h-64" />}>
-                    <CharacterList
-                      characters={characters}
-                      factions={factions}
-                      worldId={world.id}
-                    />
-                  </Suspense>
-                ) : (
-                  <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading graph...</div></div>}>
-                    <RelationshipGraph
-                      characters={characters}
-                      factions={factions}
-                      onSelectCharacter={setGraphSelectedChar}
-                    />
-                  </Suspense>
-                )}
-
-                {/* Character detail modal for graph view */}
+                <Suspense fallback={<div className="flex items-center justify-center h-[600px]"><div className="text-gray-400">Loading relationship graph...</div></div>}>
+                  <RelationshipGraph
+                    characters={characters}
+                    factions={factions}
+                    onSelectCharacter={setGraphSelectedChar}
+                  />
+                </Suspense>
                 <AnimatePresence>
                   {graphSelectedChar && (
                     <CharacterDetail
@@ -508,7 +451,9 @@ export default function WorldView() {
                 </AnimatePresence>
               </div>
             )}
-            {tab === 'events' && (
+
+            {/* Chronicle Mode */}
+            {viewMode === 'chronicle' && (
               <Suspense fallback={<SkeletonBlock className="h-64" />}>
                 <EventTimeline
                   events={events}
@@ -517,101 +462,113 @@ export default function WorldView() {
                 />
               </Suspense>
             )}
-            {tab === 'evolution' && (
-              <Suspense fallback={<SkeletonBlock className="h-64" />}>
-                <EvolutionView data={evolution} />
-              </Suspense>
-            )}
-            {tab === 'power' && (
-              <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading chart...</div></div>}>
-                <FactionPowerChart
-                  snapshots={factionTimeline}
-                  factions={factions}
-                />
-              </Suspense>
-            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Chronicle Modal */}
+      {/* ── Analytics Panel (collapsible) ──────────────────── */}
+      <AnimatePresence>
+        {analyticsOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="border-t border-gray-800"
+          >
+            <div className="max-w-7xl mx-auto px-6 py-4">
+              {/* Analytics tab bar */}
+              <div className="flex gap-1 mb-4">
+                {ANALYTICS_TABS.map((at) => (
+                  <button
+                    key={at.key}
+                    onClick={() => setAnalyticsTab(at.key)}
+                    className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
+                      analyticsTab === at.key
+                        ? 'bg-gray-800 border-gray-700 text-gray-200'
+                        : 'border-transparent text-gray-500 hover:text-gray-300'
+                    }`}
+                  >
+                    <at.icon className="w-3.5 h-3.5" />
+                    {at.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Analytics content */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={analyticsTab}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {analyticsTab === 'factions' && (
+                    <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                      <FactionDashboard factions={factions} characters={characters} />
+                    </Suspense>
+                  )}
+                  {analyticsTab === 'characters' && (
+                    <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                      <CharacterList characters={characters} factions={factions} worldId={world.id} />
+                    </Suspense>
+                  )}
+                  {analyticsTab === 'evolution' && (
+                    <Suspense fallback={<SkeletonBlock className="h-64" />}>
+                      <EvolutionView data={evolution} />
+                    </Suspense>
+                  )}
+                  {analyticsTab === 'power' && (
+                    <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-gray-400">Loading chart...</div></div>}>
+                      <FactionPowerChart snapshots={factionTimeline} factions={factions} />
+                    </Suspense>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modals (unchanged) ─────────────────────────────── */}
       {showChronicle && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
-          <ChronicleModal
-            worldId={world.id}
-            worldName={world.name}
-            onClose={() => setShowChronicle(false)}
-          />
+          <ChronicleModal worldId={world.id} worldName={world.name} onClose={() => setShowChronicle(false)} />
         </Suspense>
       )}
-
-      {/* Council Modal */}
       {showCouncil && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
-          <CouncilModal
-            worldId={world.id}
-            factions={factions}
-            onClose={() => setShowCouncil(false)}
-          />
+          <CouncilModal worldId={world.id} factions={factions} onClose={() => setShowCouncil(false)} />
         </Suspense>
       )}
-
-      {/* Campaign Kit Modal */}
       {showCampaignKit && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
-          <CampaignKitModal
-            worldId={world.id}
-            worldName={world.name}
-            onClose={() => setShowCampaignKit(false)}
-          />
+          <CampaignKitModal worldId={world.id} worldName={world.name} onClose={() => setShowCampaignKit(false)} />
         </Suspense>
       )}
-
-      {/* Session Prep Modal */}
       {showSessionPrep && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><div className="text-white/60">Loading...</div></div>}>
-          <SessionPrepModal
-            worldId={world.id}
-            worldName={world.name}
-            onClose={() => setShowSessionPrep(false)}
-          />
+          <SessionPrepModal worldId={world.id} worldName={world.name} onClose={() => setShowSessionPrep(false)} />
         </Suspense>
       )}
-
-      {/* Cinematic Mode (Live) */}
       {showCinematic && mapData && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black"><div className="text-white/60">Entering cinematic mode...</div></div>}>
           <CinematicMode
-            worldId={world.id}
-            worldName={world.name}
-            currentDay={world.current_day}
-            geography={mapData.geography}
-            factionMap={mapData.factions}
-            characters={characters}
-            events={events}
+            worldId={world.id} worldName={world.name} currentDay={world.current_day}
+            geography={mapData.geography} factionMap={mapData.factions} characters={characters} events={events}
             onClose={() => setShowCinematic(false)}
-            onNewEvents={(newEvents) => {
-              setEvents((prev) => [...prev, ...newEvents]);
-              fetchAll();
-            }}
+            onNewEvents={(newEvents) => { setEvents((prev) => [...prev, ...newEvents]); fetchAll(); }}
             mode="live"
           />
         </Suspense>
       )}
-
-      {/* Replay Mode */}
       {showReplay && mapData && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black"><div className="text-white/60">Entering replay mode...</div></div>}>
           <CinematicMode
-            worldId={world.id}
-            worldName={world.name}
-            currentDay={world.current_day}
-            geography={mapData.geography}
-            factionMap={mapData.factions}
-            characters={characters}
-            events={events}
-            onClose={() => setShowReplay(false)}
-            onNewEvents={() => {}}
+            worldId={world.id} worldName={world.name} currentDay={world.current_day}
+            geography={mapData.geography} factionMap={mapData.factions} characters={characters} events={events}
+            onClose={() => setShowReplay(false)} onNewEvents={() => {}}
             mode="replay"
           />
         </Suspense>
