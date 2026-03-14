@@ -104,7 +104,6 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
     # Notify linked Telegram chats with rich event data
     try:
         from telegram_bot import notify_linked_chats
-        import asyncio
         header = f"Day {world.current_day} — {len(all_events)} events"
         asyncio.create_task(notify_linked_chats(
             world_id,
@@ -148,7 +147,6 @@ async def run_quick_simulation(world_id: str, days: int = Query(default=1, ge=1,
     # Notify linked Telegram chats (quick sim — no prophecy check)
     try:
         from telegram_bot import notify_linked_chats
-        import asyncio
         header = f"Quick sim — Day {world.current_day} — {len(all_events)} events"
         asyncio.create_task(notify_linked_chats(
             world_id,
