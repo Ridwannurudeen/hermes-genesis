@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Map, Network, ScrollText, TrendingUp,
-  BookOpen, Zap, Swords, Brain, Scroll,
+  BookOpen, Zap, Swords, Brain, Scroll, Download,
   Play, Sparkles, History, Theater, BarChart3,
   Music, Music2,
 } from 'lucide-react';
@@ -334,6 +334,25 @@ export default function WorldView() {
               </button>
               <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
                 <Scroll className="w-5 h-5" />
+              </button>
+              <button
+                onClick={async () => {
+                  if (!id) return;
+                  try {
+                    const { text, filename } = await api.exportWorld(id);
+                    const blob = new Blob([text], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch { /* ignore */ }
+                }}
+                title="Download World (Markdown)"
+                className="p-2 text-gray-400 hover:text-emerald-400 hover:bg-white/[0.06] rounded-lg transition-all"
+              >
+                <Download className="w-5 h-5" />
               </button>
               <AutoPlayButton active={autoPlay} onToggle={toggleAutoPlay} disabled={loading} />
               <SimulateButton onSimulate={handleSimulate} loading={simulating || autoPlay} />

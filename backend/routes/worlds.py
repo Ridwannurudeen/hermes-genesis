@@ -104,6 +104,111 @@ async def get_prophecies(world_id: str):
         raise HTTPException(404, "World not found")
     return [p.model_dump() for p in world.prophecies]
 
+@router.get("/{world_id}/export")
+async def export_world(world_id: str):
+    """Export full world as formatted Markdown for TTRPG, writing, or education use."""
+    from fastapi.responses import PlainTextResponse
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+
+    faction_map = {f.id: f.name for f in world.factions}
+    char_map = {c.id: c.name for c in world.characters}
+    region_map = {r.id: r.name for r in world.geography.regions}
+
+    lines = []
+    lines.append(f"# {world.name}")
+    lines.append(f"\n> *\"{world.seed}\"*")
+    lines.append(f"\n**Day**: {world.current_day} | **Theme**: {world.theme or 'Fantasy'}")
+    if world.rules.conflict_driver:
+        lines.append(f"**Conflict Driver**: {world.rules.conflict_driver}")
+    lines.append("")
+
+    # Geography
+    lines.append("---\n\n## Geography\n")
+    for r in world.geography.regions:
+        ctrl = faction_map.get(r.controlled_by, "Unclaimed")
+        lines.append(f"### {r.name}")
+        lines.append(f"- **Type**: {r.type} | **Controlled by**: {ctrl}")
+        if r.description:
+            lines.append(f"- {r.description}")
+        if r.resources:
+            lines.append(f"- **Resources**: {', '.join(r.resources)}")
+        lines.append("")
+
+    # Factions
+    lines.append("---\n\n## Factions\n")
+    for f in world.factions:
+        leader = char_map.get(f.leader_id, "None")
+        allies = ", ".join(faction_map.get(a, a) for a in f.alliances) or "None"
+        enemies = ", ".join(faction_map.get(e, e) for e in f.enemies) or "None"
+        territory = ", ".join(region_map.get(t, t) for t in f.territory) or "None"
+        lines.append(f"### {f.name}")
+        lines.append(f"- **Ideology**: {f.ideology}")
+        if f.description:
+            lines.append(f"- {f.description}")
+        lines.append(f"- **Leader**: {leader} | **Population**: {f.population:,} | **Morale**: {f.morale}/100")
+        lines.append(f"- **Territory**: {territory}")
+        lines.append(f"- **Allies**: {allies} | **Enemies**: {enemies}")
+        if f.traits:
+            lines.append(f"- **Traits**: {', '.join(f.traits)}")
+        lines.append("")
+
+    # Characters
+    alive = [c for c in world.characters if c.alive]
+    dead = [c for c in world.characters if not c.alive]
+    lines.append(f"---\n\n## Characters ({len(alive)} alive, {len(dead)} dead)\n")
+    for c in alive:
+        faction = faction_map.get(c.faction_id, "Unknown")
+        location = region_map.get(c.location, c.location)
+        g = c.genome
+        lines.append(f"### {c.name}")
+        lines.append(f"- **Role**: {c.role} | **Faction**: {faction} | **Age**: {c.age} | **Location**: {location}")
+        lines.append(f"- **Genome**: COU {g.courage:.2f} / CUN {g.cunning:.2f} / LOY {g.loyalty:.2f} / AMB {g.ambition:.2f} / EMP {g.empathy:.2f} / RES {g.resilience:.2f}")
+        lines.append(f"- **Fitness**: {c.fitness:.2f} | **Generation**: {c.lineage.generation}")
+        if c.backstory:
+            lines.append(f"- {c.backstory}")
+        if c.goals:
+            lines.append(f"- **Goals**: {'; '.join(c.goals)}")
+        lines.append("")
+
+    if dead:
+        lines.append("### Fallen Characters\n")
+        for c in dead:
+            lines.append(f"- **{c.name}** — {c.role} of {faction_map.get(c.faction_id, 'Unknown')}, Gen {c.lineage.generation}")
+        lines.append("")
+
+    # Prophecies
+    if world.prophecies:
+        lines.append("---\n\n## Prophecies\n")
+        for p in world.prophecies:
+            status = f"Fulfilled (Day {p.fulfilled_day})" if p.fulfilled else "Unfulfilled"
+            lines.append(f"- *\"{p.text}\"* — **{status}**")
+        lines.append("")
+
+    # Event Chronicle (last 100)
+    lines.append(f"---\n\n## Chronicle ({len(world.events)} events)\n")
+    for e in world.events[-100:]:
+        actors = ", ".join(char_map.get(a, a) for a in e.actors) if e.actors else ""
+        factions_str = ", ".join(faction_map.get(f, f) for f in e.factions_involved) if e.factions_involved else ""
+        lines.append(f"#### Day {e.day} — {e.title}")
+        lines.append(f"*{e.type.replace('_', ' ').title()}*")
+        if actors:
+            lines.append(f"**Actors**: {actors}")
+        if factions_str:
+            lines.append(f"**Factions**: {factions_str}")
+        if e.narrative:
+            lines.append(f"\n{e.narrative}")
+        lines.append("")
+
+    md = "\n".join(lines)
+    return PlainTextResponse(
+        content=md,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{world.name.replace(" ", "_")}.md"'},
+    )
+
+
 @router.get("/{world_id}/evolution")
 async def get_evolution(world_id: str):
     world = load_world(world_id)

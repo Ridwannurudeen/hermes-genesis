@@ -124,6 +124,16 @@ export const api = {
     return res;
   },
 
+  exportWorld: async (id: string) => {
+    const res = await fetch(`${BASE}/api/worlds/${id}/export`);
+    if (!res.ok) throw new Error('Export failed');
+    const text = await res.text();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename="(.+)"/);
+    const filename = match ? match[1] : 'world-export.md';
+    return { text, filename };
+  },
+
   getEvolution: (id: string) =>
     fetchJson<EvolutionEntry[]>(`/api/worlds/${id}/evolution`),
 

@@ -246,7 +246,7 @@ Event breakdown:
 | **Audio** | Procedural ambient sound via Web Audio API — 13 mood profiles with oscillators, noise layers, LFO tremolo, crossfade transitions ([source](frontend/src/hooks/useAmbientSound.ts)); voice narration via Web Speech API |
 | **Interactive** | SVG world map with event markers, God Mode intervention, character chat, faction council debates |
 | **Analytics** | Faction power timeline (Recharts), genome evolution chart, D3 force-directed relationship graph |
-| **Export** | Chronicle (epic narrative), Campaign Kit (TTRPG module), Session Prep (GM plan) |
+| **Export** | Chronicle (epic narrative), Campaign Kit (TTRPG module), Session Prep (GM plan), **Download World** (full Markdown export for Obsidian/Notion) |
 | **Integration** | Telegram bot, SSE streaming, hermes-agent MCP bridge, autonomous agent with start/stop/status/logs API |
 
 ---
@@ -264,15 +264,19 @@ Source: [`backend/simulation.py`](backend/simulation.py)
 
 ---
 
-## Who This Is For
+## Real Use Cases
 
-**Writers** — Generate complex storylines with cause-and-effect. Export as markdown novels. Character arcs that evolve naturally.
+### For TTRPG Game Masters
+D&D/Pathfinder GMs spend **4-8 hours** prepping a world. Genesis does it in **60 seconds** from one sentence. Hit "Download World" to get a full Markdown document — drop it into Obsidian or Notion and run a session tonight. Campaign Kit generates encounter tables, faction tensions, and plot hooks. Session Prep writes your next game plan. Character Chat lets you rehearse NPC dialogue before the table.
 
-**Game Designers** — Procedural narrative systems. Genetic evolution mechanics. Faction dynamics simulation.
+### For Writers & Worldbuilders
+Generate internally consistent worlds with faction dynamics, character relationships, and causal event chains. Export the chronicle as a narrative draft. Use Character Chat to test dialogue — each character responds shaped by their genetic traits (courage, cunning, loyalty) and personal history. Run the simulation for 100 days and watch how your world's politics evolve — then write the novel.
 
-**TTRPG Players** — Auto-generate D&D campaigns. Living NPCs with memory. Session prep in 1 click.
+### For Educators
+Simulate geopolitical scenarios in real-time. Show students how alliances form and collapse, how resource scarcity drives conflict, how leadership succession reshapes power dynamics. Every event has visible cause and effect — "this betrayal triggered this war, which caused this faction to lose territory, which shifted the balance of power." Interactive, visual, and no textbook can replicate it.
 
-**AI Researchers** — Multi-agent coordination. Emergent narrative behavior. Genetic algorithms in creative systems.
+### For Game Designers & AI Researchers
+Procedural narrative engine with genetic algorithms, multi-agent coordination, and emergent behavior. Fork it, extend the genome system, add new event types, or plug in your own LLM. The simulation engine, evolution system, and autonomous agent are all open source.
 
 ---
 
