@@ -126,7 +126,7 @@ export default function WorldMap({
     const positions = { ...regionPositions };
     const ids = Object.keys(positions);
 
-    for (let iter = 0; iter < 50; iter++) {
+    for (let iter = 0; iter < 15; iter++) {
       let moved = false;
       for (let i = 0; i < ids.length; i++) {
         for (let j = i + 1; j < ids.length; j++) {

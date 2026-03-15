@@ -116,27 +116,24 @@ export default function WorldView() {
     prevEventCountRef.current = events.length;
   }, [events.length, voiceEnabled, speak]);
 
-  const fetchAll = useCallback(async () => {
+  // Track whether deferred data has been fetched
+  const deferredFetchedRef = useRef(false);
+
+  const fetchEssential = useCallback(async () => {
     if (!id) return;
     try {
-      const [w, m, f, c, e, ev, timeline, proph] = await Promise.all([
+      const [w, m, f, c, evRes] = await Promise.all([
         api.getWorld(id),
         api.getMap(id),
         api.getFactions(id),
         api.getCharacters(id),
-        api.getEvents(id),
-        api.getEvolution(id),
-        api.getFactionTimeline(id),
-        api.getProphecies(id),
+        api.getEvents(id, undefined, 100, 0),
       ]);
       setWorld(w);
       setMapData(m);
       setFactions(f);
       setCharacters(c);
-      setEvents(e);
-      setEvolution(ev);
-      setFactionTimeline(timeline);
-      setProphecies(proph);
+      setEvents([...evRes.events].reverse());
     } catch {
       // keep stale data visible
     } finally {
@@ -144,9 +141,40 @@ export default function WorldView() {
     }
   }, [id]);
 
+  const fetchDeferred = useCallback(async () => {
+    if (!id) return;
+    try {
+      const [ev, timeline, proph] = await Promise.all([
+        api.getEvolution(id),
+        api.getFactionTimeline(id),
+        api.getProphecies(id),
+      ]);
+      setEvolution(ev);
+      setFactionTimeline(timeline);
+      setProphecies(proph);
+      deferredFetchedRef.current = true;
+    } catch {
+      // keep stale data
+    }
+  }, [id]);
+
+  const fetchAll = useCallback(async () => {
+    await fetchEssential();
+    if (deferredFetchedRef.current) {
+      fetchDeferred();
+    }
+  }, [fetchEssential, fetchDeferred]);
+
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    fetchEssential();
+  }, [fetchEssential]);
+
+  // Fetch deferred data when analytics drawer or map (prophecies) is opened
+  useEffect(() => {
+    if ((analyticsOpen || viewMode === 'map') && !deferredFetchedRef.current) {
+      fetchDeferred();
+    }
+  }, [analyticsOpen, viewMode, fetchDeferred]);
 
   const handleSimulate = useCallback(
     async (days: number) => {

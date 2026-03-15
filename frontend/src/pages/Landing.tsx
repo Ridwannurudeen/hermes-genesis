@@ -133,7 +133,7 @@ const FEATURES = [
 function ParticleField() {
   const particles = useMemo(
     () =>
-      Array.from({ length: 40 }, (_, i) => ({
+      Array.from({ length: 15 }, (_, i) => ({
         id: i,
         left: `${Math.random() * 100}%`,
         delay: `${Math.random() * 8}s`,

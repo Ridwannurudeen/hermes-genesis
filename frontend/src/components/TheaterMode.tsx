@@ -499,7 +499,7 @@ export default function TheaterMode({
 
           {/* Atmospheric particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {Array.from({ length: 25 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 className="absolute rounded-full"

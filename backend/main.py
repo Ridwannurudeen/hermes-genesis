@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from config import HOST, PORT, API_KEY, CORS_ORIGINS
@@ -42,6 +43,8 @@ app.add_middleware(
     allow_credentials=bool(CORS_ORIGINS),
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
 
 # API key gate on mutating routes (POST/DELETE) when GENESIS_API_KEY is set.
 # Origin header is client-controlled so cannot be trusted for auth bypass.
@@ -71,6 +74,13 @@ async def health():
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(STATIC_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
+
+    @app.middleware("http")
+    async def cache_static_assets(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
 
     @app.get("/{path:path}")
     async def serve_frontend(path: str):

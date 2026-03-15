@@ -112,10 +112,17 @@ export const api = {
   getCharacter: (id: string, charId: string) =>
     fetchJson<Character>(`/api/worlds/${id}/characters/${charId}`),
 
-  getEvents: (id: string, day?: number) =>
-    fetchJson<WorldEvent[]>(
-      `/api/worlds/${id}/events${day !== undefined ? `?day=${day}` : ''}`
-    ),
+  getEvents: async (id: string, day?: number, limit?: number, offset?: number) => {
+    const params = new URLSearchParams();
+    if (day !== undefined) params.set('day', String(day));
+    if (limit !== undefined) params.set('limit', String(limit));
+    if (offset !== undefined) params.set('offset', String(offset));
+    const qs = params.toString();
+    const res = await fetchJson<{ events: WorldEvent[]; total: number }>(
+      `/api/worlds/${id}/events${qs ? `?${qs}` : ''}`
+    );
+    return res;
+  },
 
   getEvolution: (id: string) =>
     fetchJson<EvolutionEntry[]>(`/api/worlds/${id}/evolution`),

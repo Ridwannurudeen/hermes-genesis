@@ -86,22 +86,13 @@ export default function MapEventMarkers({ events, regionPositions }: Props) {
   return (
     <g className="event-markers">
       <defs>
-        {/* Blood splatter filter for death events */}
-        <filter id="evt-blood-splatter" x="-100%" y="-100%" width="300%" height="300%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.08"
-            numOctaves="3"
-            seed="13"
-            result="noise"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="noise"
-            scale="8"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
+        {/* Blood splatter filter for death events — simplified glow */}
+        <filter id="evt-blood-splatter" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
 
         {/* Spark glow filter */}

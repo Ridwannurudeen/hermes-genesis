@@ -45,7 +45,11 @@ async def get_world(world_id: str):
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
-    return world.model_dump()
+    data = world.model_dump()
+    # Exclude heavy fields — fetched via dedicated endpoints
+    data.pop("events", None)
+    data.pop("agent_logs", None)
+    return data
 
 @router.get("/{world_id}/map")
 async def get_map(world_id: str):
@@ -80,14 +84,18 @@ async def get_character(world_id: str, char_id: str):
     return char.model_dump()
 
 @router.get("/{world_id}/events")
-async def get_events(world_id: str, day: int | None = None):
+async def get_events(world_id: str, day: int | None = None, limit: int = 50, offset: int = 0):
     world = load_world(world_id)
     if not world:
         raise HTTPException(404, "World not found")
     events = world.events
     if day is not None:
         events = [e for e in events if e.day == day]
-    return [e.model_dump() for e in events]
+    total = len(events)
+    # Most recent first
+    events = list(reversed(events))
+    events = events[offset:offset + limit]
+    return {"events": [e.model_dump() for e in events], "total": total}
 
 @router.get("/{world_id}/prophecies")
 async def get_prophecies(world_id: str):
