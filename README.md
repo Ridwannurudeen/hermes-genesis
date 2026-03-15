@@ -16,11 +16,13 @@ An autonomous living world engine powered by **Hermes-4-70B**. Type one sentence
 - Genetic evolution &mdash; characters pass DNA to children, populations shift over generations
 - Autonomous World Master &mdash; an AI agent observes, reasons, intervenes, and chases prophecies on its own
 
-<!-- Add your screenshots/GIFs here:
-![Theater Mode](docs/screenshots/theater-mode.png)
-![Cinematic Mode](docs/screenshots/cinematic-mode.png)
-![World Map](docs/screenshots/map-view.png)
--->
+![Theater Mode — AI-generated scenes, character sprites, faction positioning](docs/screenshots/theater-mode.png)
+
+![World Map — SVG regions, faction territories, prophecy tracking](docs/screenshots/map-view.png)
+
+![Network Graph — D3 force-directed character relationships](docs/screenshots/network-graph.png)
+
+![Chronicle — 941 events across 322 days of autonomous history](docs/screenshots/chronicle-view.png)
 
 ---
 
