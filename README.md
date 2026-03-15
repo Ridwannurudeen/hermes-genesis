@@ -2,7 +2,7 @@
 
 **Describe a world. Watch it live. Watch it die.**
 
-An autonomous living world engine powered by **Hermes-4-70B**. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
+An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes Agent** framework. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
 
 <p align="center">
   <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
@@ -21,6 +21,7 @@ An autonomous living world engine powered by **Hermes-4-70B**. Type one sentence
 - Cinematic Mode &mdash; fullscreen immersive experience with ambient sound and voice narration
 - Genetic evolution &mdash; characters pass DNA to children, populations shift over generations
 - Autonomous World Master &mdash; an AI agent observes, reasons, intervenes, and chases prophecies on its own
+- Hermes Agent Skills &mdash; 5 custom skills + MCP bridge for hermes-agent integration
 
 <table>
   <tr>
@@ -78,6 +79,75 @@ This project exists because of capabilities unique to Hermes:
 
 ---
 
+## Hermes Agent Integration
+
+Hermes Genesis ships with **5 custom hermes-agent skills** and an **MCP bridge server**, so the [Hermes Agent](https://github.com/NousResearch/hermes-agent) framework can orchestrate worlds natively through its tool system.
+
+### Custom Skills ([`skills/`](skills/))
+
+| Skill | What It Does |
+|---|---|
+| [`world-master`](skills/world-master/SKILL.md) | Full observe→reason→act agent loop — governs a living world autonomously |
+| [`genesis-create`](skills/genesis-create/SKILL.md) | Creates a world from a seed sentence — geography, factions, characters, prophecies |
+| [`genesis-chat`](skills/genesis-chat/SKILL.md) | In-character conversations shaped by genome, faction, and history |
+| [`genesis-chronicle`](skills/genesis-chronicle/SKILL.md) | Exports world history as publishable narratives or TTRPG campaign kits |
+| [`mcp-server`](skills/mcp-server/SKILL.md) | MCP configuration guide for connecting hermes-agent to the Genesis API |
+
+### MCP Bridge ([`mcp-bridge/`](mcp-bridge/))
+
+The MCP bridge exposes 11 Genesis API tools to hermes-agent:
+
+```bash
+# Install the bridge
+cd mcp-bridge && npm install
+
+# Add to ~/.hermes/config.yaml
+mcp_servers:
+  genesis:
+    command: "node"
+    args: ["path/to/hermes-genesis/mcp-bridge/server.mjs"]
+    env:
+      GENESIS_API_URL: "http://localhost:8003"
+```
+
+Once connected, hermes-agent can create worlds, run simulations, intervene, chat with characters, and export chronicles — all through natural conversation:
+
+```
+hermes> Create a world about Viking raiders battling sea serpents
+# → calls genesis_create_world
+
+hermes> Start the World Master and let it run for 50 days
+# → calls genesis_agent_start
+
+hermes> Talk to the war chief about the last battle
+# → calls genesis_chat
+```
+
+### Architecture: How It Fits Together
+
+```
+  hermes-agent CLI / Gateway
+         |
+    MCP Protocol (stdio)
+         |
+  +----- v --------+
+  | MCP Bridge     |  mcp-bridge/server.mjs
+  | (11 tools)     |  genesis_create_world, genesis_simulate, ...
+  +----- | --------+
+         |
+    REST API (HTTP)
+         |
+  +----- v ---------+
+  | FastAPI Backend  |  29 endpoints, autonomous agent, simulation
+  +------------------+
+         |
+    Hermes-4-70B (NousResearch API)
+```
+
+The World Master agent (`autonomous_agent.py`) implements the same observe→reason→act pattern as hermes-agent's core loop — but domain-specialized for world simulation with genetic evolution, prophecy tracking, and narrative arc planning.
+
+---
+
 ## Demo Video
 
 <!-- Replace with your actual video link -->
@@ -103,14 +173,15 @@ This project exists because of capabilities unique to Hermes:
 | Category | What You Get |
 |---|---|
 | **Core Simulation** | World generation from natural language, genome-based character evolution, 13 event types, causality chains, prophecy tracking + fulfillment |
-| **Autonomous Agent** | World Master AI with observe-reason-act loop, narrative arc planning, autonomous intervention, prophecy chasing ([source](backend/services/agent.py)) |
+| **Autonomous Agent** | World Master AI with observe-reason-act loop, narrative arc planning, autonomous intervention, prophecy chasing ([source](backend/autonomous_agent.py)) |
+| **Hermes Agent Skills** | 5 custom skills for hermes-agent framework + MCP bridge with 11 tools ([skills](skills/), [mcp-bridge](mcp-bridge/)) |
 | **Theater Mode** | Dramatic stage with curtains, spotlights, character sprites, faction-aware positioning, speech bubbles, AI scene images, auto-play scrubber |
 | **Cinematic Mode** | Fullscreen world map overlay, live auto-simulation, history replay/documentary mode, event title cards with Ken Burns zoom |
 | **Audio** | Procedural ambient sound via Web Audio API — 13 mood profiles with oscillators, noise layers, LFO tremolo, crossfade transitions ([source](frontend/src/hooks/useAmbientSound.ts)); voice narration via Web Speech API |
 | **Interactive** | SVG world map with event markers, God Mode intervention, character chat, faction council debates |
 | **Analytics** | Faction power timeline (Recharts), genome evolution chart, D3 force-directed relationship graph |
 | **Export** | Chronicle (epic narrative), Campaign Kit (TTRPG module), Session Prep (GM plan) |
-| **Integration** | Telegram bot, SSE streaming, autonomous agent with start/stop/status/logs API |
+| **Integration** | Telegram bot, SSE streaming, hermes-agent MCP bridge, autonomous agent with start/stop/status/logs API |
 
 ---
 
@@ -123,7 +194,7 @@ Every character carries 6 genetic traits: **courage, cunning, loyalty, ambition,
 - Low-fitness characters die off — natural selection reshapes the population over generations
 - After 100+ days, you can see the population evolve: worlds that reward cunning breed cunning people
 
-Source: [`backend/services/simulation.py`](backend/services/simulation.py)
+Source: [`backend/simulation.py`](backend/simulation.py)
 
 ---
 
@@ -196,18 +267,27 @@ npm install && npm run dev
 ## Architecture
 
 ```
-         Hermes-4-70B (NousResearch API)
-                    |
-     +--------------v--------------+
+  hermes-agent CLI / Gateway          Hermes-4-70B (NousResearch API)
+         |                                       |
+    MCP Protocol                                 |
+         |                                       |
+  +------v--------+                              |
+  | MCP Bridge    |   mcp-bridge/server.mjs      |
+  | (11 tools)    |   genesis_*, agent_*          |
+  +------+--------+                              |
+         |                                       |
+     REST API                                    |
+         |                                       |
+     +---v---------------v-----------------------+
      |     FastAPI Backend         |        29 API endpoints
      |     Python 3.11             |        SSE streaming
      |                             |        71 tests
-     |  World Generation           |
-     |  Simulation Engine          |        backend/services/simulation.py
-     |  Autonomous Agent           |        backend/services/agent.py
-     |  Genetic Evolution          |        backend/services/simulation.py
-     |  Prophecy Checker           |        backend/services/prophecy.py
-     |  Telegram Bot               |        backend/services/telegram.py
+     |  World Generation           |        backend/generator.py
+     |  Simulation Engine          |        backend/simulation.py
+     |  Autonomous Agent           |        backend/autonomous_agent.py
+     |  Genetic Evolution          |        backend/simulation.py
+     |  Prophecy Checker           |        backend/prophecy_checker.py
+     |  Telegram Bot               |        backend/telegram_bot.py
      +--------------+--------------+
                     |
      +--------------v--------------+
@@ -222,6 +302,9 @@ npm install && npm run dev
      |  D3 Relationship Graph      |        components/RelationshipGraph.tsx
      |  God Mode / Chronicle       |        pages/WorldView.tsx
      +-----------------------------+
+
+  5 Custom Skills (skills/)
+  world-master | genesis-create | genesis-chat | genesis-chronicle | mcp-server
 ```
 
 ---
@@ -252,7 +335,9 @@ npm install && npm run dev
 
 ## Built for the NousResearch Hermes Agent Hackathon
 
-Hermes Genesis demonstrates what happens when you give Hermes-4-70B full creative control over a living world. Every character decision, every faction power shift, every prophecy fulfilled — all driven by Hermes reasoning over structured world state.
+Hermes Genesis demonstrates what Hermes Agent can do when given full creative control over a living world. The World Master implements hermes-agent's observe→reason→act pattern, 5 custom skills integrate with the hermes-agent framework, and an MCP bridge connects the entire simulation to hermes-agent's tool ecosystem.
+
+Every character decision, every faction power shift, every prophecy fulfilled — all driven by Hermes-4-70B reasoning over structured world state through the agent framework.
 
 The world doesn't wait for you. It lives on its own.
 

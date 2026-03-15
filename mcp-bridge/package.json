@@ -1,0 +1,13 @@
+{
+  "name": "hermes-genesis-mcp",
+  "version": "1.0.0",
+  "description": "MCP bridge server for Hermes Genesis — connects hermes-agent to the World Master API",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
