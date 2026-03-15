@@ -112,11 +112,11 @@ body {
 
 /* ── Generate button glow (static) ── */
 .btn-glow {
-  box-shadow: 0 0 20px rgba(184, 151, 106, 0.15), 0 0 40px rgba(184, 151, 106, 0.05);
+  box-shadow: 0 0 25px rgba(184, 151, 106, 0.2), 0 0 50px rgba(184, 151, 106, 0.08);
 }
 
 .btn-glow:hover {
-  box-shadow: 0 0 30px rgba(184, 151, 106, 0.3), 0 0 60px rgba(184, 151, 106, 0.1);
+  box-shadow: 0 0 35px rgba(184, 151, 106, 0.35), 0 0 70px rgba(184, 151, 106, 0.15);
 }
 
 .btn-glow:disabled {
@@ -130,14 +130,14 @@ body {
 }
 
 .card-glow:hover {
-  border-color: rgba(184, 151, 106, 0.3);
-  box-shadow: 0 0 20px rgba(184, 151, 106, 0.06), inset 0 0 20px rgba(184, 151, 106, 0.02);
+  border-color: rgba(184, 151, 106, 0.35);
+  box-shadow: 0 0 25px rgba(184, 151, 106, 0.1), inset 0 0 25px rgba(184, 151, 106, 0.03);
 }
 
 /* ── Frosted glass (warm dark bg) ── */
 .glass {
   background: var(--glass-bg);
-  border: 1px solid rgba(184, 151, 106, 0.1);
+  border: 1px solid rgba(184, 151, 106, 0.15);
 }
 
 .glass-input {
@@ -147,8 +147,8 @@ body {
 }
 
 .glass-input:focus {
-  border-color: rgba(184, 151, 106, 0.4);
-  box-shadow: 0 0 20px rgba(184, 151, 106, 0.08);
+  border-color: rgba(184, 151, 106, 0.5);
+  box-shadow: 0 0 25px rgba(184, 151, 106, 0.12);
 }
 
 /* ── Icon warm aura ── */

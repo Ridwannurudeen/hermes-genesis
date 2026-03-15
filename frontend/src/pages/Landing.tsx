@@ -125,7 +125,7 @@ function Header({ connected }: { connected: boolean }) {
 
 function Footer() {
   return (
-    <footer className="border-t border-subtle mt-32">
+    <footer className="border-t border-subtle mt-40">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
         <div>
           <h4 className="text-sm font-semibold text-sub uppercase tracking-wider mb-3">
@@ -392,20 +392,20 @@ export default function Landing() {
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.09) 0%, transparent 70%)',
         }}
         aria-hidden="true"
       />
 
       <Header connected={connected} />
 
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-28 pb-12">
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-16">
         {/* ── Hero ── */}
         <motion.section
           initial="hidden"
           animate="visible"
           variants={stagger}
-          className="text-center mb-20"
+          className="text-center mb-28"
         >
           <motion.h1
             variants={fadeUp}
@@ -514,7 +514,7 @@ export default function Landing() {
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={stagger}
-          className="mb-24"
+          className="mb-32"
         >
           <motion.div variants={fadeUp} className="text-center mb-12">
             <h2 className="text-2xl font-bold text-heading font-display mb-2">
@@ -568,13 +568,47 @@ export default function Landing() {
           </div>
         </motion.section>
 
+        {/* ── Recent Worlds ── */}
+        <AnimatePresence>
+          {worlds.length > 0 && (
+            <motion.section
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              variants={stagger}
+              className="mb-32"
+            >
+              <motion.div variants={fadeUp} className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-heading font-display">
+                  Recent Worlds
+                </h2>
+                <span className="text-xs text-faint uppercase tracking-wider">
+                  {worlds.length} world{worlds.length !== 1 ? 's' : ''}
+                </span>
+              </motion.div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {worlds.map((w) => (
+                  <WorldCard
+                    key={w.id}
+                    world={w}
+                    onDelete={handleDelete}
+                    deletingId={deletingId}
+                    onClick={() => navigate(`/world/${w.id}`)}
+                  />
+                ))}
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
         {/* ── What Genesis Creates ── */}
         <motion.section
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={stagger}
-          className="mb-24"
+          className="mb-32"
         >
           <motion.div variants={fadeUp} className="text-center mb-12">
             <h2 className="text-2xl font-bold text-heading font-display mb-2">
@@ -642,7 +676,7 @@ export default function Landing() {
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={stagger}
-          className="mb-24"
+          className="mb-32"
         >
           <motion.div variants={fadeUp} className="text-center mb-12">
             <h2 className="text-2xl font-bold text-heading font-display mb-2">
@@ -699,7 +733,7 @@ export default function Landing() {
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={stagger}
-          className="max-w-2xl mx-auto mb-24"
+          className="max-w-2xl mx-auto mb-32"
         >
           <motion.div variants={fadeUp} className="text-center mb-8">
             <h2 className="text-2xl font-bold text-heading font-display mb-2">
@@ -766,39 +800,6 @@ export default function Landing() {
             </p>
           </motion.div>
         </motion.section>
-
-        {/* ── Recent Worlds ── */}
-        <AnimatePresence>
-          {worlds.length > 0 && (
-            <motion.section
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={stagger}
-            >
-              <motion.div variants={fadeUp} className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-heading font-display">
-                  Recent Worlds
-                </h2>
-                <span className="text-xs text-faint uppercase tracking-wider">
-                  {worlds.length} world{worlds.length !== 1 ? 's' : ''}
-                </span>
-              </motion.div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {worlds.map((w) => (
-                  <WorldCard
-                    key={w.id}
-                    world={w}
-                    onDelete={handleDelete}
-                    deletingId={deletingId}
-                    onClick={() => navigate(`/world/${w.id}`)}
-                  />
-                ))}
-              </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
       </main>
 
       <Footer />
