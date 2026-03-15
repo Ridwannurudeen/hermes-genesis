@@ -22,5 +22,5 @@ ssh $VPS "cd $REMOTE_DIR && docker compose down && docker compose up -d"
 
 echo ""
 echo "=== Deployment complete ==="
-echo "API: https://genesis.hermes-ouroboros.online/api/health"
-echo "App: https://genesis.hermes-ouroboros.online"
+echo "API: https://hermesgenesis.world/api/health"
+echo "App: https://hermesgenesis.world"
