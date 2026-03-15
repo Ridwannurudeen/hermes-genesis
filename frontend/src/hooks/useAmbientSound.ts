@@ -1,26 +1,35 @@
 import { useCallback, useEffect, useRef } from 'react';
 
+/* ═══════════════════════════════════════════════════════════════════
+   Melodic Ambient Sound Engine
+
+   Plays musical phrases (arpeggios, chord pads, melodic motifs)
+   that emotionally match each event type. Uses Web Audio API to
+   synthesize layered sounds: a pad (sustained chord), an arpeggio
+   (plucked notes cycling through a scale), and a sub-bass drone.
+   ═══════════════════════════════════════════════════════════════════ */
+
 /* ── Theme detection from world seed ── */
 
 type ThemeKey = 'cyberpunk' | 'scifi' | 'horror' | 'mythology' | 'medieval' | 'postapoc' | 'default';
 
 interface ThemeModifier {
-  freqMultiplier: number;    // shift all frequencies up/down
-  preferOsc: OscillatorType; // override base oscillator tendency
-  filterShift: number;       // add/subtract from filter cutoff
-  noiseBoost: number;        // add to noise level
-  lfoShift: number;          // add to LFO rate
-  gainMultiplier: number;
+  octaveShift: number;       // shift melody up/down octaves
+  tempo: number;             // BPM multiplier
+  reverbWet: number;         // how much reverb (0-1)
+  brightness: number;        // filter cutoff multiplier
+  padType: OscillatorType;
+  arpType: OscillatorType;
 }
 
 const THEME_MODIFIERS: Record<ThemeKey, ThemeModifier> = {
-  cyberpunk:  { freqMultiplier: 1.3,  preferOsc: 'sawtooth',  filterShift: 200,  noiseBoost: 0.06, lfoShift: 0.5, gainMultiplier: 1.1 },
-  scifi:     { freqMultiplier: 1.2,  preferOsc: 'triangle',  filterShift: 300,  noiseBoost: 0.03, lfoShift: 0.3, gainMultiplier: 1.0 },
-  horror:    { freqMultiplier: 0.7,  preferOsc: 'sawtooth',  filterShift: -200, noiseBoost: 0.1,  lfoShift: -0.2, gainMultiplier: 1.2 },
-  mythology: { freqMultiplier: 1.0,  preferOsc: 'sine',      filterShift: 100,  noiseBoost: 0.02, lfoShift: 0.0, gainMultiplier: 1.0 },
-  medieval:  { freqMultiplier: 0.85, preferOsc: 'triangle',  filterShift: -100, noiseBoost: 0.02, lfoShift: -0.1, gainMultiplier: 1.0 },
-  postapoc:  { freqMultiplier: 0.8,  preferOsc: 'sawtooth',  filterShift: -150, noiseBoost: 0.12, lfoShift: 0.8, gainMultiplier: 1.15 },
-  default:   { freqMultiplier: 1.0,  preferOsc: 'sine',      filterShift: 0,    noiseBoost: 0,    lfoShift: 0, gainMultiplier: 1.0 },
+  cyberpunk:  { octaveShift: 1,  tempo: 1.3,  reverbWet: 0.4, brightness: 1.4, padType: 'sawtooth', arpType: 'square' },
+  scifi:     { octaveShift: 1,  tempo: 1.1,  reverbWet: 0.6, brightness: 1.3, padType: 'triangle', arpType: 'sine' },
+  horror:    { octaveShift: -1, tempo: 0.7,  reverbWet: 0.7, brightness: 0.6, padType: 'sawtooth', arpType: 'triangle' },
+  mythology: { octaveShift: 0,  tempo: 0.9,  reverbWet: 0.5, brightness: 1.0, padType: 'sine',     arpType: 'triangle' },
+  medieval:  { octaveShift: 0,  tempo: 0.85, reverbWet: 0.5, brightness: 0.9, padType: 'triangle', arpType: 'sine' },
+  postapoc:  { octaveShift: -1, tempo: 0.8,  reverbWet: 0.6, brightness: 0.7, padType: 'sawtooth', arpType: 'triangle' },
+  default:   { octaveShift: 0,  tempo: 1.0,  reverbWet: 0.5, brightness: 1.0, padType: 'sine',     arpType: 'triangle' },
 };
 
 function detectTheme(seed: string): ThemeKey {
@@ -34,106 +43,148 @@ function detectTheme(seed: string): ThemeKey {
   return 'default';
 }
 
-/* ── Sound profiles per event type ── */
+/* ── Musical note helpers ── */
 
-interface SoundProfile {
-  baseFreq: number;
-  oscType: OscillatorType;
-  secondOscType?: OscillatorType;
-  secondInterval?: number;
-  detune?: number;
-  filterType: BiquadFilterType;
-  filterFreq: number;
-  lfoRate: number;
-  lfoDepth: number;
-  noiseLevel: number;
-  gain: number;
+// Concert pitch A4 = 440Hz. Convert MIDI note to frequency.
+function midiToFreq(midi: number): number {
+  return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-const PROFILES: Record<string, SoundProfile> = {
+// Named notes as MIDI values (octave 4)
+const C4 = 60, D4 = 62, Eb4 = 63, E4 = 64, F4 = 65, G4 = 67, Ab4 = 68, A4 = 69, Bb4 = 70, B4 = 71;
+const C5 = 72, D5 = 74, E5 = 76, G5 = 79;
+
+/* ── Melodic profiles per event type ──
+   Each profile defines:
+   - chord: MIDI notes for the sustained pad (played together)
+   - arpNotes: MIDI notes for the arpeggio (played in sequence, looping)
+   - arpSpeed: seconds per note in arpeggio
+   - bassMidi: sub-bass root note
+   - mood: affects dynamics (gain envelope shape)
+*/
+
+interface MelodicProfile {
+  chord: number[];         // pad chord (MIDI notes)
+  arpNotes: number[];      // arpeggio sequence
+  arpSpeed: number;        // seconds per arp note
+  bassMidi: number;        // sub-bass note
+  padGain: number;         // pad volume
+  arpGain: number;         // arp volume
+  bassGain: number;        // bass volume
+  filterFreq: number;      // master filter cutoff
+  ascending: boolean;      // arp direction feel
+}
+
+const PROFILES: Record<string, MelodicProfile> = {
+  // WAR — dark minor, heavy, marching arp
   military_conflict: {
-    baseFreq: 73, oscType: 'sawtooth', filterType: 'lowpass', filterFreq: 400,
-    lfoRate: 4, lfoDepth: 0.3, noiseLevel: 0.15, gain: 0.12,
+    chord: [C4, Eb4, G4, C5],
+    arpNotes: [C4, Eb4, G4, C5, G4, Eb4],
+    arpSpeed: 0.2, bassMidi: 36, padGain: 0.06, arpGain: 0.05, bassGain: 0.07,
+    filterFreq: 800, ascending: false,
   },
+  // BETRAYAL — diminished, unsettling chromatic creep
   betrayal: {
-    baseFreq: 78, oscType: 'triangle', filterType: 'lowpass', filterFreq: 600,
-    lfoRate: 0.5, lfoDepth: 0.2, noiseLevel: 0.08, gain: 0.10,
+    chord: [B4 - 12, D4, F4, Ab4],
+    arpNotes: [B4 - 12, D4, F4, Ab4, F4, D4, B4 - 12],
+    arpSpeed: 0.35, bassMidi: 35, padGain: 0.05, arpGain: 0.04, bassGain: 0.05,
+    filterFreq: 600, ascending: false,
   },
+  // INTRIGUE — jazzy minor 7th, tiptoeing arp
   political_intrigue: {
-    baseFreq: 131, oscType: 'sine', secondOscType: 'triangle', secondInterval: 1.189,
-    filterType: 'bandpass', filterFreq: 800, lfoRate: 1.5, lfoDepth: 0.25, noiseLevel: 0.06, gain: 0.09,
+    chord: [D4, F4, A4, C5],
+    arpNotes: [D4, F4, A4, C5, A4, F4],
+    arpSpeed: 0.28, bassMidi: 38, padGain: 0.05, arpGain: 0.045, bassGain: 0.04,
+    filterFreq: 1200, ascending: true,
   },
+  // ALLIANCE — warm major, open fifths, gentle arp
   alliance: {
-    baseFreq: 196, oscType: 'sine', filterType: 'lowpass', filterFreq: 2000,
-    lfoRate: 0.3, lfoDepth: 0.15, noiseLevel: 0.03, gain: 0.08,
+    chord: [G4 - 12, B4 - 12, D4, G4],
+    arpNotes: [G4 - 12, B4 - 12, D4, G4, D5, G4, D4],
+    arpSpeed: 0.4, bassMidi: 43, padGain: 0.06, arpGain: 0.04, bassGain: 0.04,
+    filterFreq: 2000, ascending: true,
   },
+  // SUCCESSION — regal, triumphant, fanfare-like
   succession: {
-    baseFreq: 262, oscType: 'sine', secondOscType: 'sine', secondInterval: 1.5,
-    filterType: 'lowpass', filterFreq: 1500, lfoRate: 0.4, lfoDepth: 0.15, noiseLevel: 0.04, gain: 0.08,
+    chord: [C4, E4, G4, C5],
+    arpNotes: [C4, E4, G4, C5, E5, C5, G4, E4],
+    arpSpeed: 0.22, bassMidi: 36, padGain: 0.06, arpGain: 0.05, bassGain: 0.05,
+    filterFreq: 2500, ascending: true,
   },
+  // DISCOVERY — bright, wonder, pentatonic ascent
   discovery: {
-    baseFreq: 330, oscType: 'sine', filterType: 'highpass', filterFreq: 300,
-    lfoRate: 2, lfoDepth: 0.2, noiseLevel: 0.05, gain: 0.07,
+    chord: [C4, E4, G4, B4],
+    arpNotes: [C4, D4, E4, G4, A4, C5, D5, E5],
+    arpSpeed: 0.18, bassMidi: 36, padGain: 0.05, arpGain: 0.05, bassGain: 0.04,
+    filterFreq: 3000, ascending: true,
   },
+  // CULTURAL — modal, world-music feel, mixolydian
   cultural_shift: {
-    baseFreq: 220, oscType: 'triangle', filterType: 'lowpass', filterFreq: 1200,
-    lfoRate: 1, lfoDepth: 0.2, noiseLevel: 0.04, gain: 0.08,
+    chord: [D4, F4 + 1, A4, C5],
+    arpNotes: [D4, E4, F4 + 1, A4, B4 - 1, A4, F4 + 1, E4],
+    arpSpeed: 0.3, bassMidi: 38, padGain: 0.05, arpGain: 0.04, bassGain: 0.04,
+    filterFreq: 1500, ascending: true,
   },
+  // DISASTER — rumbling, atonal, chaotic
   natural_disaster: {
-    baseFreq: 55, oscType: 'sawtooth', filterType: 'lowpass', filterFreq: 300,
-    lfoRate: 6, lfoDepth: 0.4, noiseLevel: 0.25, gain: 0.14,
+    chord: [C4 - 12, Eb4 - 12, F4 - 12 + 1, A4 - 12],
+    arpNotes: [C4, Eb4, F4 + 1, C4, Eb4 - 12, C4 - 12],
+    arpSpeed: 0.15, bassMidi: 28, padGain: 0.07, arpGain: 0.04, bassGain: 0.09,
+    filterFreq: 500, ascending: false,
   },
+  // DEATH — somber, slow, descending minor
   death: {
-    baseFreq: 65, oscType: 'sine', filterType: 'lowpass', filterFreq: 500,
-    lfoRate: 0.2, lfoDepth: 0.1, noiseLevel: 0.06, gain: 0.08,
+    chord: [A4 - 12, C4, E4, A4],
+    arpNotes: [A4, E4, C4, A4 - 12, E4 - 12],
+    arpSpeed: 0.5, bassMidi: 33, padGain: 0.05, arpGain: 0.03, bassGain: 0.05,
+    filterFreq: 700, ascending: false,
   },
+  // BIRTH — delicate, high, music-box feel
   birth: {
-    baseFreq: 523, oscType: 'sine', filterType: 'highpass', filterFreq: 400,
-    lfoRate: 0.8, lfoDepth: 0.15, noiseLevel: 0.02, gain: 0.06,
+    chord: [C5, E5, G5, C5 + 12],
+    arpNotes: [C5, E5, G5, C5 + 12, G5, E5, C5],
+    arpSpeed: 0.25, bassMidi: 48, padGain: 0.04, arpGain: 0.05, bassGain: 0.03,
+    filterFreq: 4000, ascending: true,
   },
+  // DIVINE — ethereal, sus chords, shimmering
   divine_intervention: {
-    baseFreq: 392, oscType: 'sine', secondOscType: 'sine', detune: 8,
-    filterType: 'lowpass', filterFreq: 3000, lfoRate: 0.5, lfoDepth: 0.2, noiseLevel: 0.05, gain: 0.07,
+    chord: [C4, F4, G4, C5],
+    arpNotes: [C5, G4, F4, C4, F4, G4, C5, G5],
+    arpSpeed: 0.35, bassMidi: 36, padGain: 0.06, arpGain: 0.04, bassGain: 0.04,
+    filterFreq: 3500, ascending: true,
   },
+  // AGENT — mysterious, whole-tone scale
   agent_intervention: {
-    baseFreq: 185, oscType: 'triangle', filterType: 'bandpass', filterFreq: 1000,
-    lfoRate: 1.2, lfoDepth: 0.25, noiseLevel: 0.07, gain: 0.08,
+    chord: [C4, E4, Ab4 - 1, Bb4],
+    arpNotes: [C4, D4, E4, F4 + 1, Ab4, Bb4, C5],
+    arpSpeed: 0.22, bassMidi: 36, padGain: 0.05, arpGain: 0.045, bassGain: 0.04,
+    filterFreq: 1800, ascending: true,
   },
+  // PROPHECY — mystical, open 5ths, slow reveal
   prophecy_fulfilled: {
-    baseFreq: 294, oscType: 'sine', secondOscType: 'sine', secondInterval: 1.5,
-    filterType: 'lowpass', filterFreq: 2500, lfoRate: 0.6, lfoDepth: 0.18, noiseLevel: 0.04, gain: 0.07,
+    chord: [D4, A4, D5, A4 + 12],
+    arpNotes: [D4, A4, D5, F4 + 1, A4, D5, A4 + 12],
+    arpSpeed: 0.4, bassMidi: 38, padGain: 0.06, arpGain: 0.04, bassGain: 0.05,
+    filterFreq: 2200, ascending: true,
   },
 };
 
-const DEFAULT_PROFILE: SoundProfile = {
-  baseFreq: 150, oscType: 'sine', filterType: 'lowpass', filterFreq: 1000,
-  lfoRate: 0.5, lfoDepth: 0.15, noiseLevel: 0.04, gain: 0.07,
+const DEFAULT_PROFILE: MelodicProfile = {
+  chord: [C4, E4, G4, C5],
+  arpNotes: [C4, E4, G4, C5, G4, E4],
+  arpSpeed: 0.3, bassMidi: 36, padGain: 0.05, arpGain: 0.04, bassGain: 0.04,
+  filterFreq: 1500, ascending: true,
 };
 
-function applyTheme(profile: SoundProfile, mod: ThemeModifier): SoundProfile {
-  return {
-    ...profile,
-    baseFreq: profile.baseFreq * mod.freqMultiplier,
-    oscType: mod.preferOsc !== 'sine' ? mod.preferOsc : profile.oscType,
-    filterFreq: Math.max(100, profile.filterFreq + mod.filterShift),
-    noiseLevel: Math.min(0.4, profile.noiseLevel + mod.noiseBoost),
-    lfoRate: Math.max(0.1, profile.lfoRate + mod.lfoShift),
-    gain: profile.gain * mod.gainMultiplier,
-  };
-}
-
-const FADE_IN = 1.5;
-const FADE_OUT = 1.5;
+const FADE_IN = 2.0;
+const FADE_OUT = 2.0;
 
 interface ActiveSound {
-  osc1: OscillatorNode;
-  osc2?: OscillatorNode;
-  noiseSource?: AudioBufferSourceNode;
-  noiseGain: GainNode;
+  nodes: AudioNode[];       // all nodes to disconnect on cleanup
+  oscillators: OscillatorNode[];  // all oscillators to stop
+  bufferSources: AudioBufferSourceNode[];
   masterGain: GainNode;
-  lfo: OscillatorNode;
-  lfoGain: GainNode;
-  filter: BiquadFilterNode;
+  arpInterval: number;      // setInterval ID for arpeggio
 }
 
 export function useAmbientSound(enabled: boolean, worldSeed: string = '') {
@@ -144,7 +195,6 @@ export function useAmbientSound(enabled: boolean, worldSeed: string = '') {
   const mountedRef = useRef(true);
   const themeRef = useRef<ThemeKey>('default');
 
-  // Detect theme from seed once
   useEffect(() => {
     themeRef.current = worldSeed ? detectTheme(worldSeed) : 'default';
   }, [worldSeed]);
@@ -159,38 +209,47 @@ export function useAmbientSound(enabled: boolean, worldSeed: string = '') {
     return ctxRef.current;
   }, []);
 
-  const createNoiseBuffer = useCallback((ctx: AudioContext): AudioBuffer => {
-    const size = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, size, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < size; i++) {
-      data[i] = Math.random() * 2 - 1;
+  /* ── Create a simple convolution reverb (impulse response) ── */
+  const createReverb = useCallback((ctx: AudioContext, wet: number): ConvolverNode => {
+    const convolver = ctx.createConvolver();
+    const rate = ctx.sampleRate;
+    const length = rate * 2.5; // 2.5s reverb tail
+    const impulse = ctx.createBuffer(2, length, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = impulse.getChannelData(ch);
+      for (let i = 0; i < length; i++) {
+        // Exponential decay with some diffusion
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.5) * wet;
+      }
     }
-    return buffer;
+    convolver.buffer = impulse;
+    return convolver;
   }, []);
 
-  const fadeOut = useCallback((sound: ActiveSound, duration: number) => {
+  const cleanupSound = useCallback((sound: ActiveSound, fadeDuration: number) => {
     const ctx = ctxRef.current;
     if (!ctx) return;
     const now = ctx.currentTime;
+
+    // Clear arpeggio interval
+    clearInterval(sound.arpInterval);
+
+    // Fade out master
     sound.masterGain.gain.cancelScheduledValues(now);
     sound.masterGain.gain.setValueAtTime(sound.masterGain.gain.value, now);
-    sound.masterGain.gain.linearRampToValueAtTime(0, now + duration);
+    sound.masterGain.gain.linearRampToValueAtTime(0, now + fadeDuration);
 
     setTimeout(() => {
-      try { sound.osc1.stop(); } catch { /* already stopped */ }
-      try { sound.osc2?.stop(); } catch { /* already stopped */ }
-      try { sound.lfo.stop(); } catch { /* already stopped */ }
-      try { sound.noiseSource?.stop(); } catch { /* already stopped */ }
-      try { sound.osc1.disconnect(); } catch { /* ok */ }
-      try { sound.osc2?.disconnect(); } catch { /* ok */ }
-      try { sound.lfo.disconnect(); } catch { /* ok */ }
-      try { sound.noiseSource?.disconnect(); } catch { /* ok */ }
-      try { sound.noiseGain.disconnect(); } catch { /* ok */ }
-      try { sound.masterGain.disconnect(); } catch { /* ok */ }
-      try { sound.lfoGain.disconnect(); } catch { /* ok */ }
-      try { sound.filter.disconnect(); } catch { /* ok */ }
-    }, (duration + 0.1) * 1000);
+      for (const osc of sound.oscillators) {
+        try { osc.stop(); } catch { /* ok */ }
+      }
+      for (const src of sound.bufferSources) {
+        try { src.stop(); } catch { /* ok */ }
+      }
+      for (const node of sound.nodes) {
+        try { node.disconnect(); } catch { /* ok */ }
+      }
+    }, (fadeDuration + 0.2) * 1000);
   }, []);
 
   const play = useCallback((eventType: string) => {
@@ -198,111 +257,164 @@ export function useAmbientSound(enabled: boolean, worldSeed: string = '') {
     if (currentTypeRef.current === eventType && activeRef.current) return;
 
     const ctx = getContext();
-    const baseProfile = PROFILES[eventType] || DEFAULT_PROFILE;
-    const themeMod = THEME_MODIFIERS[themeRef.current];
-    const profile = applyTheme(baseProfile, themeMod);
+    const profile = PROFILES[eventType] || DEFAULT_PROFILE;
+    const theme = THEME_MODIFIERS[themeRef.current];
+    const vol = volumeRef.current;
+    const now = ctx.currentTime;
 
-    // Fade out current sound
+    // Fade out previous
     if (activeRef.current) {
-      fadeOut(activeRef.current, FADE_OUT);
+      cleanupSound(activeRef.current, FADE_OUT);
       activeRef.current = null;
     }
 
-    const now = ctx.currentTime;
+    const allNodes: AudioNode[] = [];
+    const allOscs: OscillatorNode[] = [];
+    const allBuffers: AudioBufferSourceNode[] = [];
 
-    // Master gain
+    // ── Master chain: filter → reverb → dry/wet mix → master gain → destination ──
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(profile.gain * volumeRef.current, now + FADE_IN);
-
-    // Filter
-    const filter = ctx.createBiquadFilter();
-    filter.type = profile.filterType;
-    filter.frequency.setValueAtTime(profile.filterFreq, now);
-    filter.Q.setValueAtTime(1, now);
-
-    // LFO
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(profile.lfoRate, now);
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(profile.lfoDepth * profile.gain * volumeRef.current, now);
-    lfo.connect(lfoGain);
-    lfoGain.connect(masterGain.gain);
-    lfo.start(now);
-
-    // Oscillator 1
-    const osc1 = ctx.createOscillator();
-    osc1.type = profile.oscType;
-    osc1.frequency.setValueAtTime(profile.baseFreq, now);
-    osc1.connect(filter);
-
-    // Oscillator 2 (optional chord/detune layer)
-    let osc2: OscillatorNode | undefined;
-    if (baseProfile.secondOscType) {
-      osc2 = ctx.createOscillator();
-      osc2.type = baseProfile.secondOscType;
-      if (baseProfile.secondInterval) {
-        osc2.frequency.setValueAtTime(profile.baseFreq * baseProfile.secondInterval, now);
-      } else {
-        osc2.frequency.setValueAtTime(profile.baseFreq, now);
-        if (baseProfile.detune) osc2.detune.setValueAtTime(baseProfile.detune, now);
-      }
-      const osc2Gain = ctx.createGain();
-      osc2Gain.gain.setValueAtTime(0.6, now);
-      osc2.connect(osc2Gain);
-      osc2Gain.connect(filter);
-      osc2.start(now);
-    }
-
-    // Noise layer
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(profile.noiseLevel * volumeRef.current, now);
-    let noiseSource: AudioBufferSourceNode | undefined;
-    if (profile.noiseLevel > 0) {
-      const noiseBuffer = createNoiseBuffer(ctx);
-      noiseSource = ctx.createBufferSource();
-      noiseSource.buffer = noiseBuffer;
-      noiseSource.loop = true;
-      noiseSource.connect(noiseGain);
-      noiseGain.connect(filter);
-      noiseSource.start(now);
-    }
-
-    // Connect
-    filter.connect(masterGain);
+    masterGain.gain.linearRampToValueAtTime(1, now + FADE_IN);
     masterGain.connect(ctx.destination);
-    osc1.start(now);
+    allNodes.push(masterGain);
+
+    // Master filter (brightness)
+    const masterFilter = ctx.createBiquadFilter();
+    masterFilter.type = 'lowpass';
+    masterFilter.frequency.setValueAtTime(profile.filterFreq * theme.brightness, now);
+    masterFilter.Q.setValueAtTime(0.7, now);
+    allNodes.push(masterFilter);
+
+    // Reverb send
+    const reverb = createReverb(ctx, theme.reverbWet);
+    const dryGain = ctx.createGain();
+    dryGain.gain.setValueAtTime(0.6, now);
+    const wetGain = ctx.createGain();
+    wetGain.gain.setValueAtTime(0.4, now);
+    masterFilter.connect(dryGain);
+    masterFilter.connect(reverb);
+    reverb.connect(wetGain);
+    dryGain.connect(masterGain);
+    wetGain.connect(masterGain);
+    allNodes.push(reverb, dryGain, wetGain);
+
+    const octaveShift = theme.octaveShift * 12;
+
+    // ── LAYER 1: Pad (sustained chord) ──
+    const padGainNode = ctx.createGain();
+    padGainNode.gain.setValueAtTime(profile.padGain * vol, now);
+    padGainNode.connect(masterFilter);
+    allNodes.push(padGainNode);
+
+    for (const midi of profile.chord) {
+      const freq = midiToFreq(midi + octaveShift);
+      const osc = ctx.createOscillator();
+      osc.type = theme.padType;
+      osc.frequency.setValueAtTime(freq, now);
+      // Slight detune for warmth
+      osc.detune.setValueAtTime((Math.random() - 0.5) * 8, now);
+      osc.connect(padGainNode);
+      osc.start(now);
+      allOscs.push(osc);
+      allNodes.push(osc);
+    }
+
+    // ── LAYER 2: Sub-bass drone ──
+    const bassGainNode = ctx.createGain();
+    bassGainNode.gain.setValueAtTime(profile.bassGain * vol, now);
+    bassGainNode.connect(masterFilter);
+    allNodes.push(bassGainNode);
+
+    const bassOsc = ctx.createOscillator();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.setValueAtTime(midiToFreq(profile.bassMidi), now);
+    bassOsc.connect(bassGainNode);
+    bassOsc.start(now);
+    allOscs.push(bassOsc);
+    allNodes.push(bassOsc);
+
+    // Subtle bass LFO for movement
+    const bassLfo = ctx.createOscillator();
+    bassLfo.type = 'sine';
+    bassLfo.frequency.setValueAtTime(0.15, now);
+    const bassLfoGain = ctx.createGain();
+    bassLfoGain.gain.setValueAtTime(profile.bassGain * vol * 0.3, now);
+    bassLfo.connect(bassLfoGain);
+    bassLfoGain.connect(bassGainNode.gain);
+    bassLfo.start(now);
+    allOscs.push(bassLfo);
+    allNodes.push(bassLfo, bassLfoGain);
+
+    // ── LAYER 3: Arpeggio (melodic plucked notes) ──
+    const arpSpeed = profile.arpSpeed / theme.tempo;
+    let arpIndex = 0;
+
+    const playArpNote = () => {
+      if (!mountedRef.current || !ctxRef.current) return;
+      const c = ctxRef.current;
+      const t = c.currentTime;
+      const midi = profile.arpNotes[arpIndex % profile.arpNotes.length] + octaveShift;
+      const freq = midiToFreq(midi);
+
+      // Create a plucked-string-like envelope
+      const noteGain = c.createGain();
+      noteGain.gain.setValueAtTime(profile.arpGain * vol, t);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, t + arpSpeed * 2.5);
+      noteGain.connect(masterFilter);
+      allNodes.push(noteGain);
+
+      const osc = c.createOscillator();
+      osc.type = theme.arpType;
+      osc.frequency.setValueAtTime(freq, t);
+      osc.connect(noteGain);
+      osc.start(t);
+      osc.stop(t + arpSpeed * 3);
+      allNodes.push(osc);
+
+      // Optional harmonics layer for richness
+      if (Math.random() > 0.5) {
+        const harm = c.createOscillator();
+        harm.type = 'sine';
+        harm.frequency.setValueAtTime(freq * 2, t);
+        const harmGain = c.createGain();
+        harmGain.gain.setValueAtTime(profile.arpGain * vol * 0.2, t);
+        harmGain.gain.exponentialRampToValueAtTime(0.001, t + arpSpeed * 1.5);
+        harm.connect(harmGain);
+        harmGain.connect(masterFilter);
+        harm.start(t);
+        harm.stop(t + arpSpeed * 2);
+        allNodes.push(harm, harmGain);
+      }
+
+      arpIndex++;
+    };
+
+    // Start arpeggio — play first note immediately, then interval
+    playArpNote();
+    const arpIntervalId = window.setInterval(playArpNote, arpSpeed * 1000);
 
     const sound: ActiveSound = {
-      osc1, osc2, noiseSource, noiseGain, masterGain, lfo, lfoGain, filter,
+      nodes: allNodes,
+      oscillators: allOscs,
+      bufferSources: allBuffers,
+      masterGain,
+      arpInterval: arpIntervalId,
     };
     activeRef.current = sound;
     currentTypeRef.current = eventType;
-  }, [enabled, getContext, fadeOut, createNoiseBuffer]);
+  }, [enabled, getContext, cleanupSound, createReverb]);
 
   const stop = useCallback(() => {
     if (activeRef.current) {
-      fadeOut(activeRef.current, 1);
+      cleanupSound(activeRef.current, 1);
       activeRef.current = null;
       currentTypeRef.current = null;
     }
-  }, [fadeOut]);
+  }, [cleanupSound]);
 
   const setVolume = useCallback((vol: number) => {
     volumeRef.current = Math.max(0, Math.min(1, vol));
-    if (activeRef.current && ctxRef.current) {
-      const now = ctxRef.current.currentTime;
-      const baseProfile = PROFILES[currentTypeRef.current || ''] || DEFAULT_PROFILE;
-      const profile = applyTheme(baseProfile, THEME_MODIFIERS[themeRef.current]);
-      activeRef.current.masterGain.gain.cancelScheduledValues(now);
-      activeRef.current.masterGain.gain.setValueAtTime(
-        activeRef.current.masterGain.gain.value, now
-      );
-      activeRef.current.masterGain.gain.linearRampToValueAtTime(
-        profile.gain * volumeRef.current, now + 0.3
-      );
-    }
   }, []);
 
   useEffect(() => {
@@ -313,18 +425,17 @@ export function useAmbientSound(enabled: boolean, worldSeed: string = '') {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      const sound = activeRef.current;
-      if (sound) {
-        try { sound.masterGain.gain.cancelScheduledValues(0); } catch { /* ok */ }
-        try { sound.masterGain.gain.setValueAtTime(0, 0); } catch { /* ok */ }
-        try { sound.osc1.stop(); } catch { /* ok */ }
-        try { sound.osc2?.stop(); } catch { /* ok */ }
-        try { sound.lfo.stop(); } catch { /* ok */ }
-        try { sound.noiseSource?.stop(); } catch { /* ok */ }
-        try { sound.masterGain.disconnect(); } catch { /* ok */ }
-        try { sound.filter.disconnect(); } catch { /* ok */ }
-        try { sound.lfoGain.disconnect(); } catch { /* ok */ }
-        try { sound.noiseGain.disconnect(); } catch { /* ok */ }
+      if (activeRef.current) {
+        clearInterval(activeRef.current.arpInterval);
+        for (const osc of activeRef.current.oscillators) {
+          try { osc.stop(); } catch { /* ok */ }
+        }
+        for (const src of activeRef.current.bufferSources) {
+          try { src.stop(); } catch { /* ok */ }
+        }
+        for (const node of activeRef.current.nodes) {
+          try { node.disconnect(); } catch { /* ok */ }
+        }
         activeRef.current = null;
       }
       if (ctxRef.current) {
