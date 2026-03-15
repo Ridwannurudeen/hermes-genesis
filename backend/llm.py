@@ -56,6 +56,13 @@ async def chat_completion(
                 raise last_err
 
 
+async def close_client():
+    global _client
+    if _client and not _client.is_closed:
+        await _client.aclose()
+        _client = None
+
+
 def _repair_json(text: str) -> str:
     """Attempt to fix common LLM JSON errors."""
     # Remove trailing commas before } or ]
@@ -150,7 +157,7 @@ def extract_json(text: str) -> dict | list:
 
     # Fourth try: use higher max_tokens hint — try to extract partial valid data
     # Find longest valid JSON prefix
-    for end in range(len(repaired), 100, -1):
+    for end in range(len(repaired), 100, -50):
         candidate = repaired[:end]
         candidate = _truncate_at_last_complete(candidate)
         try:

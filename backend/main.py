@@ -1,3 +1,4 @@
+import hmac
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -11,6 +12,7 @@ from routes.simulate import router as simulate_router
 from routes.stream import router as stream_router
 from routes.scenes import router as scenes_router
 from telegram_bot import create_bot
+from llm import close_client
 from rate_limit import rate_limit_middleware
 
 
@@ -24,6 +26,7 @@ async def lifespan(app: FastAPI):
         await bot.updater.start_polling()
     yield
     # Shutdown
+    await close_client()
     from telegram_bot import _bot_app
     if _bot_app:
         await _bot_app.updater.stop()
@@ -55,7 +58,7 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 async def api_key_middleware(request: Request, call_next):
     if API_KEY and request.method in ("POST", "DELETE") and request.url.path.startswith("/api/"):
         key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
-        if key != API_KEY:
+        if not key or not hmac.compare_digest(key, API_KEY):
             return JSONResponse(status_code=403, content={"detail": "Invalid or missing API key"})
     return await call_next(request)
 

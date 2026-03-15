@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -323,6 +323,7 @@ export default function Landing() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [connected, setConnected] = useState(true);
+  const abortRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     api
@@ -341,6 +342,12 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      abortRef.current?.();
+    };
+  }, []);
+
   const handleGenerate = useCallback(async () => {
     const trimmed = seed.trim();
     if (!trimmed) return;
@@ -349,7 +356,7 @@ export default function Landing() {
     setError(null);
     try {
       await new Promise<void>((resolve, reject) => {
-        api.createWorldStream(trimmed, {
+        abortRef.current = api.createWorldStream(trimmed, {
           onProgress: (data) => {
             const msg = STAGE_MAP[data.stage] || data.detail || 'Working...';
             setStageMessage(msg);

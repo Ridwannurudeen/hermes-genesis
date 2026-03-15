@@ -40,7 +40,7 @@ def _ensure_cache_dir() -> None:
 def _cache_key(event_type: str, title: str) -> str:
     """Generate a cache key from event type and title."""
     raw = f"{event_type}:{title}".lower().strip()
-    return hashlib.md5(raw.encode()).hexdigest()
+    return hashlib.sha256(raw.encode()).hexdigest()
 
 
 def _cached_path(key: str) -> str:

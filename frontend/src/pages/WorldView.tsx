@@ -321,7 +321,7 @@ export default function WorldView() {
         autoPlayTimerRef.current = null;
       }
     };
-  }, [autoPlay, id]);
+  }, [autoPlay, id, fetchAll]);
 
   const toggleAutoPlay = useCallback(() => {
     setAutoPlay((prev) => {
@@ -381,43 +381,43 @@ export default function WorldView() {
                 <p className="text-2xl font-mono font-bold text-genesis-400">{world.current_day}</p>
               </div>
               <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
-              <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
+              <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} aria-label={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                   ambientEnabled ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30' : 'text-sub hover:text-emerald-400 hover:bg-hover'
                 }`}>
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
               </button>
-              <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent"
+              <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent" aria-label="World Master Agent"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-sub hover:text-genesis-400 hover:bg-hover'
                 }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>
               </button>
-              <button onClick={() => setGodMode((p) => !p)} title="God Mode"
+              <button onClick={() => setGodMode((p) => !p)} title="God Mode" aria-label="God Mode"
                 className={`p-2 rounded-lg transition-all ${
                   godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-sub hover:text-amber-400 hover:bg-hover'
                 }`}>
                 <Zap className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCouncil(true)} title="Faction Council" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
                 <Swords className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" className="p-2 text-sub hover:text-genesis-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" aria-label="Generate Chronicle" className="p-2 text-sub hover:text-genesis-400 hover:bg-hover rounded-lg transition-all">
                 <BookOpen className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" className="p-2 text-sub hover:text-rose-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-rose-400 hover:bg-hover rounded-lg transition-all">
                 <Play className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowReplay(true)} title="Replay History" disabled={events.length === 0}
+              <button onClick={() => setShowReplay(true)} title="Replay History" aria-label="Replay History" disabled={events.length === 0}
                 className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                 <History className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" aria-label="Session Prep" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
                 <Sparkles className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" aria-label="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
                 <Scroll className="w-5 h-5" />
               </button>
               <button
@@ -435,6 +435,7 @@ export default function WorldView() {
                   } catch { /* ignore */ }
                 }}
                 title="Download World (Markdown)"
+                aria-label="Download World (Markdown)"
                 className="p-2 text-sub hover:text-emerald-400 hover:bg-hover rounded-lg transition-all"
               >
                 <Download className="w-5 h-5" />

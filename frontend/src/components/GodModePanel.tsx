@@ -148,9 +148,9 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
         {recentCommands.length > 0 && (
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-faint text-xs">Recent:</span>
-            {recentCommands.map((cmd, i) => (
+            {recentCommands.map((cmd) => (
               <button
-                key={i}
+                key={cmd}
                 onClick={() => setCommand(cmd)}
                 disabled={loading}
                 className="text-xs px-2 py-0.5 rounded-full bg-white/[0.04] border border-subtle text-sub

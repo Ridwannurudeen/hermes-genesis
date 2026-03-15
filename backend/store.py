@@ -49,7 +49,7 @@ def save_world(world: World) -> None:
         with flock:
             fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
             try:
-                with os.fdopen(fd, "w") as f:
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
                     f.write(data)
                 os.replace(tmp_path, str(path))
             except Exception:
@@ -69,7 +69,7 @@ def load_world(world_id: str) -> World | None:
     flock = FileLock(_lock_path(world_id), timeout=_FILE_LOCK_TIMEOUT)
     try:
         with flock:
-            return World.model_validate(json.loads(path.read_text()))
+            return World.model_validate(json.loads(path.read_text(encoding="utf-8")))
     except Timeout:
         raise RuntimeError(f"Could not acquire file lock for world {world_id}")
 
@@ -81,7 +81,7 @@ def list_worlds() -> list[dict]:
     worlds = []
     for f in sorted(d.glob("world_*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
         try:
-            w = json.loads(f.read_text())
+            w = json.loads(f.read_text(encoding="utf-8"))
             worlds.append({"id": w["id"], "name": w["name"], "seed": w["seed"], "theme": w.get("theme", ""), "current_day": w.get("current_day", 0), "status": w.get("status", "ready"), "created_at": w.get("created_at", "")})
         except Exception:
             continue

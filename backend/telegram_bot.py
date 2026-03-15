@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from filelock import FileLock
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from config import DATA_DIR, TELEGRAM_BOT_TOKEN
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 _bot_app: Application | None = None
 _links_path = os.path.join(DATA_DIR, "telegram_links.json")
+_links_lock_path = os.path.join(DATA_DIR, ".telegram_links.lock")
 
 # Emoji mapping for event types — matches frontend EVENT_TYPE_ICONS
 EVENT_TYPE_EMOJIS: dict[str, str] = {
@@ -40,6 +42,10 @@ def _escape_markdown(text: str) -> str:
     text = text.replace("`", "'")
     # Escape square brackets not part of links
     text = text.replace("[", "(").replace("]", ")")
+    # Escape asterisks — they trigger bold formatting
+    text = text.replace("*", "\\*")
+    # Escape underscores — they trigger italic formatting
+    text = text.replace("_", "\\_")
     return text
 
 
@@ -90,8 +96,10 @@ def load_links() -> dict[str, str]:
     if not os.path.exists(_links_path):
         return {}
     try:
-        with open(_links_path, "r") as f:
-            return json.load(f)
+        flock = FileLock(_links_lock_path, timeout=5)
+        with flock:
+            with open(_links_path, "r", encoding="utf-8") as f:
+                return json.load(f)
     except Exception:
         return {}
 
@@ -99,8 +107,10 @@ def load_links() -> dict[str, str]:
 def save_links(links: dict[str, str]) -> None:
     """Persist chat_id -> world_id mapping to disk."""
     os.makedirs(os.path.dirname(_links_path), exist_ok=True)
-    with open(_links_path, "w") as f:
-        json.dump(links, f, indent=2)
+    flock = FileLock(_links_lock_path, timeout=5)
+    with flock:
+        with open(_links_path, "w", encoding="utf-8") as f:
+            json.dump(links, f, indent=2)
 
 
 async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

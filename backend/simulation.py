@@ -265,7 +265,7 @@ def _maybe_chain_event(
             title=f"{chain_type.replace('_', ' ').title()}: {winner.name} vs {loser.name} (consequence)",
             actors=[actor1.id, actor2.id],
             factions_involved=list(set(filter(None, [actor1.faction_id, actor2.faction_id]))),
-            regions_affected=list(filter(None, [actor1.location or actor2.location])),
+            regions_affected=list(filter(None, [actor1.location, actor2.location])),
             outcome=outcome,
             narrative="",
             caused_by=parent.id,
@@ -305,6 +305,8 @@ def simulate_tick(world: World) -> list[Event]:
         if not candidates:
             candidates = weighted[1:]
         actor2 = candidates[0][0] if candidates else weighted[-1][0]
+        if actor1 == actor2:
+            continue
 
         used_chars.add(actor1.id)
         used_chars.add(actor2.id)
@@ -376,7 +378,7 @@ def simulate_tick(world: World) -> list[Event]:
             title=f"{etype.replace('_', ' ').title()}: {winner.name} vs {loser.name}",
             actors=[actor1.id, actor2.id],
             factions_involved=list(set(filter(None, [actor1.faction_id, actor2.faction_id]))),
-            regions_affected=list(filter(None, [actor1.location or actor2.location])),
+            regions_affected=list(filter(None, [actor1.location, actor2.location])),
             outcome=outcome,
             narrative=""
         )
@@ -402,7 +404,7 @@ def simulate_tick(world: World) -> list[Event]:
                 id=f"evt_{day:03d}_death_{c.id}", day=day, type="death",
                 title=f"{c.name} has fallen",
                 actors=[c.id], factions_involved=[c.faction_id],
-                regions_affected=[c.location], narrative=""
+                regions_affected=[c.location] if c.location else [], narrative=""
             ))
 
     # Crossover: top 2 fitness chars from same faction may produce successor
@@ -414,7 +416,9 @@ def simulate_tick(world: World) -> list[Event]:
         if len(faction_chars) >= 2 and random.random() < 0.15:
             p1, p2 = faction_chars[0], faction_chars[1]
             child_genome = Genome.crossover(p1.genome, p2.genome)
-            child_id = f"char_{len(world.characters)+1:02d}"
+            existing_nums = [int(c.id.split("_")[1]) for c in world.characters if c.id.startswith("char_")]
+            next_num = max(existing_nums, default=0) + 1
+            child_id = f"char_{next_num:03d}"
             existing_names = {c.name for c in world.characters}
             child_name = _generate_child_name(p1.name, p2.name, existing_names)
             # Add a surname from parent if they have one

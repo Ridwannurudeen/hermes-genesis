@@ -60,6 +60,7 @@ export default function CinematicMode({
   const [replayDone, setReplayDone] = useState(false);
   const [sceneImage, setSceneImage] = useState<string | null>(null);
   const [sceneLoading, setSceneLoading] = useState(false);
+  const simulatingRef = useRef(false);
   const eventQueueRef = useRef<WorldEvent[]>([]);
   const displayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(true);
@@ -222,7 +223,8 @@ export default function CinematicMode({
     if (mode !== 'live') return;
 
     const tick = async () => {
-      if (!activeRef.current || simulating) return;
+      if (!activeRef.current || simulatingRef.current) return;
+      simulatingRef.current = true;
       setSimulating(true);
       try {
         const result = await api.simulate(worldId, 1);
@@ -242,6 +244,7 @@ export default function CinematicMode({
         // Silently continue — next tick will retry
       } finally {
         setSimulating(false);
+        simulatingRef.current = false;
       }
     };
 
@@ -253,7 +256,7 @@ export default function CinematicMode({
       clearInterval(interval);
       clearTimeout(initialTimer);
     };
-  }, [mode, worldId, onNewEvents, processQueue, simulating]);
+  }, [mode, worldId, onNewEvents, processQueue]);
 
   // Close on Escape key
   useEffect(() => {

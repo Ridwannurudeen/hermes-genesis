@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timezone
-from config import DATA_DIR
+
 from store import load_world, save_world, list_worlds, get_lock
 from simulation import simulate_tick, repair_leadership as _repair_leader
 from llm import chat_completion, extract_json
@@ -478,8 +478,8 @@ async def agent_tick(world_id: str):
             events=events,
             prophecy_fulfilled=prophecy_fulfilled_data,
         ))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Agent cleanup error: %s", e)
 
     logger.info(
         f"Agent tick for {world_id}: day={world.current_day}, action={action}, "

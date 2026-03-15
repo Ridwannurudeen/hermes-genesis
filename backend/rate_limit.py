@@ -57,7 +57,8 @@ async def rate_limit_middleware(request: Request, call_next):
         and request.url.path.startswith("/api/")
         and _is_llm_endpoint(request.url.path)
     ):
-        ip = request.client.host if request.client else "unknown"
+        ip = (request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+              or (request.client.host if request.client else "unknown"))
         now = time.monotonic()
         _cleanup_old_entries(ip, now)
 

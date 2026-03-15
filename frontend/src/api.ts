@@ -37,7 +37,11 @@ function streamSSE(url: string, body: Record<string, unknown>, handlers: SSEHand
   })
     .then(async (response) => {
       if (!response.ok) throw new Error(`API error: ${response.status}`);
-      const reader = response.body!.getReader();
+      if (!response.body) {
+        handlers.onError?.(new Error('Empty response body'));
+        return;
+      }
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
 

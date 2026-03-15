@@ -10,8 +10,9 @@ def assemble_world(seed: str, geo_data: dict, faction_data: list, char_data: lis
 
     regions = []
     for r in geo_data.get("regions", []):
-        pois = [PointOfInterest(**p) for p in r.pop("points_of_interest", [])]
-        regions.append(Region(**r, points_of_interest=pois) if pois else Region(**r))
+        pois = [PointOfInterest(**p) for p in r.get("points_of_interest", [])]
+        r_rest = {k: v for k, v in r.items() if k != "points_of_interest"}
+        regions.append(Region(**r_rest, points_of_interest=pois) if pois else Region(**r_rest))
     connections = [Connection(**c) for c in geo_data.get("connections", [])]
     geography = Geography(regions=regions, connections=connections)
 
@@ -19,11 +20,12 @@ def assemble_world(seed: str, geo_data: dict, faction_data: list, char_data: lis
 
     characters = []
     for c in char_data:
-        genome_data = c.pop("genome", {})
-        rels_data = c.pop("relationships", [])
+        genome_data = c.get("genome", {})
+        rels_data = c.get("relationships", [])
+        c_rest = {k: v for k, v in c.items() if k not in ("genome", "relationships")}
         relationships = [Relationship(**r) for r in rels_data]
         characters.append(Character(
-            **c,
+            **c_rest,
             genome=Genome(**genome_data),
             relationships=relationships,
             lineage=Lineage(generation=0)

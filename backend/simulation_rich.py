@@ -3,12 +3,15 @@
 Runs simulate_tick + narrator + obituary + prophecy fulfillment in one call.
 Uses phased locking: hold lock only for fast mutations, release during LLM calls.
 """
+import logging
 from store import load_world, save_world, get_lock
 from simulation import simulate_tick
 from llm import chat_completion
 from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
 from prompts.obituary import SYSTEM as OBITUARY_SYSTEM, obituary_prompt
 from prophecy_checker import check_and_fulfill_prophecies
+
+logger = logging.getLogger(__name__)
 
 
 async def simulate_rich_tick(world_id: str) -> tuple:
@@ -40,7 +43,8 @@ async def simulate_rich_tick(world_id: str) -> tuple:
                     max_tokens=300,
                 )
                 event.narrative = narrative.strip()
-            except Exception:
+            except Exception as e:
+                logger.debug("Narrative enrichment failed: %s", e)
                 event.narrative = event.title
 
         # Generate obituary for death events

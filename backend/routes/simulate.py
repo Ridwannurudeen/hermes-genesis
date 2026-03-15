@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from fastapi import APIRouter, HTTPException, Query
 from store import load_world, save_world, get_lock
 from simulation import simulate_tick
@@ -6,6 +7,8 @@ from llm import chat_completion
 from prompts.narrator import SYSTEM as NARRATOR_SYSTEM, event_prompt
 from prompts.obituary import SYSTEM as OBITUARY_SYSTEM, obituary_prompt
 from prophecy_checker import check_and_fulfill_prophecies
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/worlds", tags=["simulation"])
 
@@ -42,7 +45,8 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
                         max_tokens=300,
                     )
                     evt.narrative = narrative.strip()
-                except Exception:
+                except Exception as e:
+                    logger.debug("Narration failed for event %s: %s", evt.id, e)
                     evt.narrative = evt.title
             elif evt.actors:
                 char_id = evt.actors[0]
@@ -56,8 +60,8 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
                             max_tokens=200,
                         )
                         evt.obituary = obit.strip()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug("Obituary generation failed for %s: %s", char_id, e)
 
         await asyncio.gather(*[_narrate(evt) for evt in events])
 
@@ -101,6 +105,9 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
 
         all_events.extend(events)
 
+    if not world:
+        raise HTTPException(500, "Simulation failed — world became unavailable")
+
     # Notify linked Telegram chats with rich event data
     try:
         from telegram_bot import notify_linked_chats
@@ -111,8 +118,8 @@ async def run_simulation(world_id: str, days: int = Query(default=1, ge=1, le=30
             events=all_events,
             prophecy_fulfilled=prophecy_fulfilled_data,
         ))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Telegram notify failed for simulate %s: %s", world_id, e)
 
     return {
         "world_id": world_id,
@@ -144,6 +151,9 @@ async def run_quick_simulation(world_id: str, days: int = Query(default=1, ge=1,
             actual_days += 1
             all_events.extend(events)
 
+    if not world:
+        raise HTTPException(500, "Simulation failed — world became unavailable")
+
     # Notify linked Telegram chats (quick sim — no prophecy check)
     try:
         from telegram_bot import notify_linked_chats
@@ -153,8 +163,8 @@ async def run_quick_simulation(world_id: str, days: int = Query(default=1, ge=1,
             message=header,
             events=all_events,
         ))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Telegram notify failed for quick sim %s: %s", world_id, e)
 
     return {
         "world_id": world_id,
