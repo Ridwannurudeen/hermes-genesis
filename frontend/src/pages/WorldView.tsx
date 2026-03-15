@@ -178,7 +178,7 @@ export default function WorldView() {
   }, [factions]);
 
   const { speak, pause, resume, stop, narrationState } = useVoiceNarration(voiceEnabled);
-  const { play: playAmbient, stop: stopAmbient } = useAmbientSound(ambientEnabled, world?.seed || '');
+  const { play: playAmbient } = useAmbientSound(ambientEnabled, world?.seed || '');
 
   // Voice narration + ambient sound: react to new events
   useEffect(() => {

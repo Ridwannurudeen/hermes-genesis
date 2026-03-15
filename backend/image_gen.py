@@ -112,5 +112,6 @@ async def generate_scene_image(event_type: str, title: str) -> str | None:
             return b64_data
 
     except Exception as e:
-        print(f"[image_gen] Failed to generate scene: {e}")
+        import logging
+        logging.getLogger(__name__).warning("Failed to generate scene: %s", e)
         return None

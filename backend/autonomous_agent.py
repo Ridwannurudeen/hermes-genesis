@@ -401,7 +401,7 @@ async def agent_tick(world_id: str):
                     world.events.extend(prophecy_events)
                     events.extend(prophecy_events)
                     # Re-apply fulfilled flags (they were set on the old object)
-                    fulfilled_ids = {e.id.split("_prophecy_")[1] for e in prophecy_events if "_prophecy_" in e.id}
+                    fulfilled_ids = {parts[1] for e in prophecy_events if "_prophecy_" in e.id for parts in [e.id.split("_prophecy_", 1)] if len(parts) > 1}
                     for p in world.prophecies:
                         if p.id in fulfilled_ids:
                             p.fulfilled = True

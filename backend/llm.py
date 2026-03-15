@@ -91,11 +91,16 @@ def extract_json(text: str) -> dict | list:
     """Extract JSON from LLM response with repair fallback."""
     text = text.strip()
 
-    # Strip markdown code fences
+    # Strip markdown code fences (with bounds checking)
     if "```json" in text:
-        text = text.split("```json")[1].split("```")[0].strip()
+        parts = text.split("```json", 1)
+        if len(parts) > 1:
+            inner = parts[1].split("```", 1)
+            text = inner[0].strip()
     elif "```" in text:
-        text = text.split("```")[1].split("```")[0].strip()
+        parts = text.split("```", 2)
+        if len(parts) > 1:
+            text = parts[1].strip()
 
     # Find the outermost JSON object or array
     # This handles cases where LLM adds text before/after the JSON

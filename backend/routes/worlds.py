@@ -18,7 +18,7 @@ from simulation import repair_leadership
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
 class CreateWorldRequest(BaseModel):
-    seed: str = Field(..., min_length=3, max_length=2000)
+    seed: str = Field(..., min_length=3, max_length=500)
     num_regions: int = Field(default=4, ge=3, le=12)
     num_factions: int = Field(default=3, ge=2, le=8)
     num_characters: int = Field(default=8, ge=4, le=30)
@@ -262,7 +262,7 @@ async def generate_chronicle(world_id: str):
     }
 
 class InterveneRequest(BaseModel):
-    command: str = Field(..., min_length=3, max_length=2000)
+    command: str = Field(..., min_length=3, max_length=500)
 
 @router.post("/{world_id}/intervene")
 async def divine_intervention(world_id: str, req: InterveneRequest):

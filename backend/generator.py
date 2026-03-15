@@ -52,7 +52,9 @@ async def generate_world(seed: str, num_regions: int = 4, num_factions: int = 3,
                 [f.model_dump() for f in world.factions],
             ), max_tokens=800)
             return extract_json(proph_raw)
-        except Exception:
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Prophecy generation failed: %s", e)
             return {}
 
     proph_data = await _gen_prophecies()

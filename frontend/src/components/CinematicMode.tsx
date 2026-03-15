@@ -97,7 +97,7 @@ export default function CinematicMode({
     setSceneLoading(true);
     try {
       const res = await api.generateScene(evt.type, evt.title);
-      if (res.image && activeRef.current) {
+      if (res.image && activeRef.current && /^[A-Za-z0-9+/=\s]+$/.test(res.image)) {
         const dataUrl = `data:image/jpeg;base64,${res.image}`;
         sceneCache.current.set(cacheKey, dataUrl);
         setSceneImage(dataUrl);
@@ -119,7 +119,7 @@ export default function CinematicMode({
     if (sceneCache.current.has(cacheKey)) return;
     // Fire and forget — result goes into sceneCache for instant use later
     api.generateScene(peek.type, peek.title).then((res) => {
-      if (res.image) {
+      if (res.image && /^[A-Za-z0-9+/=\s]+$/.test(res.image)) {
         sceneCache.current.set(cacheKey, `data:image/jpeg;base64,${res.image}`);
       }
     }).catch(() => {});

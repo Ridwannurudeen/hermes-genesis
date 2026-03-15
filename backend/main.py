@@ -35,6 +35,9 @@ app = FastAPI(title="Hermes Genesis", version="0.1.0", lifespan=lifespan)
 
 # CORS: restrict to configured origins, fall back to permissive only when none set
 _cors_origins = CORS_ORIGINS if CORS_ORIGINS else ["*"]
+if not CORS_ORIGINS:
+    import logging
+    logging.getLogger(__name__).warning("CORS_ORIGINS not set — allowing all origins. Set CORS_ORIGINS in .env for production.")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,

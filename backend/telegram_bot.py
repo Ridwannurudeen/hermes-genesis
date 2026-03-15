@@ -349,6 +349,7 @@ async def notify_linked_chats(
             )
         except Exception as e:
             # Retry without Markdown if formatting fails
+            logger.debug(f"Markdown send failed for chat {chat_id}: {e}")
             try:
                 # Strip markdown formatting for plain text fallback
                 plain = full_msg.replace("*", "").replace("_", "")
