@@ -10,7 +10,7 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
   <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
 </p>
 
-> **[Try the Live Demo](http://75.119.153.252:8003)** | **[Watch the Demo Video](#demo-video)**
+> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](#demo-video)**
 
 ---
 
@@ -134,7 +134,7 @@ $ hermes chat -q "Use genesis MCP tools to list all worlds"
 
 ```bash
 ./setup-hermes-agent.sh              # local backend
-./setup-hermes-agent.sh http://75.119.153.252:8003  # remote VPS
+./setup-hermes-agent.sh https://hermesgenesis.world  # remote VPS
 ```
 
 This installs hermes-agent, the MCP bridge, and 5 custom skills in one command.
@@ -187,10 +187,10 @@ The World Master agent ([`autonomous_agent.py`](backend/autonomous_agent.py)) im
 
 ## Proof of Scale — Live API Stats
 
-These numbers come from the **[live production API](http://75.119.153.252:8003)**, not a demo:
+These numbers come from the **[live production API](https://hermesgenesis.world)**, not a demo:
 
 ```
-$ curl -s http://75.119.153.252:8003/api/worlds/world_530e99fbdb22 | jq '{...}'
+$ curl -s https://hermesgenesis.world/api/worlds/world_530e99fbdb22 | jq '{...}'
 
 World: Crossroads of Hermes
 Day: 323
@@ -286,7 +286,7 @@ cp .env.example .env    # add your NOUS_API_KEY
 docker compose up -d    # http://localhost:8003
 ```
 
-Or try the **[live demo](http://75.119.153.252:8003)** — no setup required.
+Or try the **[live demo](https://hermesgenesis.world)** — no setup required.
 
 <details>
 <summary>Manual setup (without Docker)</summary>
