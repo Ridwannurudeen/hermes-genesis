@@ -555,71 +555,7 @@ export default function Landing() {
           </motion.div>
         </motion.section>
 
-        {/* ── Seed Input ── */}
-        <motion.section
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="max-w-2xl mx-auto mb-24"
-        >
-          <motion.div variants={fadeUp}>
-            <textarea
-              value={seed}
-              onChange={(e) => setSeed(e.target.value)}
-              placeholder={PLACEHOLDER_SEEDS[placeholderIdx]}
-              rows={4}
-              disabled={loading}
-              className="w-full glass-input rounded-2xl px-6 py-5 text-gray-100 text-lg placeholder-gray-600 focus:outline-none resize-none disabled:opacity-50 font-light"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleGenerate();
-              }}
-              aria-label="World seed description"
-            />
-          </motion.div>
-
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                className="text-red-400 text-sm mt-2 text-center"
-                role="alert"
-              >
-                {error}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          <motion.div variants={fadeUp} className="mt-4">
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGenerate}
-              disabled={loading || !seed.trim()}
-              className="w-full py-4 bg-genesis-600 hover:bg-genesis-500 disabled:bg-genesis-900 disabled:text-genesis-700 text-white font-semibold text-lg rounded-2xl transition-colors flex items-center justify-center gap-3 btn-glow disabled:shadow-none"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{stageMessage}</span>
-                </>
-              ) : (
-                <>
-                  <Globe className="w-5 h-5" />
-                  Generate World
-                </>
-              )}
-            </motion.button>
-
-            <p className="text-gray-600 text-xs text-center mt-3 flex items-center justify-center gap-1.5">
-              <Command className="w-3 h-3" />
-              <span>Ctrl + Enter to generate</span>
-            </p>
-          </motion.div>
-        </motion.section>
-
-        {/* ── Bento Feature Grid ── */}
+        {/* ── How It Works ── */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -627,18 +563,54 @@ export default function Landing() {
           variants={stagger}
           className="mb-24"
         >
-          <motion.div variants={fadeUp} className="text-center mb-10">
+          <motion.div variants={fadeUp} className="text-center mb-12">
             <h2 className="text-2xl font-bold text-white font-display mb-2">
-              Built for Living Worlds
+              How It Works
             </h2>
             <p className="text-sm text-gray-500">
-              Every system is interconnected. One event changes everything.
+              From a single sentence to a living, breathing civilization.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {FEATURES.map((feature) => (
-              <FeatureCard key={feature.title} feature={feature} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                step: '01',
+                icon: BookOpen,
+                title: 'Describe',
+                text: 'Write a seed — any premise, any genre. A dying empire, a cyberpunk megacity, Norse Ragnarok. One sentence is all it takes.',
+              },
+              {
+                step: '02',
+                icon: Globe,
+                title: 'Generate',
+                text: 'Hermes builds an entire world: regions with terrain, factions with ideology, characters with genetic codes — all interconnected.',
+              },
+              {
+                step: '03',
+                icon: Swords,
+                title: 'Simulate',
+                text: 'Hit play and watch history unfold. Wars erupt, alliances shift, leaders fall, prophecies fulfill. Every event has consequences.',
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.step}
+                variants={scaleIn}
+                className="glass rounded-2xl p-6 text-center relative overflow-hidden group"
+              >
+                <span className="absolute top-4 right-4 text-genesis-800/40 font-display text-4xl font-black">
+                  {item.step}
+                </span>
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-genesis-400/20 to-genesis-600/20 border border-genesis-400/20 flex items-center justify-center">
+                  <item.icon className="w-6 h-6 text-genesis-400" />
+                </div>
+                <h3 className="text-lg font-bold text-genesis-100 font-display mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-genesis-300 leading-relaxed">
+                  {item.text}
+                </p>
+              </motion.div>
             ))}
           </div>
         </motion.section>
@@ -702,7 +674,7 @@ export default function Landing() {
           </motion.div>
         </motion.section>
 
-        {/* ── How It Works ── */}
+        {/* ── Bento Feature Grid ── */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -710,54 +682,18 @@ export default function Landing() {
           variants={stagger}
           className="mb-24"
         >
-          <motion.div variants={fadeUp} className="text-center mb-12">
+          <motion.div variants={fadeUp} className="text-center mb-10">
             <h2 className="text-2xl font-bold text-white font-display mb-2">
-              How It Works
+              Built for Living Worlds
             </h2>
             <p className="text-sm text-gray-500">
-              From a single sentence to a living, breathing civilization.
+              Every system is interconnected. One event changes everything.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                step: '01',
-                icon: BookOpen,
-                title: 'Describe',
-                text: 'Write a seed — any premise, any genre. A dying empire, a cyberpunk megacity, Norse Ragnarok. One sentence is all it takes.',
-              },
-              {
-                step: '02',
-                icon: Globe,
-                title: 'Generate',
-                text: 'Hermes builds an entire world: regions with terrain, factions with ideology, characters with genetic codes — all interconnected.',
-              },
-              {
-                step: '03',
-                icon: Swords,
-                title: 'Simulate',
-                text: 'Hit play and watch history unfold. Wars erupt, alliances shift, leaders fall, prophecies fulfill. Every event has consequences.',
-              },
-            ].map((item) => (
-              <motion.div
-                key={item.step}
-                variants={scaleIn}
-                className="glass rounded-2xl p-6 text-center relative overflow-hidden group"
-              >
-                <span className="absolute top-4 right-4 text-genesis-800/40 font-display text-4xl font-black">
-                  {item.step}
-                </span>
-                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-genesis-400/20 to-genesis-600/20 border border-genesis-400/20 flex items-center justify-center">
-                  <item.icon className="w-6 h-6 text-genesis-400" />
-                </div>
-                <h3 className="text-lg font-bold text-genesis-100 font-display mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-genesis-300 leading-relaxed">
-                  {item.text}
-                </p>
-              </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {FEATURES.map((feature) => (
+              <FeatureCard key={feature.title} feature={feature} />
             ))}
           </div>
         </motion.section>
@@ -821,6 +757,80 @@ export default function Landing() {
               </motion.div>
             ))}
           </div>
+        </motion.section>
+
+        {/* ── Create Your World (CTA) ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          variants={stagger}
+          className="max-w-2xl mx-auto mb-24"
+        >
+          <motion.div variants={fadeUp} className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white font-display mb-2">
+              Ready to Create?
+            </h2>
+            <p className="text-sm text-gray-500">
+              Describe any world. Genesis will do the rest.
+            </p>
+          </motion.div>
+
+          <motion.div variants={fadeUp}>
+            <textarea
+              value={seed}
+              onChange={(e) => setSeed(e.target.value)}
+              placeholder={PLACEHOLDER_SEEDS[placeholderIdx]}
+              rows={4}
+              disabled={loading}
+              className="w-full glass-input rounded-2xl px-6 py-5 text-gray-100 text-lg placeholder-gray-600 focus:outline-none resize-none disabled:opacity-50 font-light"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleGenerate();
+              }}
+              aria-label="World seed description"
+            />
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="text-red-400 text-sm mt-2 text-center"
+                role="alert"
+              >
+                {error}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          <motion.div variants={fadeUp} className="mt-4">
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleGenerate}
+              disabled={loading || !seed.trim()}
+              className="w-full py-4 bg-genesis-600 hover:bg-genesis-500 disabled:bg-genesis-900 disabled:text-genesis-700 text-white font-semibold text-lg rounded-2xl transition-colors flex items-center justify-center gap-3 btn-glow disabled:shadow-none"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>{stageMessage}</span>
+                </>
+              ) : (
+                <>
+                  <Globe className="w-5 h-5" />
+                  Generate World
+                </>
+              )}
+            </motion.button>
+
+            <p className="text-gray-600 text-xs text-center mt-3 flex items-center justify-center gap-1.5">
+              <Command className="w-3 h-3" />
+              <span>Ctrl + Enter to generate</span>
+            </p>
+          </motion.div>
         </motion.section>
 
         {/* ── Recent Worlds ── */}
