@@ -16,9 +16,9 @@ router = APIRouter(prefix="/api/worlds", tags=["stream"])
 
 class CreateWorldStreamRequest(BaseModel):
     seed: str = Field(..., min_length=3, max_length=2000)
-    num_regions: int = Field(default=6, ge=3, le=12)
-    num_factions: int = Field(default=4, ge=2, le=8)
-    num_characters: int = Field(default=15, ge=6, le=30)
+    num_regions: int = Field(default=4, ge=3, le=12)
+    num_factions: int = Field(default=3, ge=2, le=8)
+    num_characters: int = Field(default=8, ge=4, le=30)
 
 
 @router.post("/stream")

@@ -83,9 +83,9 @@ export const api = {
 
   createWorld: (
     seed: string,
-    numRegions = 6,
-    numFactions = 4,
-    numCharacters = 15
+    numRegions = 4,
+    numFactions = 3,
+    numCharacters = 8
   ) =>
     fetchJson<{ id: string; name: string; status: string }>('/api/worlds', {
       method: 'POST',
@@ -264,9 +264,9 @@ export const api = {
   createWorldStream: (
     seed: string,
     handlers: SSEHandler,
-    numRegions = 6,
-    numFactions = 4,
-    numCharacters = 15
+    numRegions = 4,
+    numFactions = 3,
+    numCharacters = 8
   ) =>
     streamSSE(
       '/api/worlds/stream',

@@ -6,6 +6,22 @@ from config import NOUS_API_KEY, NOUS_BASE_URL, NOUS_MODEL
 
 logger = logging.getLogger(__name__)
 
+# Shared client — reused across calls to avoid connection overhead
+_client: httpx.AsyncClient | None = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None or _client.is_closed:
+        _client = httpx.AsyncClient(
+            timeout=120.0,
+            headers={
+                "Authorization": f"Bearer {NOUS_API_KEY}",
+                "Content-Type": "application/json",
+            },
+        )
+    return _client
+
 
 async def chat_completion(
     system: str,
@@ -14,28 +30,24 @@ async def chat_completion(
     max_tokens: int = 4000,
     retries: int = 2,
 ) -> str:
+    client = _get_client()
     last_err = None
     for attempt in range(retries + 1):
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                resp = await client.post(
-                    f"{NOUS_BASE_URL}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {NOUS_API_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": NOUS_MODEL,
-                        "messages": [
-                            {"role": "system", "content": system},
-                            {"role": "user", "content": user},
-                        ],
-                        "temperature": temperature,
-                        "max_tokens": max_tokens,
-                    },
-                )
-                resp.raise_for_status()
-                return resp.json()["choices"][0]["message"]["content"]
+            resp = await client.post(
+                f"{NOUS_BASE_URL}/chat/completions",
+                json={
+                    "model": NOUS_MODEL,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                },
+            )
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
         except Exception as e:
             last_err = e
             if attempt < retries:
