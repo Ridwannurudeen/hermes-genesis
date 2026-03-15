@@ -1,21 +1,24 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+export type NarrationState = 'idle' | 'speaking' | 'paused';
 
 export function useVoiceNarration(enabled: boolean) {
   const queueRef = useRef<string[]>([]);
   const speakingRef = useRef(false);
+  const [narrationState, setNarrationState] = useState<NarrationState>('idle');
 
   const processQueue = useCallback(() => {
     if (speakingRef.current || queueRef.current.length === 0) return;
     if (!window.speechSynthesis) return;
 
     speakingRef.current = true;
+    setNarrationState('speaking');
     const text = queueRef.current.shift()!;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;   // slightly slower for drama
-    utterance.pitch = 0.95; // slightly deeper
+    utterance.rate = 0.9;
+    utterance.pitch = 0.95;
     utterance.volume = 0.8;
 
-    // Try to pick a good English voice
     const voices = speechSynthesis.getVoices();
     const preferred =
       voices.find((v) => v.name.includes('Google UK English Male')) ||
@@ -26,11 +29,19 @@ export function useVoiceNarration(enabled: boolean) {
 
     utterance.onend = () => {
       speakingRef.current = false;
-      processQueue();
+      if (queueRef.current.length > 0) {
+        processQueue();
+      } else {
+        setNarrationState('idle');
+      }
     };
     utterance.onerror = () => {
       speakingRef.current = false;
-      processQueue();
+      if (queueRef.current.length > 0) {
+        processQueue();
+      } else {
+        setNarrationState('idle');
+      }
     };
 
     speechSynthesis.speak(utterance);
@@ -45,21 +56,51 @@ export function useVoiceNarration(enabled: boolean) {
     [enabled, processQueue],
   );
 
+  const pause = useCallback(() => {
+    if (!window.speechSynthesis) return;
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+      speechSynthesis.pause();
+      setNarrationState('paused');
+    }
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!window.speechSynthesis) return;
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+      setNarrationState('speaking');
+    }
+  }, []);
+
+  const stop = useCallback(() => {
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    queueRef.current = [];
+    speakingRef.current = false;
+    setNarrationState('idle');
+  }, []);
+
   // Stop everything when disabled
   useEffect(() => {
     if (!enabled) {
-      speechSynthesis?.cancel();
-      queueRef.current = [];
-      speakingRef.current = false;
+      stop();
     }
-  }, [enabled]);
+  }, [enabled, stop]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount — force cancel with retry for Chrome bug
   useEffect(() => {
     return () => {
-      speechSynthesis?.cancel();
+      if (window.speechSynthesis) {
+        speechSynthesis.cancel();
+        queueRef.current = [];
+        speakingRef.current = false;
+        // Chrome workaround: cancel again after a tick
+        setTimeout(() => {
+          speechSynthesis.cancel();
+        }, 50);
+      }
     };
   }, []);
 
-  return { speak };
+  return { speak, pause, resume, stop, narrationState };
 }

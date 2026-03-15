@@ -100,7 +100,7 @@ export default function WorldView() {
     return m;
   }, [factions]);
 
-  const { speak } = useVoiceNarration(voiceEnabled);
+  const { speak, pause, resume, stop, narrationState } = useVoiceNarration(voiceEnabled);
 
   // Voice narration: speak new events
   useEffect(() => {
@@ -295,7 +295,7 @@ export default function WorldView() {
                 <p className="text-xs text-gray-500 uppercase tracking-wider">Day</p>
                 <p className="text-2xl font-mono font-bold text-genesis-400">{world.current_day}</p>
               </div>
-              <VoiceNarrationButton active={voiceEnabled} onToggle={() => setVoiceEnabled((p) => !p)} disabled={loading} />
+              <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
               <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                   ambientEnabled ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30' : 'text-gray-400 hover:text-emerald-400 hover:bg-white/[0.06]'
