@@ -81,58 +81,7 @@ function formatTime(iso: string): string {
   }
 }
 
-/* ── Bento feature data ── */
-
-const FEATURES = [
-  {
-    icon: Globe,
-    title: 'Genesis',
-    description:
-      'Describe any world in natural language. Watch it materialize with regions, factions, and characters — each carrying a unique genetic code that shapes their destiny.',
-    size: 'large' as const,
-    accent: 'from-genesis-400 to-genesis-600',
-  },
-  {
-    icon: Swords,
-    title: 'Causal Events',
-    description:
-      'Every event has consequences. Betrayals trigger wars, wars cause successions, alliances reshape borders.',
-    size: 'medium' as const,
-    accent: 'from-amber-700 to-orange-800',
-  },
-  {
-    icon: Dna,
-    title: 'Evolve',
-    description:
-      'Characters reproduce, mutate, and die. Traits shift across generations through genetic crossover and natural selection.',
-    size: 'medium' as const,
-    accent: 'from-genesis-500 to-genesis-700',
-  },
-  {
-    icon: Brain,
-    title: 'Autonomous AI',
-    description:
-      'An autonomous World Master agent governs your world — triggering interventions, fulfilling prophecies, and weaving narrative arcs without human input.',
-    size: 'large' as const,
-    accent: 'from-amber-600 to-yellow-800',
-  },
-  {
-    icon: Zap,
-    title: 'God Mode',
-    description:
-      'Intervene as a deity. Command storms, forge alliances, or let the AI handle everything.',
-    size: 'small' as const,
-    accent: 'from-yellow-600 to-amber-700',
-  },
-  {
-    icon: BookOpen,
-    title: 'Chronicle',
-    description:
-      'Export your world\'s history as an epic narrative you can read and share.',
-    size: 'small' as const,
-    accent: 'from-genesis-300 to-genesis-500',
-  },
-];
+/* ── (features merged inline into main component) ── */
 
 /* ── Sticky header ── */
 
@@ -286,46 +235,7 @@ const scaleIn = {
   visible: { opacity: 1, scale: 1, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
 };
 
-/* ── Bento feature card ── */
-
-function FeatureCard({
-  feature,
-}: {
-  feature: (typeof FEATURES)[number];
-}) {
-  const Icon = feature.icon;
-  const sizeClasses =
-    feature.size === 'large'
-      ? 'md:col-span-2'
-      : feature.size === 'small'
-        ? 'md:col-span-1'
-        : 'md:col-span-1';
-
-  return (
-    <motion.div
-      variants={scaleIn}
-      className={`${sizeClasses} card-glow glass rounded-2xl p-6 group cursor-default`}
-    >
-      <div className="flex items-start gap-4">
-        <div
-          className={`shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${feature.accent} p-[1px]`}
-        >
-          <div className="w-full h-full rounded-xl bg-genesis-950/80 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-genesis-100 icon-aura" />
-          </div>
-        </div>
-        <div className="min-w-0">
-          <h3 className="text-lg font-bold text-genesis-100 mb-1 font-display">
-            {feature.title}
-          </h3>
-          <p className="text-sm text-genesis-300 leading-relaxed">
-            {feature.description}
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+/* ── (feature card component removed — merged inline) ── */
 
 /* ── World card ── */
 
@@ -545,13 +455,58 @@ export default function Landing() {
           </motion.div>
 
           {/* Tech stack line */}
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-2 flex-wrap">
+          <motion.div variants={fadeUp} className="flex items-center justify-center gap-2 flex-wrap mb-8">
             {['Genetic Simulation', 'Causal Event Engine', 'Autonomous AI Agents', 'Voice & Ambient Audio', 'Cinematic Mode'].map((tag, i) => (
               <span key={tag} className="flex items-center gap-1.5">
                 {i > 0 && <span className="text-genesis-800 text-xs">·</span>}
                 <span className="text-[11px] text-genesis-500 tracking-wide">{tag}</span>
               </span>
             ))}
+          </motion.div>
+
+          {/* Quick create input */}
+          <motion.div variants={fadeUp} className="max-w-xl mx-auto">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={seed}
+                onChange={(e) => setSeed(e.target.value)}
+                placeholder={PLACEHOLDER_SEEDS[placeholderIdx]}
+                disabled={loading}
+                className="flex-1 glass-input rounded-xl px-4 py-3 text-gray-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-genesis-500/40 disabled:opacity-50 font-light truncate"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleGenerate();
+                }}
+                aria-label="World seed description"
+              />
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleGenerate}
+                disabled={loading || !seed.trim()}
+                className="shrink-0 px-5 py-3 bg-genesis-600 hover:bg-genesis-500 disabled:bg-genesis-900 disabled:text-genesis-700 text-white font-semibold text-sm rounded-xl transition-colors flex items-center gap-2 btn-glow disabled:shadow-none"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Globe className="w-4 h-4" />
+                )}
+                {loading ? stageMessage.split('...')[0] + '...' : 'Generate'}
+              </motion.button>
+            </div>
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="text-red-400 text-sm mt-2 text-center"
+                  role="alert"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.section>
 
@@ -615,7 +570,7 @@ export default function Landing() {
           </div>
         </motion.section>
 
-        {/* ── What Gets Generated (Preview) ── */}
+        {/* ── What Genesis Creates ── */}
         <motion.section
           initial="hidden"
           whileInView="visible"
@@ -628,11 +583,12 @@ export default function Landing() {
               One Sentence Creates All of This
             </h2>
             <p className="text-sm text-gray-500 max-w-lg mx-auto">
-              From a single prompt, Genesis builds an entire living civilization — then lets you watch it evolve.
+              Every system is interconnected. One event changes everything.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* What gets generated */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
             {[
               { icon: Map, label: 'Regions', detail: '5+ with terrain, resources & borders', color: 'text-green-400' },
               { icon: Users, label: 'Factions', detail: 'Ideology, morale, territory & armies', color: 'text-blue-400' },
@@ -653,47 +609,31 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Immersive modes row */}
-          <motion.div variants={fadeUp} className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Core capabilities — no duplication */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[
-              { icon: Eye, title: 'Cinematic Mode', desc: 'AI-generated scene art, voice narration, and reactive music — fully autonomous.' },
-              { icon: Zap, title: 'God Mode', desc: 'Type a command in natural language. Reality bends. The world absorbs it and evolves.' },
-              { icon: Brain, title: 'Autonomous Agent', desc: 'A World Master AI runs the simulation on its own — observing, deciding, intervening.' },
+              { icon: Swords, title: 'Causal Events', desc: 'Every event has consequences. Betrayals trigger wars, wars cause successions, alliances reshape borders.', accent: 'from-amber-700 to-orange-800' },
+              { icon: Dna, title: 'Genetic Evolution', desc: 'Characters reproduce, mutate, and die. Traits shift across generations through crossover and natural selection.', accent: 'from-genesis-500 to-genesis-700' },
+              { icon: Zap, title: 'God Mode', desc: 'Intervene as a deity. Command storms, forge alliances, or reshape reality with natural language.', accent: 'from-yellow-600 to-amber-700' },
+              { icon: Eye, title: 'Cinematic Mode', desc: 'AI-generated scene art, voice narration, and reactive ambient music — fully autonomous.', accent: 'from-genesis-400 to-genesis-600' },
+              { icon: Brain, title: 'Autonomous Agent', desc: 'A World Master AI governs the simulation — observing, deciding, intervening without human input.', accent: 'from-amber-600 to-yellow-800' },
+              { icon: BookOpen, title: 'Chronicle Export', desc: 'Export your world\'s history as epic lore, campaign kits, or session prep for tabletop RPGs.', accent: 'from-genesis-300 to-genesis-500' },
             ].map((item) => (
-              <div
+              <motion.div
                 key={item.title}
+                variants={scaleIn}
                 className="glass rounded-xl p-4 border border-genesis-800/30"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <item.icon className="w-4 h-4 text-genesis-400" />
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.accent} p-[1px] shrink-0`}>
+                    <div className="w-full h-full rounded-lg bg-genesis-950/80 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-genesis-100" />
+                    </div>
+                  </div>
                   <h4 className="text-sm font-bold text-genesis-100 font-display">{item.title}</h4>
                 </div>
                 <p className="text-[12px] text-genesis-300 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </motion.div>
-        </motion.section>
-
-        {/* ── Bento Feature Grid ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="mb-24"
-        >
-          <motion.div variants={fadeUp} className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-white font-display mb-2">
-              Built for Living Worlds
-            </h2>
-            <p className="text-sm text-gray-500">
-              Every system is interconnected. One event changes everything.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {FEATURES.map((feature) => (
-              <FeatureCard key={feature.title} feature={feature} />
+              </motion.div>
             ))}
           </div>
         </motion.section>
