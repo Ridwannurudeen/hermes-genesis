@@ -87,7 +87,7 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
           exit={{ opacity: 0, y: 30 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/50"
+          className="bg-[#1a1410]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] shrink-0">

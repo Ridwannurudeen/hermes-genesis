@@ -66,7 +66,7 @@ export default function AnalyticsDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 h-full z-50 flex flex-col bg-gray-950/95 backdrop-blur-xl border-l border-white/[0.06] w-full sm:w-96 md:w-[420px]"
+            className="fixed top-0 right-0 h-full z-50 flex flex-col bg-[#1a1410]/95 backdrop-blur-xl border-l border-genesis-300/10 w-full sm:w-96 md:w-[420px]"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">

@@ -106,7 +106,7 @@ export default function EvolutionView({ data }: Props) {
                 className="w-2.5 h-2.5 rounded-full"
                 style={{
                   backgroundColor: hidden
-                    ? '#4b5563'
+                    ? '#543d1c'
                     : TRAIT_COLORS[trait],
                 }}
               />
@@ -120,7 +120,7 @@ export default function EvolutionView({ data }: Props) {
       <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
         <ResponsiveContainer width="100%" height={420}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a1f14" />
             <XAxis
               dataKey="generation"
               label={{
@@ -131,7 +131,7 @@ export default function EvolutionView({ data }: Props) {
                 fontSize: 12,
               }}
               tick={{ fill: '#9ca3af', fontSize: 11 }}
-              stroke="#374151"
+              stroke="#3d2c12"
             />
             <YAxis
               yAxisId="traits"
@@ -145,7 +145,7 @@ export default function EvolutionView({ data }: Props) {
                 fontSize: 12,
               }}
               tick={{ fill: '#9ca3af', fontSize: 11 }}
-              stroke="#374151"
+              stroke="#3d2c12"
             />
             <YAxis
               yAxisId="count"
@@ -159,12 +159,12 @@ export default function EvolutionView({ data }: Props) {
                 fontSize: 12,
               }}
               tick={{ fill: '#9ca3af', fontSize: 11 }}
-              stroke="#374151"
+              stroke="#3d2c12"
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#111827',
-                border: '1px solid #374151',
+                backgroundColor: '#1e1810',
+                border: '1px solid #3d2c12',
                 borderRadius: '8px',
                 fontSize: '12px',
               }}

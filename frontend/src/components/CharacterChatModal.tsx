@@ -191,7 +191,7 @@ export default function CharacterChatModal({
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/50"
+          className="bg-[#1a1410]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
           <div className="shrink-0 border-b border-white/[0.06]">

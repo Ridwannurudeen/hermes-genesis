@@ -272,10 +272,10 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gray-950 border border-amber-800/30 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-900/10"
+          className="bg-[#1a1410] border border-amber-800/30 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-900/10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/20 shrink-0 bg-gradient-to-r from-gray-950 via-amber-950/10 to-gray-950">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/20 shrink-0 bg-gradient-to-r from-[#1a1410] via-amber-950/10 to-[#1a1410]">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-amber-900/20 border border-amber-800/30">
                 <Sparkles className="w-5 h-5 text-amber-400" />
@@ -330,7 +330,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
 
           {/* Footer */}
           {plan && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-amber-900/20 shrink-0 bg-gradient-to-r from-gray-950 via-amber-950/10 to-gray-950">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-amber-900/20 shrink-0 bg-gradient-to-r from-[#1a1410] via-amber-950/10 to-[#1a1410]">
               <button
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"

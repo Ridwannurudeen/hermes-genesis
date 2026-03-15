@@ -17,7 +17,7 @@ interface Props {
 
 export default function GenomeRadar({
   genome,
-  fillColor = '#22d3ee',
+  fillColor = '#b8976a',
   size = 250,
 }: Props) {
   const data = GENOME_TRAITS.map((trait) => ({
@@ -29,7 +29,7 @@ export default function GenomeRadar({
   return (
     <ResponsiveContainer width="100%" height={size}>
       <RadarChart data={data} cx="50%" cy="50%" outerRadius="75%">
-        <PolarGrid stroke="#374151" />
+        <PolarGrid stroke="#3d2c12" />
         <PolarAngleAxis
           dataKey="trait"
           tick={{ fill: '#9ca3af', fontSize: 11 }}

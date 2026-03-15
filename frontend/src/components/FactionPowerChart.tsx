@@ -89,7 +89,7 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
       <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a1f14" />
             <XAxis
               dataKey="day"
               stroke="#6b7280"
@@ -104,8 +104,8 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
             <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#111827',
-                border: '1px solid #374151',
+                backgroundColor: '#1e1810',
+                border: '1px solid #3d2c12',
                 borderRadius: '8px',
                 fontSize: '12px',
               }}

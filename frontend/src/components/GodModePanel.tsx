@@ -81,7 +81,7 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
             transition={{ duration: 0.4 }}
             className="absolute bottom-full left-0 right-0 mb-3 px-4"
           >
-            <div className="bg-gray-950/90 backdrop-blur-xl border border-amber-500/30 rounded-lg p-4 shadow-lg shadow-amber-900/20">
+            <div className="bg-[#1a1410]/90 backdrop-blur-xl border border-amber-500/30 rounded-lg p-4 shadow-lg shadow-amber-900/20">
               <p className="text-amber-400 font-bold text-sm mb-1">
                 {'\u26A1'} {result.title}
               </p>

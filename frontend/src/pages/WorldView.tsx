@@ -305,7 +305,7 @@ export default function WorldView() {
               </button>
               <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  showAgent ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30' : 'text-gray-400 hover:text-cyan-400 hover:bg-white/[0.06]'
+                  showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-gray-400 hover:text-genesis-400 hover:bg-white/[0.06]'
                 }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>

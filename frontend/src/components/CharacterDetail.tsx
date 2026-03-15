@@ -80,10 +80,10 @@ export default function CharacterDetail({
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl shadow-black/50"
+        className="bg-[#1a1410]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl shadow-black/50"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-gray-950/90 backdrop-blur-xl border-b border-white/[0.06] p-5 flex items-start justify-between z-10">
+        <div className="sticky top-0 bg-[#1a1410]/90 backdrop-blur-xl border-b border-white/[0.06] p-5 flex items-start justify-between z-10">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h2
@@ -142,7 +142,7 @@ export default function CharacterDetail({
             <div className="bg-white/[0.03] rounded-xl p-4">
               <GenomeRadar
                 genome={character.genome}
-                fillColor={faction?.color || '#22d3ee'}
+                fillColor={faction?.color || '#b8976a'}
                 size={260}
               />
             </div>
@@ -228,7 +228,7 @@ export default function CharacterDetail({
                           intensity={rel.intensity}
                         />
                       </div>
-                      <div className="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="w-20 h-1.5 bg-genesis-800 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -254,7 +254,7 @@ export default function CharacterDetail({
           {/* Lineage */}
           <div>
             <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-              <GitBranch className="w-4 h-4 text-purple-400" />
+              <GitBranch className="w-4 h-4 text-genesis-400" />
               Lineage
             </h3>
             <div className="bg-white/[0.03] rounded-lg p-4 space-y-2">
@@ -275,7 +275,7 @@ export default function CharacterDetail({
                     {parents.map((p) => (
                       <span
                         key={p.id}
-                        className="px-2 py-0.5 bg-gray-700 text-gray-300 rounded text-xs"
+                        className="px-2 py-0.5 bg-genesis-800/50 text-genesis-200 rounded text-xs"
                       >
                         {p.name}
                       </span>
@@ -292,7 +292,7 @@ export default function CharacterDetail({
                     {character.lineage.mutations.map((m, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 bg-purple-900/30 border border-purple-800/40 text-purple-400 rounded text-xs capitalize"
+                        className="px-2 py-0.5 bg-genesis-900/30 border border-genesis-800/40 text-genesis-400 rounded text-xs capitalize"
                       >
                         {m}
                       </span>

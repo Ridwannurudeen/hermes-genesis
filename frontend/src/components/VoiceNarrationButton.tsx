@@ -16,15 +16,15 @@ export default function VoiceNarrationButton({ active, onToggle, disabled }: Pro
       disabled={disabled}
       className={`flex items-center gap-2 px-4 py-2.5 font-medium text-sm rounded-lg transition-all ${
         active
-          ? 'bg-violet-600/20 border border-violet-500/50 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
+          ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
           : 'bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:text-gray-300 hover:border-white/[0.15]'
       } disabled:opacity-40 disabled:cursor-not-allowed`}
     >
       {active ? (
         <>
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-violet-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-genesis-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-genesis-500" />
           </span>
           <span>VOICE</span>
           <VolumeX className="w-3.5 h-3.5" />

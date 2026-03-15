@@ -884,7 +884,7 @@ export default function WorldMap({
           </div>
 
           {/* Legend */}
-          <div className="absolute top-4 left-4 bg-gray-950/80 backdrop-blur-md border border-gray-700/30 rounded-lg p-3 shadow-2xl">
+          <div className="absolute top-4 left-4 bg-[#1a1410]/80 backdrop-blur-md border border-gray-700/30 rounded-lg p-3 shadow-2xl">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-semibold">
               Factions
             </p>

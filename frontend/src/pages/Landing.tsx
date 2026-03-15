@@ -566,7 +566,7 @@ export default function Landing() {
               whileTap={{ scale: 0.98 }}
               onClick={handleGenerate}
               disabled={loading || !seed.trim()}
-              className="w-full py-4 bg-genesis-600 hover:bg-genesis-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-semibold text-lg rounded-2xl transition-colors flex items-center justify-center gap-3 btn-glow disabled:shadow-none"
+              className="w-full py-4 bg-genesis-600 hover:bg-genesis-500 disabled:bg-genesis-900 disabled:text-genesis-700 text-white font-semibold text-lg rounded-2xl transition-colors flex items-center justify-center gap-3 btn-glow disabled:shadow-none"
             >
               {loading ? (
                 <>

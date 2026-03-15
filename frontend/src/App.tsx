@@ -7,7 +7,7 @@ const WorldView = lazy(() => import('./pages/WorldView'));
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+    <div className="min-h-screen bg-[#1a1410] flex items-center justify-center">
       <div className="text-gray-500 text-lg">Loading...</div>
     </div>
   );

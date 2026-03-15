@@ -22,14 +22,14 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-[#1a1410] flex items-center justify-center p-6">
           <div className="max-w-md text-center space-y-4">
             <div className="text-5xl">&#x1F30B;</div>
             <h1 className="text-xl font-bold text-gray-100">Something went wrong</h1>
             <p className="text-gray-400 text-sm leading-relaxed">
               The world engine encountered an unexpected error. Try reloading the page.
             </p>
-            <pre className="text-xs text-red-400/70 bg-gray-900 rounded-lg p-3 text-left overflow-auto max-h-32">
+            <pre className="text-xs text-red-400/70 bg-[#1e1810] rounded-lg p-3 text-left overflow-auto max-h-32">
               {this.state.error?.message}
             </pre>
             <button

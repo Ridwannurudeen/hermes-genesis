@@ -53,7 +53,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
       {/* Agent Intervention Badge - top right */}
       {isAgentTriggered && (
         <div className="absolute top-2 right-2 z-10">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-genesis-500/20 text-genesis-300 border border-genesis-500/30">
             <Brain className="w-3 h-3" />
             World Master
           </span>
@@ -147,10 +147,10 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                       color: f?.color || '#9ca3af',
                       borderColor: f?.color
                         ? `${f.color}40`
-                        : '#374151',
+                        : '#3d2c12',
                       backgroundColor: f?.color
                         ? `${f.color}15`
-                        : '#1f2937',
+                        : '#1e1810',
                     }}
                   >
                     {f?.name || fid}

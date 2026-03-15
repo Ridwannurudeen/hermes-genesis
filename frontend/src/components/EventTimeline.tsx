@@ -200,7 +200,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
             <div key={day} className="relative">
               {/* Day marker — sticky header */}
               <div className="flex items-center gap-3 mb-4 sticky top-[73px] z-20 py-1">
-                <div className="w-12 h-12 rounded-full bg-gray-950/80 border-2 border-genesis-500/50 flex items-center justify-center flex-shrink-0 z-10 shadow-lg shadow-genesis-500/10">
+                <div className="w-12 h-12 rounded-full bg-[#1a1410]/80 border-2 border-genesis-500/50 flex items-center justify-center flex-shrink-0 z-10 shadow-lg shadow-genesis-500/10">
                   <span className="text-sm font-bold text-genesis-400">
                     {day}
                   </span>
