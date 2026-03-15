@@ -24,6 +24,7 @@ import VoiceNarrationButton from '../components/VoiceNarrationButton';
 import CharacterDetail from '../components/CharacterDetail';
 import ProphecyPanel from '../components/ProphecyPanel';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
+import { useAmbientSound } from '../hooks/useAmbientSound';
 
 // Lazy-loaded view mode components
 const WorldMap = lazy(() => import('../components/WorldMap'));
@@ -53,6 +54,82 @@ const VIEW_MODES: { key: ViewMode; label: string; icon: typeof Map; desc: string
   { key: 'chronicle', label: 'Chronicle', icon: ScrollText, desc: 'Event timeline' },
 ];
 
+
+/* ── Narrator framing — adds dramatic intros & pacing to speech ── */
+const NARRATOR_INTROS: Record<string, string[]> = {
+  military_conflict: [
+    'The drums of war echo across the land.',
+    'Steel clashes against steel as battle erupts.',
+    'War has come, and none shall be spared.',
+  ],
+  betrayal: [
+    'A dagger in the dark... trust is shattered.',
+    'Treachery unfolds behind closed doors.',
+    'In the halls of power, loyalty proves a fragile thing.',
+  ],
+  political_intrigue: [
+    'Whispers in the court carry poison and promise.',
+    'The game of power shifts once more.',
+    'Behind every smile, a calculation.',
+  ],
+  alliance: [
+    'Hands are clasped in solemn accord.',
+    'Old enemies find common cause.',
+    'A new bond is forged in the fires of necessity.',
+  ],
+  succession: [
+    'The throne changes hands.',
+    'A new era dawns with the rise of a new ruler.',
+    'Power passes, as it always does.',
+  ],
+  discovery: [
+    'Something long hidden comes to light.',
+    'The world reveals another of its secrets.',
+    'Knowledge, once buried, resurfaces.',
+  ],
+  cultural_shift: [
+    'The tides of belief and custom begin to turn.',
+    'A people transforms before the world\'s eyes.',
+    'Change ripples through the hearts of many.',
+  ],
+  natural_disaster: [
+    'The earth itself cries out in fury.',
+    'Nature reminds all who truly rules this world.',
+    'Devastation sweeps across the land without mercy.',
+  ],
+  death: [
+    'A light is extinguished... the world grows darker.',
+    'Death comes for all, even the mighty.',
+    'And so, a chapter ends.',
+  ],
+  birth: [
+    'New life stirs... a spark of possibility.',
+    'The world welcomes a new soul.',
+    'From nothing, something remarkable emerges.',
+  ],
+  divine_intervention: [
+    'The hand of the divine reaches into mortal affairs.',
+    'From beyond the veil, a force intervenes.',
+    'The gods have spoken.',
+  ],
+  agent_intervention: [
+    'An unseen hand reshapes the course of events.',
+    'The World Master acts with purpose.',
+    'Forces beyond mortal understanding are at work.',
+  ],
+  prophecy_fulfilled: [
+    'What was foretold... has come to pass.',
+    'The prophecy is fulfilled at last.',
+    'Destiny, it seems, is not so easily denied.',
+  ],
+};
+
+function narratorFrame(eventType: string, rawText: string): string {
+  const intros = NARRATOR_INTROS[eventType];
+  if (!intros) return rawText;
+  const intro = intros[Math.floor(Math.random() * intros.length)];
+  return `${intro} ... ${rawText}`;
+}
 
 function SkeletonBlock({ className }: { className?: string }) {
   return (
@@ -101,20 +178,27 @@ export default function WorldView() {
   }, [factions]);
 
   const { speak, pause, resume, stop, narrationState } = useVoiceNarration(voiceEnabled);
+  const { play: playAmbient, stop: stopAmbient } = useAmbientSound(ambientEnabled, world?.seed || '');
 
-  // Voice narration: speak new events
+  // Voice narration + ambient sound: react to new events
   useEffect(() => {
-    if (!voiceEnabled || events.length <= prevEventCountRef.current) {
+    if (events.length <= prevEventCountRef.current) {
       prevEventCountRef.current = events.length;
       return;
     }
     const newEvents = events.slice(prevEventCountRef.current);
     for (const ev of newEvents) {
-      const text = ev.narrative || ev.title;
-      if (text) speak(text);
+      // Ambient sound — play event-typed soundscape
+      if (ambientEnabled) playAmbient(ev.type);
+
+      // Voice narration — dramatic framing
+      if (voiceEnabled) {
+        const raw = ev.narrative || ev.title;
+        if (raw) speak(narratorFrame(ev.type, raw));
+      }
     }
     prevEventCountRef.current = events.length;
-  }, [events.length, voiceEnabled, speak]);
+  }, [events.length, voiceEnabled, ambientEnabled, speak, playAmbient]);
 
   // Track whether deferred data has been fetched
   const deferredFetchedRef = useRef(false);

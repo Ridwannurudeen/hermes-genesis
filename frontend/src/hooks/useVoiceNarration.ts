@@ -15,22 +15,28 @@ export function useVoiceNarration(enabled: boolean) {
     setNarrationState('speaking');
     const text = queueRef.current.shift()!;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.pitch = 0.95;
-    utterance.volume = 0.8;
+    utterance.rate = 0.82;
+    utterance.pitch = 0.88;
+    utterance.volume = 0.85;
 
     const voices = speechSynthesis.getVoices();
+    // Prefer deep, resonant narration voices
     const preferred =
       voices.find((v) => v.name.includes('Google UK English Male')) ||
-      voices.find((v) => v.name.includes('Daniel')) ||
+      voices.find((v) => v.name === 'Daniel') ||
+      voices.find((v) => v.name.includes('Aaron')) ||
+      voices.find((v) => v.name.includes('James')) ||
+      voices.find((v) => v.name.includes('Arthur')) ||
       voices.find((v) => v.lang.startsWith('en') && v.name.toLowerCase().includes('male')) ||
+      voices.find((v) => v.lang.startsWith('en-GB')) ||
       voices.find((v) => v.lang.startsWith('en'));
     if (preferred) utterance.voice = preferred;
 
     utterance.onend = () => {
       speakingRef.current = false;
       if (queueRef.current.length > 0) {
-        processQueue();
+        // Brief pause between utterances for dramatic pacing
+        setTimeout(() => processQueue(), 600);
       } else {
         setNarrationState('idle');
       }
@@ -38,7 +44,7 @@ export function useVoiceNarration(enabled: boolean) {
     utterance.onerror = () => {
       speakingRef.current = false;
       if (queueRef.current.length > 0) {
-        processQueue();
+        setTimeout(() => processQueue(), 300);
       } else {
         setNarrationState('idle');
       }
