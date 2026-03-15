@@ -22,8 +22,8 @@ function ResourceBar({
   return (
     <div>
       <div className="flex items-center justify-between mb-0.5">
-        <span className="text-xs text-gray-500 capitalize">{label}</span>
-        <span className="text-xs text-gray-400 font-mono">
+        <span className="text-xs text-dim capitalize">{label}</span>
+        <span className="text-xs text-sub font-mono">
           {Math.round(clamped * 100)}
         </span>
       </div>
@@ -47,7 +47,7 @@ export default function FactionCard({ faction, leader }: Props) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
-      className="bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden hover:border-white/[0.12] hover:bg-white/[0.05] transition-all backdrop-blur-sm"
+      className="bg-white/[0.03] border border-subtle rounded-xl overflow-hidden hover:border-white/[0.12] hover:bg-white/[0.05] transition-all backdrop-blur-sm"
     >
       {/* Color accent bar */}
       <div className="h-1.5" style={{ backgroundColor: faction.color }} />
@@ -60,9 +60,9 @@ export default function FactionCard({ faction, leader }: Props) {
               className="w-4 h-4 rounded-full flex-shrink-0"
               style={{ backgroundColor: faction.color }}
             />
-            <h3 className="text-lg font-bold text-gray-100">{faction.name}</h3>
+            <h3 className="text-lg font-bold text-heading">{faction.name}</h3>
           </div>
-          <p className="text-sm text-gray-500 italic">{faction.ideology}</p>
+          <p className="text-sm text-dim italic">{faction.ideology}</p>
         </div>
 
         {/* Resource bars */}
@@ -80,40 +80,40 @@ export default function FactionCard({ faction, leader }: Props) {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           <div className="text-center bg-white/[0.04] rounded-lg p-2.5">
-            <MapPin className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
-            <p className="text-lg font-bold text-gray-200">
+            <MapPin className="w-3.5 h-3.5 text-dim mx-auto mb-1" />
+            <p className="text-lg font-bold text-heading">
               {faction.territory.length}
             </p>
-            <p className="text-xs text-gray-500">Territories</p>
+            <p className="text-xs text-dim">Territories</p>
           </div>
           <div className="text-center bg-white/[0.04] rounded-lg p-2.5">
-            <Users className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
-            <p className="text-lg font-bold text-gray-200">
+            <Users className="w-3.5 h-3.5 text-dim mx-auto mb-1" />
+            <p className="text-lg font-bold text-heading">
               {faction.population}
             </p>
-            <p className="text-xs text-gray-500">Population</p>
+            <p className="text-xs text-dim">Population</p>
           </div>
           <div className="text-center bg-white/[0.04] rounded-lg p-2.5">
-            <Heart className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
-            <p className="text-lg font-bold text-gray-200">
+            <Heart className="w-3.5 h-3.5 text-dim mx-auto mb-1" />
+            <p className="text-lg font-bold text-heading">
               {Math.round(faction.morale * 100)}%
             </p>
-            <p className="text-xs text-gray-500">Morale</p>
+            <p className="text-xs text-dim">Morale</p>
           </div>
         </div>
 
         {/* Leader */}
         {leader && (
           <div className="mb-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-medium">
+            <p className="text-xs text-dim uppercase tracking-wider mb-1 font-medium">
               Leader
             </p>
             <div className="flex items-center gap-2">
-              <Swords className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-sm text-gray-200 font-medium">
+              <Swords className="w-3.5 h-3.5 text-sub" />
+              <span className="text-sm text-heading font-medium">
                 {leader.name}
               </span>
-              <span className="text-xs text-gray-500 capitalize">
+              <span className="text-xs text-dim capitalize">
                 ({leader.role})
               </span>
             </div>
@@ -124,7 +124,7 @@ export default function FactionCard({ faction, leader }: Props) {
         <div className="space-y-3 mb-4">
           {faction.alliances.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-medium">
+              <p className="text-xs text-dim uppercase tracking-wider mb-1.5 font-medium">
                 Alliances
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -141,7 +141,7 @@ export default function FactionCard({ faction, leader }: Props) {
           )}
           {faction.enemies.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 font-medium">
+              <p className="text-xs text-dim uppercase tracking-wider mb-1.5 font-medium">
                 Enemies
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -164,7 +164,7 @@ export default function FactionCard({ faction, leader }: Props) {
             {faction.traits.map((t, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 bg-white/[0.06] text-gray-400 rounded text-xs capitalize"
+                className="px-2 py-0.5 bg-white/[0.06] text-sub rounded text-xs capitalize"
               >
                 {t}
               </span>

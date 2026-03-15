@@ -286,8 +286,8 @@ export default function RelationshipGraph({
   /* ── empty state ──────────────────────────────────────────── */
   if (aliveChars.length === 0) {
     return (
-      <div className="bg-white/[0.03] rounded-xl border border-white/[0.06] flex items-center justify-center h-[600px]">
-        <p className="text-gray-500">No living characters to display</p>
+      <div className="bg-white/[0.03] rounded-xl border border-subtle flex items-center justify-center h-[600px]">
+        <p className="text-dim">No living characters to display</p>
       </div>
     );
   }
@@ -315,7 +315,7 @@ export default function RelationshipGraph({
                 .attr('opacity', (d) => d.name.toLowerCase().includes(q) ? 1 : 0.12);
             }}
             placeholder="Search characters..."
-            className="w-full glass-input rounded-lg pl-3 pr-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none transition-all"
+            className="w-full glass-input rounded-lg pl-3 pr-3 py-2 text-sm text-input placeholder-faint focus:outline-none transition-all"
           />
         </div>
 
@@ -336,7 +336,7 @@ export default function RelationshipGraph({
             d3.select(svgRef.current).selectAll<SVGTextElement, SimNode>('.labels text')
               .attr('opacity', (d) => d.factionId === fid ? 1 : 0.1);
           }}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none transition-all"
+          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
         >
           <option value="all">All Factions</option>
           {factions.map((f) => (
@@ -344,12 +344,12 @@ export default function RelationshipGraph({
           ))}
         </select>
 
-        <span className="text-xs text-gray-500 font-mono">
+        <span className="text-xs text-dim font-mono">
           {aliveChars.length} characters
         </span>
       </div>
 
-      <div className="bg-white/[0.03] rounded-xl border border-white/[0.06] relative">
+      <div className="bg-white/[0.03] rounded-xl border border-subtle relative">
         <svg
           ref={svgRef}
           className="w-full"
@@ -358,7 +358,7 @@ export default function RelationshipGraph({
 
         {/* Legend */}
         <div className="absolute bottom-4 left-4 glass rounded-lg px-4 py-3">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-medium">
+          <p className="text-xs text-dim uppercase tracking-wider mb-2 font-medium">
             Relationships
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5">
@@ -368,7 +368,7 @@ export default function RelationshipGraph({
                   className="w-6 h-0.5 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-xs text-gray-400">{entry.label}</span>
+                <span className="text-xs text-sub">{entry.label}</span>
               </div>
             ))}
           </div>

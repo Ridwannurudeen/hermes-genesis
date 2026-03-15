@@ -60,7 +60,7 @@ function GenomeBar({ trait, value }: { trait: string; value: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] text-gray-500 w-14 text-right truncate">{label}</span>
+      <span className="text-[10px] text-dim w-14 text-right truncate">{label}</span>
       <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
@@ -70,7 +70,7 @@ function GenomeBar({ trait, value }: { trait: string; value: number }) {
           style={{ opacity: 0.4 + value * 0.6 }}
         />
       </div>
-      <span className="text-[10px] text-gray-600 w-6">{(value * 100).toFixed(0)}</span>
+      <span className="text-[10px] text-faint w-6">{(value * 100).toFixed(0)}</span>
     </div>
   );
 }
@@ -191,10 +191,10 @@ export default function CharacterChatModal({
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-[#1a1410]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/50"
+          className="bg-page/95 backdrop-blur-xl border border-subtle rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
-          <div className="shrink-0 border-b border-white/[0.06]">
+          <div className="shrink-0 border-b border-subtle">
             {/* Top bar with faction color accent */}
             <div
               className="h-1 w-full opacity-60"
@@ -212,10 +212,10 @@ export default function CharacterChatModal({
                   {character.name.charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-100">
+                  <h2 className="text-lg font-bold text-heading">
                     {character.name}
                   </h2>
-                  <p className="text-xs text-gray-500 capitalize">
+                  <p className="text-xs text-dim capitalize">
                     {character.role}
                     {faction ? ` \u00B7 ${faction.name}` : ''}
                     {' \u00B7 '}{character.location}
@@ -225,14 +225,14 @@ export default function CharacterChatModal({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowProfile((p) => !p)}
-                  className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+                  className="p-1.5 text-dim hover:text-sub transition-colors rounded-lg hover:bg-hover"
                   title={showProfile ? 'Hide profile' : 'Show profile'}
                 >
                   {showProfile ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={onClose}
-                  className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+                  className="p-1.5 text-dim hover:text-sub transition-colors rounded-lg hover:bg-hover"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -266,7 +266,7 @@ export default function CharacterChatModal({
                     </div>
                     {/* Backstory */}
                     {character.backstory && (
-                      <p className="text-[11px] text-gray-500 italic leading-relaxed line-clamp-2 mt-1">
+                      <p className="text-[11px] text-dim italic leading-relaxed line-clamp-2 mt-1">
                         &ldquo;{character.backstory}&rdquo;
                       </p>
                     )}
@@ -281,7 +281,7 @@ export default function CharacterChatModal({
             {initialLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Loader2 className="w-6 h-6 text-genesis-400 animate-spin" />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-dim">
                   {character.name} is gathering their thoughts...
                 </p>
               </div>
@@ -297,8 +297,8 @@ export default function CharacterChatModal({
                     <div
                       className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
                         msg.role === 'user'
-                          ? 'bg-genesis-900/40 border border-genesis-800/30 text-gray-200'
-                          : 'bg-white/[0.04] border border-white/[0.06] text-gray-300'
+                          ? 'bg-genesis-900/40 border border-genesis-800/30 text-heading'
+                          : 'bg-white/[0.04] border border-subtle text-sub'
                       }`}
                     >
                       {msg.role === 'character' && (
@@ -317,7 +317,7 @@ export default function CharacterChatModal({
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-2.5">
+                    <div className="bg-white/[0.04] border border-subtle rounded-xl px-4 py-2.5">
                       <p
                         className="text-xs font-medium mb-1"
                         style={{ color: faction?.color || '#22d3ee' }}
@@ -334,7 +334,7 @@ export default function CharacterChatModal({
           </div>
 
           {/* Input area */}
-          <div className="px-5 py-4 border-t border-white/[0.06] shrink-0">
+          <div className="px-5 py-4 border-t border-subtle shrink-0">
             <div className="flex items-center gap-3">
               <input
                 ref={inputRef}
@@ -344,12 +344,12 @@ export default function CharacterChatModal({
                 onKeyDown={handleKeyDown}
                 placeholder={`Say something to ${character.name}...`}
                 disabled={loading || initialLoading}
-                className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none disabled:opacity-50 transition-all"
+                className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none disabled:opacity-50 transition-all"
               />
               <button
                 onClick={handleSend}
                 disabled={loading || initialLoading || !input.trim()}
-                className="p-2.5 bg-genesis-600 hover:bg-genesis-500 disabled:bg-white/[0.04] disabled:text-gray-600 text-white rounded-xl transition-colors shrink-0"
+                className="p-2.5 bg-genesis-600 hover:bg-genesis-500 disabled:bg-white/[0.04] disabled:text-faint text-white rounded-xl transition-colors shrink-0"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

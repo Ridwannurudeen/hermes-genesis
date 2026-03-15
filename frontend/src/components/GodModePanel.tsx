@@ -81,11 +81,11 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
             transition={{ duration: 0.4 }}
             className="absolute bottom-full left-0 right-0 mb-3 px-4"
           >
-            <div className="bg-[#1a1410]/90 backdrop-blur-xl border border-amber-500/30 rounded-lg p-4 shadow-lg shadow-amber-900/20">
+            <div className="bg-page/90 backdrop-blur-xl border border-amber-500/30 rounded-lg p-4 shadow-lg shadow-amber-900/20">
               <p className="text-amber-400 font-bold text-sm mb-1">
                 {'\u26A1'} {result.title}
               </p>
-              <p className="text-gray-300 text-sm leading-relaxed">
+              <p className="text-sub text-sm leading-relaxed">
                 {result.narrative}
               </p>
             </div>
@@ -121,7 +121,7 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
               onKeyDown={handleKeyDown}
               placeholder="Command your world..."
               disabled={loading}
-              className="w-full glass-input rounded-lg px-4 py-2.5 text-gray-100 placeholder-gray-500 text-sm
+              className="w-full glass-input rounded-lg px-4 py-2.5 text-input placeholder-dim text-sm
                 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-all duration-200"
@@ -147,13 +147,13 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
         {/* Recent commands chips */}
         {recentCommands.length > 0 && (
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className="text-gray-600 text-xs">Recent:</span>
+            <span className="text-faint text-xs">Recent:</span>
             {recentCommands.map((cmd, i) => (
               <button
                 key={i}
                 onClick={() => setCommand(cmd)}
                 disabled={loading}
-                className="text-xs px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-gray-400
+                className="text-xs px-2 py-0.5 rounded-full bg-white/[0.04] border border-subtle text-sub
                   hover:text-amber-400 hover:border-amber-500/30 transition-colors
                   disabled:opacity-50 disabled:cursor-not-allowed truncate max-w-[200px]"
               >

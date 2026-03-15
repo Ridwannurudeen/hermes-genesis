@@ -98,24 +98,24 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
           exit={{ opacity: 0, y: 30 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-[#1a1410]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/50"
+          className="bg-page/95 backdrop-blur-xl border border-subtle rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-subtle shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/30">
                 <Swords className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-100">Faction Council</h2>
+                <h2 className="text-xl font-bold text-heading">Faction Council</h2>
                 {data && (
-                  <p className="text-sm text-gray-500 italic">{data.topic}</p>
+                  <p className="text-sm text-dim italic">{data.topic}</p>
                 )}
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+              className="p-1.5 text-dim hover:text-sub transition-colors rounded-lg hover:bg-hover"
             >
               <X className="w-5 h-5" />
             </button>
@@ -126,8 +126,8 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
             {loading && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
-                <p className="text-gray-400 text-sm">The council is convening...</p>
-                <p className="text-gray-600 text-xs">Leaders are gathering their thoughts</p>
+                <p className="text-sub text-sm">The council is convening...</p>
+                <p className="text-faint text-xs">Leaders are gathering their thoughts</p>
               </div>
             )}
 
@@ -136,7 +136,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
                 <p className="text-red-400 text-sm">{error}</p>
                 <button
                   onClick={onClose}
-                  className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
+                  className="text-sm text-sub hover:text-heading transition-colors"
                 >
                   Close
                 </button>
@@ -157,16 +157,16 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.3, duration: 0.4, ease: 'easeOut' }}
-                      className="relative bg-white/[0.03] rounded-xl p-5 border border-white/[0.06]"
+                      className="relative bg-white/[0.03] rounded-xl p-5 border border-subtle"
                       style={{ borderLeftWidth: '4px', borderLeftColor: fColor }}
                     >
                       {/* Leader header */}
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <span className="text-base font-bold text-gray-100">
+                          <span className="text-base font-bold text-heading">
                             {stmt.leader_name}
                           </span>
-                          <span className="text-sm text-gray-500 ml-2">
+                          <span className="text-sm text-dim ml-2">
                             of {fName}
                           </span>
                         </div>
@@ -180,12 +180,12 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
                       </div>
 
                       {/* Emotion tag */}
-                      <p className="text-xs text-gray-600 italic mb-2">
+                      <p className="text-xs text-faint italic mb-2">
                         {emotionLabel}
                       </p>
 
                       {/* Statement */}
-                      <p className="text-gray-300 text-[15px] leading-relaxed">
+                      <p className="text-sub text-[15px] leading-relaxed">
                         &ldquo;{stmt.statement}&rdquo;
                       </p>
                     </motion.div>
@@ -201,12 +201,12 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
                       delay: data.statements.length * 0.3 + 0.2,
                       duration: 0.4,
                     }}
-                    className="mt-6 p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl text-center"
+                    className="mt-6 p-4 bg-white/[0.03] border border-subtle rounded-xl text-center"
                   >
-                    <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
+                    <p className="text-sm text-dim uppercase tracking-wider mb-1">
                       Council Verdict
                     </p>
-                    <p className="text-gray-300 italic">{data.conclusion}</p>
+                    <p className="text-sub italic">{data.conclusion}</p>
                   </motion.div>
                 )}
               </div>
@@ -215,10 +215,10 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
 
           {/* Footer */}
           {data && (
-            <div className="flex items-center justify-end px-6 py-4 border-t border-white/[0.06] shrink-0">
+            <div className="flex items-center justify-end px-6 py-4 border-t border-subtle shrink-0">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 transition-colors"
+                className="px-4 py-2 text-sm text-sub hover:text-heading transition-colors"
               >
                 Dismiss Council
               </button>

@@ -79,7 +79,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
   if (events.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">
+        <p className="text-dim">
           No events yet. Simulate some days to generate events.
         </p>
       </div>
@@ -92,19 +92,19 @@ export default function EventTimeline({ events, factions, characters }: Props) {
       <div className="glass rounded-xl p-4 mb-6">
         {/* Search input */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dim" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events by title or narrative..."
-            className="glass-input w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none transition-all"
+            className="glass-input w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none transition-all"
           />
         </div>
 
         {/* Filter row */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 text-gray-500">
+          <div className="flex items-center gap-1.5 text-dim">
             <Filter className="w-3.5 h-3.5" />
             <span className="text-xs uppercase tracking-wider">Filters</span>
           </div>
@@ -112,7 +112,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="glass-input rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none transition-all"
+            className="glass-input rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
           >
             <option value="all">All Types</option>
             {eventTypes.map((t) => (
@@ -125,7 +125,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={factionFilter}
             onChange={(e) => setFactionFilter(e.target.value)}
-            className="glass-input rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none transition-all"
+            className="glass-input rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
           >
             <option value="all">All Factions</option>
             {factions.map((f) => (
@@ -138,7 +138,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={charFilter}
             onChange={(e) => setCharFilter(e.target.value)}
-            className="glass-input rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none transition-all"
+            className="glass-input rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
           >
             <option value="all">All Characters</option>
             {eventActors.map((c) => (
@@ -163,7 +163,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
             </button>
           )}
 
-          <span className="text-xs text-gray-500 ml-auto font-mono">
+          <span className="text-xs text-dim ml-auto font-mono">
             {filtered.length} / {events.length} events
           </span>
         </div>
@@ -179,12 +179,12 @@ export default function EventTimeline({ events, factions, characters }: Props) {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
                 typeFilter === type
                   ? 'bg-genesis-600/15 border-genesis-500/30 text-genesis-400'
-                  : 'bg-white/[0.03] border-white/[0.08] text-gray-400 hover:border-white/[0.15] hover:bg-white/[0.06]'
+                  : 'bg-white/[0.03] border-subtle text-sub hover:border-white/[0.15] hover:bg-hover'
               }`}
             >
               <span>{EVENT_TYPE_ICONS[type] || ''}</span>
               <span>{type.replace(/_/g, ' ')}</span>
-              <span className="text-gray-500">{count}</span>
+              <span className="text-dim">{count}</span>
             </button>
           ))}
         </div>
@@ -193,23 +193,23 @@ export default function EventTimeline({ events, factions, characters }: Props) {
       {/* ── Timeline ─────────────────────────────────────── */}
       <div className="relative">
         {/* Vertical line */}
-        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-white/[0.06]" />
+        <div className="absolute left-[23px] top-0 bottom-0 w-px bg-subtle" />
 
         <div className="space-y-8">
           {groupedByDay.map(({ day, events: dayEvents }) => (
             <div key={day} className="relative">
               {/* Day marker — sticky header */}
               <div className="flex items-center gap-3 mb-4 sticky top-[73px] z-20 py-1">
-                <div className="w-12 h-12 rounded-full bg-[#1a1410]/80 border-2 border-genesis-500/50 flex items-center justify-center flex-shrink-0 z-10 shadow-lg shadow-genesis-500/10">
+                <div className="w-12 h-12 rounded-full bg-page/80 border-2 border-genesis-500/50 flex items-center justify-center flex-shrink-0 z-10 shadow-lg shadow-genesis-500/10">
                   <span className="text-sm font-bold text-genesis-400">
                     {day}
                   </span>
                 </div>
                 <div className="glass px-3 py-1 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-300">
+                  <p className="text-sm font-semibold text-sub">
                     Day {day}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-dim">
                     {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -234,7 +234,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
         {/* No results */}
         {groupedByDay.length === 0 && (
           <div className="flex items-center justify-center h-32">
-            <p className="text-gray-500 text-sm">No events match your filters.</p>
+            <p className="text-dim text-sm">No events match your filters.</p>
           </div>
         )}
       </div>

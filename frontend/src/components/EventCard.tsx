@@ -47,13 +47,13 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
       className={`relative rounded-xl p-4 transition-all ${
         event.type === 'death' && event.obituary
           ? 'bg-red-950/30 border border-red-900/40 hover:border-red-800/50'
-          : 'bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.05]'
+          : 'bg-white/[0.03] border border-subtle hover:border-white/[0.12] hover:bg-white/[0.05]'
       } ${hasCausedBy ? 'border-l-2 border-l-amber-500/50' : ''}`}
     >
       {/* Agent Intervention Badge - top right */}
       {isAgentTriggered && (
         <div className="absolute top-2 right-2 z-10">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-genesis-500/20 text-genesis-300 border border-genesis-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-genesis-500/20 text-genesis-body border border-genesis-500/30">
             <Brain className="w-3 h-3" />
             World Master
           </span>
@@ -87,17 +87,17 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
           )}
 
           <div className="flex items-start justify-between gap-2">
-            <h4 className="text-sm font-semibold text-gray-100">
+            <h4 className="text-sm font-semibold text-heading">
               {event.title}
             </h4>
-            <span className="text-xs text-gray-600 uppercase tracking-wider flex-shrink-0 whitespace-nowrap">
+            <span className="text-xs text-faint uppercase tracking-wider flex-shrink-0 whitespace-nowrap">
               {event.type.replace(/_/g, ' ')}
             </span>
           </div>
 
           {/* Narrative */}
           {event.narrative && (
-            <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+            <p className="text-sm text-sub mt-2 leading-relaxed">
               {event.narrative}
             </p>
           )}
@@ -111,7 +111,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                   In Memoriam
                 </span>
               </div>
-              <p className="text-sm text-gray-300 italic leading-relaxed">
+              <p className="text-sm text-sub italic leading-relaxed">
                 {event.obituary}
               </p>
             </div>
@@ -125,7 +125,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                 return (
                   <span
                     key={i}
-                    className="px-2 py-0.5 bg-white/[0.06] text-gray-300 rounded text-xs"
+                    className="px-2 py-0.5 bg-white/[0.06] text-sub rounded text-xs"
                   >
                     {actor ? actor.name : actorId}
                   </span>
@@ -165,7 +165,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
             <div className="mt-3">
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                className="flex items-center gap-1 text-xs text-dim hover:text-sub transition-colors"
               >
                 {expanded ? (
                   <ChevronUp className="w-3.5 h-3.5" />
@@ -189,14 +189,14 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                       {Object.keys(event.outcome.territory_changes).length >
                         0 && (
                         <div>
-                          <span className="text-gray-500 uppercase tracking-wider font-medium">
+                          <span className="text-dim uppercase tracking-wider font-medium">
                             Territory Changes
                           </span>
                           <div className="mt-1 space-y-0.5">
                             {Object.entries(
                               event.outcome.territory_changes
                             ).map(([region, newOwner]) => (
-                              <p key={region} className="text-gray-400">
+                              <p key={region} className="text-sub">
                                 {region} &rarr;{' '}
                                 {factionMap[newOwner]?.name || newOwner}
                               </p>
@@ -208,7 +208,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                       {/* Casualties */}
                       {Object.keys(event.outcome.casualties).length > 0 && (
                         <div>
-                          <span className="text-gray-500 uppercase tracking-wider font-medium">
+                          <span className="text-dim uppercase tracking-wider font-medium">
                             Casualties
                           </span>
                           <div className="mt-1 space-y-0.5">
@@ -227,7 +227,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                       {Object.keys(event.outcome.morale_changes).length >
                         0 && (
                         <div>
-                          <span className="text-gray-500 uppercase tracking-wider font-medium">
+                          <span className="text-dim uppercase tracking-wider font-medium">
                             Morale Changes
                           </span>
                           <div className="mt-1 space-y-0.5">
@@ -253,14 +253,14 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                       {/* Character effects */}
                       {event.outcome.character_effects.length > 0 && (
                         <div>
-                          <span className="text-gray-500 uppercase tracking-wider font-medium">
+                          <span className="text-dim uppercase tracking-wider font-medium">
                             Character Effects
                           </span>
                           <div className="mt-1 space-y-0.5">
                             {event.outcome.character_effects.map((ce, i) => {
                               const ch = charMap[ce.char_id];
                               return (
-                                <p key={i} className="text-gray-400">
+                                <p key={i} className="text-sub">
                                   {ch ? ch.name : ce.char_id}: {ce.effect}{' '}
                                   ({String(ce.value)})
                                 </p>

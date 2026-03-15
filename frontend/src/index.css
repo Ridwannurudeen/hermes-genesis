@@ -4,6 +4,79 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme color variables ── */
+:root {
+  --bg-page: #faf6f0;
+  --bg-surface: #f0e8d8;
+  --bg-elevated: #e0d2b8;
+  --text-page: #3d2c12;
+  --text-muted: #6f5228;
+  --text-heading: #2a1f14;
+  --text-sub: #543d1c;
+  --text-dim: #8a6838;
+  --text-faint: #a07d4e;
+  --text-input: #3d2c12;
+  --genesis-title: #3d2c12;
+  --genesis-body: #6f5228;
+  --glass-bg: rgba(240, 232, 216, 0.88);
+  --glass-input-bg: rgba(224, 210, 184, 0.9);
+  --scrollbar-track: #faf6f0;
+  --scrollbar-thumb: #c9b896;
+  --scrollbar-thumb-hover: #b8976a;
+  --select-bg: #f0e8d8;
+  --select-text: #3d2c12;
+  --border-subtle: rgba(61, 44, 18, 0.08);
+  --hover-bg: rgba(61, 44, 18, 0.05);
+}
+.dark {
+  --bg-page: #1a1410;
+  --bg-surface: #1e1810;
+  --bg-elevated: #2a1f14;
+  --text-page: #e8dcc8;
+  --text-muted: #c9b896;
+  --text-heading: #ffffff;
+  --text-sub: #d1d5db;
+  --text-dim: #6b7280;
+  --text-faint: #4b5563;
+  --text-input: #f3f4f6;
+  --genesis-title: #f0e8d8;
+  --genesis-body: #c9b896;
+  --glass-bg: rgba(30, 25, 18, 0.88);
+  --glass-input-bg: rgba(35, 28, 20, 0.9);
+  --scrollbar-track: #1a1410;
+  --scrollbar-thumb: #3d2c12;
+  --scrollbar-thumb-hover: #543d1c;
+  --select-bg: #1e1810;
+  --select-text: #e0d2b8;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+@layer utilities {
+  .bg-page { background-color: var(--bg-page); }
+  .bg-surface { background-color: var(--bg-surface); }
+  .bg-elevated { background-color: var(--bg-elevated); }
+  .text-page { color: var(--text-page); }
+  .text-muted-page { color: var(--text-muted); }
+  .text-heading { color: var(--text-heading); }
+  .text-sub { color: var(--text-sub); }
+  .text-dim { color: var(--text-dim); }
+  .text-faint { color: var(--text-faint); }
+  .text-input { color: var(--text-input); }
+  .text-genesis-title { color: var(--genesis-title); }
+  .text-genesis-body { color: var(--genesis-body); }
+  .border-subtle { border-color: var(--border-subtle); }
+  .divide-subtle > :not([hidden]) ~ :not([hidden]) { border-color: var(--border-subtle); }
+}
+
+/* ── Theme-aware hover/placeholder states ── */
+.hover\:text-heading:hover { color: var(--text-heading); }
+.hover\:text-sub:hover { color: var(--text-sub); }
+.group:hover .group-hover\:text-sub { color: var(--text-sub); }
+.hover\:bg-hover:hover { background-color: var(--hover-bg); }
+.placeholder-dim::placeholder { color: var(--text-dim); }
+.placeholder-faint::placeholder { color: var(--text-faint); }
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -12,7 +85,7 @@ body {
 
 /* ── Static gradient background ── */
 .bg-gradient-animated {
-  background: linear-gradient(135deg, #1a1410 0%, #2a1f14 25%, #1e1810 50%, #261c12 75%, #1a1410 100%);
+  background: linear-gradient(135deg, var(--bg-page) 0%, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%, var(--bg-page) 100%);
 }
 
 /* ── Subtle grid pattern ── */
@@ -25,6 +98,12 @@ body {
 
 /* ── Static gradient text ── */
 .text-shimmer {
+  background: linear-gradient(90deg, #8a6838 0%, #6f5228 30%, #3d2c12 50%, #6f5228 70%, #8a6838 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.dark .text-shimmer {
   background: linear-gradient(90deg, #b8976a 0%, #d4b896 30%, #faf6f0 50%, #d4b896 70%, #b8976a 100%);
   background-clip: text;
   -webkit-background-clip: text;
@@ -57,12 +136,12 @@ body {
 
 /* ── Frosted glass (warm dark bg) ── */
 .glass {
-  background: rgba(30, 25, 18, 0.88);
+  background: var(--glass-bg);
   border: 1px solid rgba(184, 151, 106, 0.1);
 }
 
 .glass-input {
-  background: rgba(35, 28, 20, 0.9);
+  background: var(--glass-input-bg);
   border: 1px solid rgba(184, 151, 106, 0.12);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -94,16 +173,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1410;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3d2c12;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #543d1c;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ── Utility ── */
@@ -123,6 +202,6 @@ select {
 }
 
 select option {
-  background-color: #1e1810;
-  color: #e0d2b8;
+  background-color: var(--select-bg);
+  color: var(--select-text);
 }

@@ -884,8 +884,8 @@ export default function WorldMap({
           </div>
 
           {/* Legend */}
-          <div className="absolute top-4 left-4 bg-[#1a1410]/80 backdrop-blur-md border border-gray-700/30 rounded-lg p-3 shadow-2xl">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-semibold">
+          <div className="absolute top-4 left-4 bg-page/80 backdrop-blur-md border border-gray-700/30 rounded-lg p-3 shadow-2xl">
+            <p className="text-[10px] text-dim uppercase tracking-widest mb-2 font-semibold">
               Factions
             </p>
             <div className="space-y-1.5">
@@ -898,14 +898,14 @@ export default function WorldMap({
                       boxShadow: `0 0 6px ${f.color}60`,
                     }}
                   />
-                  <span className="text-xs text-gray-300 font-medium">{f.name}</span>
+                  <span className="text-xs text-sub font-medium">{f.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Map title watermark */}
-          <div className="absolute bottom-4 left-4 text-gray-600/30 text-[10px] uppercase tracking-[0.3em] font-light select-none">
+          <div className="absolute bottom-4 left-4 text-faint/30 text-[10px] uppercase tracking-[0.3em] font-light select-none">
             Genesis World Map
           </div>
         </div>

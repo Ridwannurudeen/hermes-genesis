@@ -17,7 +17,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
       onClick={onClick}
-      className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 cursor-pointer hover:border-white/[0.12] hover:bg-white/[0.05] transition-all backdrop-blur-sm"
+      className="bg-white/[0.03] border border-subtle rounded-xl p-4 cursor-pointer hover:border-white/[0.12] hover:bg-white/[0.05] transition-all backdrop-blur-sm"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -25,7 +25,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
           <div className="flex items-center gap-2 mb-1">
             <span
               className={`font-semibold truncate ${
-                character.alive ? 'text-gray-100' : 'text-gray-500 line-through'
+                character.alive ? 'text-heading' : 'text-dim line-through'
               }`}
             >
               {character.name}
@@ -35,7 +35,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-white/[0.06] text-gray-400 rounded text-xs capitalize">
+            <span className="px-2 py-0.5 bg-white/[0.06] text-sub rounded text-xs capitalize">
               {character.role}
             </span>
           </div>
@@ -43,7 +43,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
       </div>
 
       {/* Faction + Age row */}
-      <div className="flex items-center gap-3 mb-3 text-xs text-gray-500">
+      <div className="flex items-center gap-3 mb-3 text-xs text-dim">
         {faction && (
           <span className="flex items-center gap-1.5">
             <span
@@ -70,7 +70,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
             style={{ width: `${Math.max(2, character.fitness * 100)}%` }}
           />
         </div>
-        <span className="text-xs text-gray-400 font-mono">
+        <span className="text-xs text-sub font-mono">
           {(character.fitness * 100).toFixed(0)}
         </span>
       </div>

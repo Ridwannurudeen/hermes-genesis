@@ -129,7 +129,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       if (line.trimStart().startsWith('- ') || line.trimStart().startsWith('* ')) {
         const indent = line.length - line.trimStart().length;
         return (
-          <p key={i} className="text-gray-300 leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
+          <p key={i} className="text-sub leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
             <span className="text-amber-600 mr-2">&bull;</span>
             {renderInlineFormatting(line.trimStart().slice(2))}
           </p>
@@ -140,7 +140,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       if (numberedMatch) {
         const indent = line.length - line.trimStart().length;
         return (
-          <p key={i} className="text-gray-300 leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
+          <p key={i} className="text-sub leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
             <span className="text-amber-600 mr-2 font-medium">{numberedMatch[1]}.</span>
             {renderInlineFormatting(numberedMatch[2])}
           </p>
@@ -152,7 +152,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       }
       // Regular text
       return (
-        <p key={i} className="text-gray-300 leading-relaxed">
+        <p key={i} className="text-sub leading-relaxed">
           {renderInlineFormatting(line)}
         </p>
       );
@@ -165,7 +165,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
     const parts = text.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <span key={i} className="font-semibold text-gray-100">{part.slice(2, -2)}</span>;
+        return <span key={i} className="font-semibold text-heading">{part.slice(2, -2)}</span>;
       }
       return part;
     });
@@ -186,10 +186,10 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-[#1a1410] border border-amber-900/30 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-900/10"
+          className="bg-page border border-amber-900/30 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-900/10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/20 shrink-0 bg-gradient-to-r from-[#1a1410] via-amber-950/10 to-[#1a1410]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-amber-950/10 to-[var(--bg-page)]">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-amber-900/20 border border-amber-800/30">
                 <Scroll className="w-5 h-5 text-amber-400" />
@@ -205,7 +205,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+              className="p-1.5 text-dim hover:text-sub transition-colors rounded-lg hover:bg-hover"
             >
               <X className="w-5 h-5" />
             </button>
@@ -220,7 +220,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
                   <span className="absolute -top-1 -right-1 text-lg">&#127922;</span>
                 </div>
                 <p className="text-amber-600 text-sm font-medium">Forging your campaign kit...</p>
-                <p className="text-gray-600 text-xs">Crafting NPCs, plot hooks, and encounter tables</p>
+                <p className="text-faint text-xs">Crafting NPCs, plot hooks, and encounter tables</p>
               </div>
             )}
 
@@ -229,7 +229,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
                 <p className="text-red-400 text-sm">{error}</p>
                 <button
                   onClick={onClose}
-                  className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
+                  className="text-sm text-sub hover:text-heading transition-colors"
                 >
                   Close
                 </button>
@@ -245,7 +245,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
 
           {/* Footer */}
           {kit && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-amber-900/20 shrink-0 bg-gradient-to-r from-[#1a1410] via-amber-950/10 to-[#1a1410]">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-amber-900/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-amber-950/10 to-[var(--bg-page)]">
               <button
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"
@@ -278,7 +278,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                className="px-4 py-2 text-sm text-dim hover:text-sub transition-colors"
               >
                 Close
               </button>

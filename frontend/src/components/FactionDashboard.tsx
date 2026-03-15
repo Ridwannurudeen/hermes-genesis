@@ -19,7 +19,7 @@ export default function FactionDashboard({ factions, characters }: Props) {
   if (factions.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">No factions found</p>
+        <p className="text-dim">No factions found</p>
       </div>
     );
   }

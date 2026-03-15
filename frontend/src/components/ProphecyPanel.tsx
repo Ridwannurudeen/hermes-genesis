@@ -18,7 +18,7 @@ export default function ProphecyPanel({ prophecies }: Props) {
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] backdrop-blur-xl border border-genesis-400/30 rounded-lg text-genesis-400 hover:text-genesis-300 hover:bg-white/[0.08] transition-all"
+        className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] backdrop-blur-xl border border-genesis-400/30 rounded-lg text-genesis-400 hover:text-genesis-300 hover:bg-hover transition-all"
       >
         <Eye className="w-4 h-4" />
         <span className="text-sm">Prophecies</span>
@@ -36,9 +36,9 @@ export default function ProphecyPanel({ prophecies }: Props) {
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="mt-2 w-72 sm:w-80 bg-[#1a1410]/90 backdrop-blur-xl border border-genesis-400/20 rounded-xl overflow-hidden shadow-xl shadow-genesis-900/10"
+            className="mt-2 w-72 sm:w-80 bg-page/90 backdrop-blur-xl border border-genesis-400/20 rounded-xl overflow-hidden shadow-xl shadow-genesis-900/10"
           >
-            <div className="p-3 border-b border-white/[0.06]">
+            <div className="p-3 border-b border-subtle">
               <h3 className="text-sm font-semibold text-genesis-400 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Oracle's Prophecies
@@ -54,11 +54,11 @@ export default function ProphecyPanel({ prophecies }: Props) {
                   className={`p-3 rounded-lg border ${
                     p.fulfilled
                       ? 'border-amber-500/50 bg-amber-950/20'
-                      : 'border-white/[0.06] bg-white/[0.03]'
+                      : 'border-subtle bg-white/[0.03]'
                   }`}
                 >
                   <p className={`text-sm italic leading-relaxed ${
-                    p.fulfilled ? 'text-amber-300' : 'text-gray-400'
+                    p.fulfilled ? 'text-amber-300' : 'text-sub'
                   }`}>
                     "{p.text}"
                   </p>

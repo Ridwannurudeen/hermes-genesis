@@ -47,9 +47,9 @@ export default function EvolutionView({ data }: Props) {
   if (data.length <= 1) {
     return (
       <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-subtle flex items-center justify-center">
           <svg
-            className="w-8 h-8 text-gray-600"
+            className="w-8 h-8 text-faint"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -63,10 +63,10 @@ export default function EvolutionView({ data }: Props) {
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-gray-400 text-lg mb-1">
+          <p className="text-sub text-lg mb-1">
             Not enough data yet
           </p>
-          <p className="text-gray-600 text-sm">
+          <p className="text-faint text-sm">
             Simulate more days to see how genome traits evolve across
             generations
           </p>
@@ -79,7 +79,7 @@ export default function EvolutionView({ data }: Props) {
     <div>
       {/* Trait toggles */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
-        <span className="text-xs text-gray-500 uppercase tracking-wider mr-2 font-medium">
+        <span className="text-xs text-dim uppercase tracking-wider mr-2 font-medium">
           Traits
         </span>
         {GENOME_TRAITS.map((trait) => {
@@ -90,8 +90,8 @@ export default function EvolutionView({ data }: Props) {
               onClick={() => toggleTrait(trait)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 hidden
-                  ? 'bg-white/[0.03] text-gray-600 border border-white/[0.06]'
-                  : 'border text-gray-200'
+                  ? 'bg-white/[0.03] text-faint border border-subtle'
+                  : 'border text-heading'
               }`}
               style={
                 !hidden
@@ -117,7 +117,7 @@ export default function EvolutionView({ data }: Props) {
       </div>
 
       {/* Chart */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
+      <div className="bg-white/[0.03] border border-subtle rounded-xl p-6">
         <ResponsiveContainer width="100%" height={420}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a1f14" />
@@ -225,16 +225,16 @@ export default function EvolutionView({ data }: Props) {
             return (
               <div
                 key={trait}
-                className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3 text-center"
+                className="bg-white/[0.03] border border-subtle rounded-lg p-3 text-center"
               >
                 <div
                   className="w-2.5 h-2.5 rounded-full mx-auto mb-1.5"
                   style={{ backgroundColor: TRAIT_COLORS[trait] }}
                 />
-                <p className="text-xs text-gray-500 capitalize mb-0.5">
+                <p className="text-xs text-dim capitalize mb-0.5">
                   {trait}
                 </p>
-                <p className="text-lg font-mono font-bold text-gray-200">
+                <p className="text-lg font-mono font-bold text-heading">
                   {latest[trait].toFixed(2)}
                 </p>
                 <p
@@ -243,7 +243,7 @@ export default function EvolutionView({ data }: Props) {
                       ? 'text-green-400'
                       : diff < 0
                       ? 'text-red-400'
-                      : 'text-gray-500'
+                      : 'text-dim'
                   }`}
                 >
                   {diff > 0 ? '+' : ''}

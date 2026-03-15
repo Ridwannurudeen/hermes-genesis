@@ -165,11 +165,11 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
       className={`bg-white/[0.02] backdrop-blur-sm rounded-xl overflow-hidden transition-all duration-500 ${
         running
           ? 'border-2 border-genesis-500/40 shadow-lg shadow-genesis-500/10'
-          : 'border border-white/[0.06]'
+          : 'border border-subtle'
       }`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-white/[0.06]">
+      <div className="p-4 border-b border-subtle">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Brain icon with pulsing ring when active */}
@@ -178,12 +178,12 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                 className={`p-2.5 rounded-xl transition-all duration-500 ${
                   running
                     ? 'bg-genesis-500/10 border border-genesis-500/30'
-                    : 'bg-white/[0.04] border border-white/[0.08]'
+                    : 'bg-white/[0.04] border border-subtle'
                 }`}
               >
                 <Brain
                   className={`w-6 h-6 ${
-                    running ? 'text-genesis-400' : 'text-gray-500'
+                    running ? 'text-genesis-400' : 'text-dim'
                   }`}
                 />
               </div>
@@ -207,10 +207,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                 {running ? (
                   <span className="text-genesis-400">WORLD MASTER ACTIVE</span>
                 ) : (
-                  <span className="text-gray-300">World Master Agent</span>
+                  <span className="text-sub">World Master Agent</span>
                 )}
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-dim">
                 {running
                   ? 'Autonomous narrative intelligence is governing this world'
                   : 'Activate to let AI govern this world autonomously'}
@@ -222,7 +222,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
             {/* Interval selector (only when not running) */}
             {!running && (
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                <Clock className="w-3.5 h-3.5 text-dim" />
                 {INTERVAL_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
@@ -230,7 +230,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     className={`px-2 py-1 text-xs rounded-md transition-colors ${
                       interval === opt.value
                         ? 'bg-genesis-500/15 text-genesis-400 border border-genesis-500/30'
-                        : 'text-gray-500 hover:text-gray-300 border border-white/[0.08] hover:border-white/[0.15]'
+                        : 'text-dim hover:text-sub border border-subtle hover:border-white/[0.15]'
                     }`}
                   >
                     {opt.label}
@@ -290,15 +290,15 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
       <div className="max-h-[420px] overflow-y-auto">
         {reversedLogs.length === 0 ? (
           <div className="p-8 text-center">
-            <Brain className="w-8 h-8 text-gray-700 mx-auto mb-3" />
-            <p className="text-gray-600 text-sm">
+            <Brain className="w-8 h-8 text-faint mx-auto mb-3" />
+            <p className="text-faint text-sm">
               {running
                 ? 'Waiting for first agent cycle...'
                 : 'Activate the World Master to see its reasoning and decisions here.'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-subtle">
             {reversedLogs.map((log, i) => {
               const actionBadge = ACTION_BADGES[log.action] || ACTION_BADGES.simulate;
               return (
@@ -306,7 +306,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   key={`${log.timestamp}-${i}`}
                   initial={i === 0 ? { opacity: 0, y: -10 } : false}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 text-sm transition-colors hover:bg-white/[0.03] ${
+                  className={`p-4 text-sm transition-colors hover:bg-hover ${
                     log.action === 'intervene'
                       ? 'border-l-2 border-l-red-500/60'
                       : log.action === 'focus'
@@ -320,11 +320,11 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                 >
                   {/* Header row */}
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="text-gray-600 text-xs font-mono">
+                    <span className="text-faint text-xs font-mono">
                       {formatTime(log.timestamp)}
                     </span>
-                    <span className="text-gray-800">|</span>
-                    <span className="text-gray-500 text-xs font-medium">
+                    <span className="text-faint">|</span>
+                    <span className="text-dim text-xs font-medium">
                       Day {log.day}
                     </span>
 
@@ -347,7 +347,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     )}
 
                     {log.events_generated !== undefined && (
-                      <span className="text-gray-600 text-xs ml-auto">
+                      <span className="text-faint text-xs ml-auto">
                         {log.events_generated} event
                         {log.events_generated !== 1 ? 's' : ''}
                       </span>
@@ -356,7 +356,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                   {/* Reasoning */}
                   {log.reasoning && (
-                    <p className="text-gray-300 text-xs leading-relaxed mb-2">
+                    <p className="text-sub text-xs leading-relaxed mb-2">
                       {log.reasoning}
                     </p>
                   )}
@@ -364,7 +364,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   {/* Decision */}
                   {log.decision && (
                     <p className="text-genesis-400/80 text-xs mb-1">
-                      <span className="text-gray-500 font-medium">Decision:</span>{' '}
+                      <span className="text-dim font-medium">Decision:</span>{' '}
                       {log.decision}
                     </p>
                   )}
@@ -372,7 +372,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   {/* Intervention command (only for intervene actions) */}
                   {log.action === 'intervene' && log.intervention_command && (
                     <p className="text-red-400/70 text-xs mb-1">
-                      <span className="text-gray-500 font-medium">Command:</span>{' '}
+                      <span className="text-dim font-medium">Command:</span>{' '}
                       <span className="italic">{log.intervention_command}</span>
                     </p>
                   )}
@@ -380,7 +380,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   {/* Focus target (only for focus actions) */}
                   {log.action === 'focus' && (log.focus_faction || log.focus_character) && (
                     <p className="text-blue-400/70 text-xs mb-1">
-                      <span className="text-gray-500 font-medium">Focus:</span>{' '}
+                      <span className="text-dim font-medium">Focus:</span>{' '}
                       {log.focus_faction && (
                         <span>Faction: {log.focus_faction}</span>
                       )}
@@ -393,8 +393,8 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                   {/* Narrative arc */}
                   {log.narrative_arc && (
-                    <p className="text-genesis-300/70 text-xs mb-1">
-                      <span className="text-gray-500 font-medium">Arc:</span>{' '}
+                    <p className="text-genesis-body/70 text-xs mb-1">
+                      <span className="text-dim font-medium">Arc:</span>{' '}
                       {log.narrative_arc}
                     </p>
                   )}
@@ -424,24 +424,24 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   {(log.reasoning || log.decision || (log.event_titles && log.event_titles.length > 0)) && (
                     <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px]">
                       {log.reasoning && (
-                        <span className="px-2 py-0.5 rounded bg-genesis-800/60 text-gray-400 border border-gray-700/50 max-w-[200px] truncate" title={log.reasoning}>
+                        <span className="px-2 py-0.5 rounded bg-genesis-800/60 text-sub border border-gray-700/50 max-w-[200px] truncate" title={log.reasoning}>
                           Intent: {log.reasoning.split('.')[0]}
                         </span>
                       )}
                       {log.reasoning && (log.action || log.decision) && (
-                        <ArrowRight className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                        <ArrowRight className="w-3 h-3 text-faint flex-shrink-0" />
                       )}
                       {log.action && (
                         <span className={`px-2 py-0.5 rounded border font-medium ${
                           log.action === 'intervene' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
                           log.action === 'focus' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                          'bg-genesis-800/60 text-gray-400 border-gray-700/50'
+                          'bg-genesis-800/60 text-sub border-gray-700/50'
                         }`}>
                           {log.action === 'intervene' ? 'Intervened' : log.action === 'focus' ? 'Focused' : 'Simulated'}
                         </span>
                       )}
                       {log.action && log.event_titles && log.event_titles.length > 0 && (
-                        <ArrowRight className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                        <ArrowRight className="w-3 h-3 text-faint flex-shrink-0" />
                       )}
                       {log.event_titles && log.event_titles.length > 0 && (
                         <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
@@ -467,7 +467,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     <div className="mt-2">
                       <button
                         onClick={() => toggleConsequences(i)}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                        className="flex items-center gap-1 text-xs text-dim hover:text-sub transition-colors"
                       >
                         {expandedConsequences[i] ? (
                           <ChevronUp className="w-3 h-3" />
@@ -490,7 +490,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                           >
                             <div className="mt-1.5 pl-2 border-l border-genesis-500/30 space-y-1">
                               {log.consequences.events.map((ce, k) => (
-                                <p key={k} className="text-xs text-gray-400">
+                                <p key={k} className="text-xs text-sub">
                                   <span className="mr-1">{EVENT_TYPE_ICONS[ce.type] || '\u26A0\uFE0F'}</span>
                                   {ce.title}
                                 </p>
@@ -499,9 +499,9 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                               {/* Territory changes from consequences */}
                               {log.consequences.territory_changes && Object.keys(log.consequences.territory_changes).length > 0 && (
                                 <div className="mt-1 pt-1 border-t border-genesis-800/50">
-                                  <span className="text-[10px] text-gray-600 uppercase tracking-wider font-medium">Territory</span>
+                                  <span className="text-[10px] text-faint uppercase tracking-wider font-medium">Territory</span>
                                   {Object.entries(log.consequences.territory_changes).map(([region, owner]) => (
-                                    <p key={region} className="text-xs text-gray-500">
+                                    <p key={region} className="text-xs text-dim">
                                       {region} &rarr; {owner}
                                     </p>
                                   ))}
@@ -511,7 +511,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                               {/* Morale changes from consequences */}
                               {log.consequences.morale_changes && Object.keys(log.consequences.morale_changes).length > 0 && (
                                 <div className="mt-1 pt-1 border-t border-genesis-800/50">
-                                  <span className="text-[10px] text-gray-600 uppercase tracking-wider font-medium">Morale</span>
+                                  <span className="text-[10px] text-faint uppercase tracking-wider font-medium">Morale</span>
                                   {Object.entries(log.consequences.morale_changes).map(([fid, change]) => (
                                     <p
                                       key={fid}

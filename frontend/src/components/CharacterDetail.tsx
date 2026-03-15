@@ -37,7 +37,7 @@ function RelationshipBadge({
       ? 'bg-green-900/30 border-green-800/40 text-green-400'
       : type === 'love' || type === 'family'
       ? 'bg-pink-900/30 border-pink-800/40 text-pink-400'
-      : 'bg-white/[0.06] border-white/[0.08] text-gray-400';
+      : 'bg-white/[0.06] border-subtle text-sub';
 
   return (
     <span
@@ -80,17 +80,17 @@ export default function CharacterDetail({
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#1a1410]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl shadow-black/50"
+        className="bg-page/95 backdrop-blur-xl border border-subtle rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl shadow-black/50"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-[#1a1410]/90 backdrop-blur-xl border-b border-white/[0.06] p-5 flex items-start justify-between z-10">
+        <div className="sticky top-0 bg-page/90 backdrop-blur-xl border-b border-subtle p-5 flex items-start justify-between z-10">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h2
                 className={`text-2xl font-bold ${
                   character.alive
-                    ? 'text-gray-100'
-                    : 'text-gray-500 line-through'
+                    ? 'text-heading'
+                    : 'text-dim line-through'
                 }`}
               >
                 {character.name}
@@ -98,11 +98,11 @@ export default function CharacterDetail({
               {!character.alive && <Skull className="w-5 h-5 text-red-500" />}
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="px-2.5 py-0.5 bg-white/[0.06] text-gray-400 rounded capitalize">
+              <span className="px-2.5 py-0.5 bg-white/[0.06] text-sub rounded capitalize">
                 {character.role}
               </span>
               {faction && (
-                <span className="flex items-center gap-1.5 text-gray-400">
+                <span className="flex items-center gap-1.5 text-sub">
                   <span
                     className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: faction.color }}
@@ -110,7 +110,7 @@ export default function CharacterDetail({
                   {faction.name}
                 </span>
               )}
-              <span className="text-gray-500">Age {character.age}</span>
+              <span className="text-dim">Age {character.age}</span>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -118,14 +118,14 @@ export default function CharacterDetail({
               <button
                 onClick={() => setShowChat(true)}
                 title={`Chat with ${character.name}`}
-                className="p-1.5 text-gray-500 hover:text-genesis-400 transition-colors rounded-lg hover:bg-white/[0.06]"
+                className="p-1.5 text-dim hover:text-genesis-400 transition-colors rounded-lg hover:bg-hover"
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+              className="p-1.5 text-dim hover:text-sub transition-colors rounded-lg hover:bg-hover"
             >
               <X className="w-5 h-5" />
             </button>
@@ -135,7 +135,7 @@ export default function CharacterDetail({
         <div className="p-5 space-y-6">
           {/* Genome Radar */}
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
               <Dna className="w-4 h-4 text-genesis-400" />
               Genome
             </h3>
@@ -150,7 +150,7 @@ export default function CharacterDetail({
 
           {/* Fitness */}
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
               <Activity className="w-4 h-4 text-genesis-400" />
               Fitness Score
             </h3>
@@ -174,10 +174,10 @@ export default function CharacterDetail({
           {/* Backstory */}
           {character.backstory && (
             <div>
-              <h3 className="text-sm font-medium text-gray-300 mb-2">
+              <h3 className="text-sm font-medium text-sub mb-2">
                 Backstory
               </h3>
-              <p className="text-sm text-gray-400 leading-relaxed bg-white/[0.03] rounded-lg p-4 italic">
+              <p className="text-sm text-sub leading-relaxed bg-white/[0.03] rounded-lg p-4 italic">
                 {character.backstory}
               </p>
             </div>
@@ -186,7 +186,7 @@ export default function CharacterDetail({
           {/* Goals */}
           {character.goals.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
                 <Target className="w-4 h-4 text-amber-400" />
                 Goals
               </h3>
@@ -194,7 +194,7 @@ export default function CharacterDetail({
                 {character.goals.map((goal, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2 text-sm text-gray-400"
+                    className="flex items-start gap-2 text-sm text-sub"
                   >
                     <span className="text-amber-500 mt-0.5">-</span>
                     {goal}
@@ -207,7 +207,7 @@ export default function CharacterDetail({
           {/* Relationships */}
           {character.relationships.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-sub mb-3 flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-400" />
                 Relationships
               </h3>
@@ -220,7 +220,7 @@ export default function CharacterDetail({
                       className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-200">
+                        <span className="text-sm text-heading">
                           {target ? target.name : rel.target_id}
                         </span>
                         <RelationshipBadge
@@ -253,22 +253,22 @@ export default function CharacterDetail({
 
           {/* Lineage */}
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
               <GitBranch className="w-4 h-4 text-genesis-400" />
               Lineage
             </h3>
             <div className="bg-white/[0.03] rounded-lg p-4 space-y-2">
               <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-500 uppercase tracking-wider w-20">
+                <span className="text-xs text-dim uppercase tracking-wider w-20">
                   Generation
                 </span>
-                <span className="text-sm text-gray-200 font-mono">
+                <span className="text-sm text-heading font-mono">
                   {character.lineage.generation}
                 </span>
               </div>
               {parents.length > 0 && (
                 <div className="flex items-start gap-3">
-                  <span className="text-xs text-gray-500 uppercase tracking-wider w-20 pt-0.5">
+                  <span className="text-xs text-dim uppercase tracking-wider w-20 pt-0.5">
                     Parents
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -285,7 +285,7 @@ export default function CharacterDetail({
               )}
               {character.lineage.mutations.length > 0 && (
                 <div className="flex items-start gap-3">
-                  <span className="text-xs text-gray-500 uppercase tracking-wider w-20 pt-0.5">
+                  <span className="text-xs text-dim uppercase tracking-wider w-20 pt-0.5">
                     Mutations
                   </span>
                   <div className="flex flex-wrap gap-1.5">

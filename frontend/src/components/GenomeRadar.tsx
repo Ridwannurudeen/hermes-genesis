@@ -58,7 +58,7 @@ export function MiniGenomeBars({ genome }: { genome: Genome }) {
     <div className="space-y-1">
       {GENOME_TRAITS.map((trait) => (
         <div key={trait} className="flex items-center gap-1.5">
-          <span className="text-[9px] text-gray-500 w-3 uppercase font-mono">
+          <span className="text-[9px] text-dim w-3 uppercase font-mono">
             {trait[0]}
           </span>
           <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">

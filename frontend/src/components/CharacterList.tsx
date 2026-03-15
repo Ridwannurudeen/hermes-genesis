@@ -53,24 +53,24 @@ export default function CharacterList({
       {/* Filters */}
       <div className="glass rounded-xl p-4 flex flex-wrap items-center gap-3 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dim" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search characters..."
-            className="glass-input rounded-lg pl-9 pr-4 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none w-56 transition-all"
+            className="glass-input rounded-lg pl-9 pr-4 py-2 text-sm text-input placeholder-faint focus:outline-none w-56 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 text-gray-500">
+        <div className="flex items-center gap-1.5 text-dim">
           <Filter className="w-4 h-4" />
         </div>
 
         <select
           value={factionFilter}
           onChange={(e) => setFactionFilter(e.target.value)}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none transition-all"
+          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
         >
           <option value="all">All Factions</option>
           {factions.map((f) => (
@@ -83,7 +83,7 @@ export default function CharacterList({
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none transition-all"
+          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
         >
           <option value="all">All Roles</option>
           {roles.map((r) => (
@@ -96,14 +96,14 @@ export default function CharacterList({
         <select
           value={aliveFilter}
           onChange={(e) => setAliveFilter(e.target.value)}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none transition-all"
+          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
         >
           <option value="all">All Status</option>
           <option value="alive">Alive</option>
           <option value="dead">Dead</option>
         </select>
 
-        <span className="text-sm text-gray-500 ml-auto">
+        <span className="text-sm text-dim ml-auto">
           {filtered.length} of {characters.length} characters
         </span>
       </div>
@@ -111,7 +111,7 @@ export default function CharacterList({
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="flex items-center justify-center h-48">
-          <p className="text-gray-500">No characters match the filters</p>
+          <p className="text-dim">No characters match the filters</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

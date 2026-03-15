@@ -20,6 +20,7 @@ import type {
 } from '../types';
 import SimulateButton from '../components/SimulateButton';
 import AutoPlayButton from '../components/AutoPlayButton';
+import ThemeToggle from '../components/ThemeToggle';
 import VoiceNarrationButton from '../components/VoiceNarrationButton';
 import CharacterDetail from '../components/CharacterDetail';
 import ProphecyPanel from '../components/ProphecyPanel';
@@ -331,7 +332,7 @@ export default function WorldView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1a1410] p-6">
+      <div className="min-h-screen bg-page p-6">
         <div className="max-w-7xl mx-auto">
           <SkeletonBlock className="h-10 w-64 mb-6" />
           <SkeletonBlock className="h-8 w-96 mb-8" />
@@ -348,10 +349,10 @@ export default function WorldView() {
 
   if (!world) {
     return (
-      <div className="min-h-screen bg-[#1a1410] flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 text-lg mb-4">World not found</p>
-          <Link to="/" className="text-genesis-400 hover:text-genesis-300 transition-colors">
+          <p className="text-sub text-lg mb-4">World not found</p>
+          <Link to="/" className="text-genesis-400 hover:text-genesis-body transition-colors">
             Back to home
           </Link>
         </div>
@@ -360,63 +361,63 @@ export default function WorldView() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1410]">
+    <div className="min-h-screen bg-page">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b border-genesis-300/10 bg-[#1a1410]/80 backdrop-blur-xl sticky top-0 z-30">
+      <div className="border-b border-genesis-300/10 bg-page/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/" className="text-gray-500 hover:text-genesis-400 transition-colors">
+              <Link to="/" className="text-dim hover:text-genesis-400 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-100">{world.name}</h1>
-                <p className="text-gray-500 text-sm italic">&ldquo;{world.seed}&rdquo;</p>
+                <h1 className="text-2xl font-bold text-heading">{world.name}</h1>
+                <p className="text-dim text-sm italic">&ldquo;{world.seed}&rdquo;</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-xs text-gray-500 uppercase tracking-wider">Day</p>
+                <p className="text-xs text-dim uppercase tracking-wider">Day</p>
                 <p className="text-2xl font-mono font-bold text-genesis-400">{world.current_day}</p>
               </div>
               <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
               <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-                  ambientEnabled ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30' : 'text-gray-400 hover:text-emerald-400 hover:bg-white/[0.06]'
+                  ambientEnabled ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30' : 'text-sub hover:text-emerald-400 hover:bg-hover'
                 }`}>
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
               </button>
               <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-gray-400 hover:text-genesis-400 hover:bg-white/[0.06]'
+                  showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-sub hover:text-genesis-400 hover:bg-hover'
                 }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>
               </button>
               <button onClick={() => setGodMode((p) => !p)} title="God Mode"
                 className={`p-2 rounded-lg transition-all ${
-                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-gray-400 hover:text-amber-400 hover:bg-white/[0.06]'
+                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-sub hover:text-amber-400 hover:bg-hover'
                 }`}>
                 <Zap className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCouncil(true)} title="Faction Council" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
+              <button onClick={() => setShowCouncil(true)} title="Faction Council" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
                 <Swords className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" className="p-2 text-gray-400 hover:text-genesis-400 hover:bg-white/[0.06] rounded-lg transition-all">
+              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" className="p-2 text-sub hover:text-genesis-400 hover:bg-hover rounded-lg transition-all">
                 <BookOpen className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" className="p-2 text-gray-400 hover:text-rose-400 hover:bg-white/[0.06] rounded-lg transition-all">
+              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" className="p-2 text-sub hover:text-rose-400 hover:bg-hover rounded-lg transition-all">
                 <Play className="w-5 h-5" />
               </button>
               <button onClick={() => setShowReplay(true)} title="Replay History" disabled={events.length === 0}
-                className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                 <History className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
+              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
                 <Sparkles className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-gray-400 hover:text-amber-400 hover:bg-white/[0.06] rounded-lg transition-all">
+              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
                 <Scroll className="w-5 h-5" />
               </button>
               <button
@@ -434,10 +435,11 @@ export default function WorldView() {
                   } catch { /* ignore */ }
                 }}
                 title="Download World (Markdown)"
-                className="p-2 text-gray-400 hover:text-emerald-400 hover:bg-white/[0.06] rounded-lg transition-all"
+                className="p-2 text-sub hover:text-emerald-400 hover:bg-hover rounded-lg transition-all"
               >
                 <Download className="w-5 h-5" />
               </button>
+              <ThemeToggle />
               <AutoPlayButton active={autoPlay} onToggle={toggleAutoPlay} disabled={loading} />
               <SimulateButton onSimulate={handleSimulate} loading={simulating || autoPlay} />
             </div>
@@ -458,10 +460,10 @@ export default function WorldView() {
                   className={`group flex items-center gap-2.5 px-5 py-3 text-sm font-medium rounded-lg transition-all ${
                     isActive
                       ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
-                      : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] border border-transparent'
+                      : 'text-dim hover:text-heading hover:bg-white/[0.04] border border-transparent'
                   }`}
                 >
-                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-gray-600 group-hover:text-gray-400'}`} />
+                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-faint group-hover:text-sub'}`} />
                   <div className="text-left">
                     <div className="flex items-center gap-1.5">
                       {vm.label}
@@ -471,7 +473,7 @@ export default function WorldView() {
                         </span>
                       )}
                     </div>
-                    <div className={`text-[10px] ${isActive ? 'text-genesis-500/70' : 'text-gray-600'}`}>
+                    <div className={`text-[10px] ${isActive ? 'text-genesis-500/70' : 'text-faint'}`}>
                       {vm.desc}
                     </div>
                   </div>
@@ -486,7 +488,7 @@ export default function WorldView() {
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${
                   analyticsOpen
                     ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
-                    : 'text-gray-500 hover:text-gray-300 border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04]'
+                    : 'text-dim hover:text-heading border border-subtle hover:border-subtle hover:bg-white/[0.04]'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -502,7 +504,7 @@ export default function WorldView() {
         {showAgent && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}
             className="max-w-7xl mx-auto px-6 pt-4">
-            <Suspense fallback={<div className="flex items-center justify-center h-32"><div className="text-gray-400">Loading agent...</div></div>}>
+            <Suspense fallback={<div className="flex items-center justify-center h-32"><div className="text-sub">Loading agent...</div></div>}>
               <AutonomousAgentPanel worldId={world.id} onRefresh={fetchAll} />
             </Suspense>
           </motion.div>
@@ -548,7 +550,7 @@ export default function WorldView() {
                 </Suspense>
                 <ProphecyPanel prophecies={prophecies} />
                 {godMode && (
-                  <Suspense fallback={<div className="text-gray-400 p-4">Loading god mode...</div>}>
+                  <Suspense fallback={<div className="text-sub p-4">Loading god mode...</div>}>
                     <GodModePanel
                       worldId={world.id}
                       onIntervention={(event) => {
@@ -564,7 +566,7 @@ export default function WorldView() {
             {/* Network Mode */}
             {viewMode === 'network' && (
               <div>
-                <Suspense fallback={<div className="flex items-center justify-center h-[600px]"><div className="text-gray-400">Loading relationship graph...</div></div>}>
+                <Suspense fallback={<div className="flex items-center justify-center h-[600px]"><div className="text-sub">Loading relationship graph...</div></div>}>
                   <RelationshipGraph
                     characters={characters}
                     factions={factions}

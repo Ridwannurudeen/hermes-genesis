@@ -57,9 +57,9 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
 
   if (snapshots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-        <p className="text-lg font-medium">No timeline data yet</p>
-        <p className="text-sm mt-1">
+      <div className="flex flex-col items-center justify-center py-20 text-dim">
+        <p className="text-lg font-medium text-dim">No timeline data yet</p>
+        <p className="text-sm mt-1 text-dim">
           Simulate some days to see faction power trends
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               metric === m.key
                 ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400'
-                : 'bg-white/[0.03] border border-white/[0.06] text-gray-500 hover:text-gray-300 hover:border-white/[0.12]'
+                : 'bg-white/[0.03] border border-subtle text-dim hover:text-sub hover:border-white/[0.12]'
             }`}
           >
             {m.label}
@@ -86,7 +86,7 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
       </div>
 
       {/* Chart */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
+      <div className="bg-white/[0.03] border border-subtle rounded-xl p-6">
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a1f14" />
