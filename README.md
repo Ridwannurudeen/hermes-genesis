@@ -4,6 +4,12 @@
 
 An autonomous living world engine powered by **Hermes-4-70B**. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
 
+<p align="center">
+  <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
+  <br>
+  <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
+</p>
+
 > **[Try the Live Demo](http://75.119.153.252:8003)** | **[Watch the Demo Video](#demo-video)**
 
 ---
@@ -16,15 +22,32 @@ An autonomous living world engine powered by **Hermes-4-70B**. Type one sentence
 - Genetic evolution &mdash; characters pass DNA to children, populations shift over generations
 - Autonomous World Master &mdash; an AI agent observes, reasons, intervenes, and chases prophecies on its own
 
-![Cinematic Mode — fullscreen immersive replay with AI-generated scenes and voice narration](docs/screenshots/cinematic-mode.png)
-
-![Theater Mode — dramatic stage with character sprites, faction positioning, AI scene images](docs/screenshots/theater-mode.png)
-
-![World Map — SVG regions, faction territories, prophecy tracking](docs/screenshots/map-view.png)
-
-![Network Graph — D3 force-directed character relationships across 146 characters](docs/screenshots/network-graph.png)
-
-![Chronicle — 941 events across 322 days of autonomous history](docs/screenshots/chronicle-view.png)
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/theater-mode.png" alt="Theater Mode">
+      <br>
+      <b>Theater Mode</b> — Dramatic stage with character sprites, AI scene images, faction positioning
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/map-view.png" alt="World Map">
+      <br>
+      <b>World Map</b> — SVG regions, faction territories, prophecy tracking
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/network-graph.png" alt="Network Graph">
+      <br>
+      <b>Relationship Graph</b> — D3 force-directed network across 146 characters
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/chronicle-view.png" alt="Chronicle">
+      <br>
+      <b>Chronicle</b> — 941 events across 322 days of autonomous history
+    </td>
+  </tr>
+</table>
 
 ---
 
