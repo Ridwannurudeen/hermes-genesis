@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@400;600;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,20 +12,20 @@ body {
 
 /* ── Static gradient background ── */
 .bg-gradient-animated {
-  background: linear-gradient(135deg, #0f0520 0%, #1e1145 25%, #0c1631 50%, #1a0a2e 75%, #0f0520 100%);
+  background: linear-gradient(135deg, #1a1410 0%, #2a1f14 25%, #1e1810 50%, #261c12 75%, #1a1410 100%);
 }
 
 /* ── Subtle grid pattern ── */
 .bg-grid-pattern {
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 /* ── Static gradient text ── */
 .text-shimmer {
-  background: linear-gradient(90deg, #a78bfa 0%, #c4b5fd 30%, #ffffff 50%, #c4b5fd 70%, #a78bfa 100%);
+  background: linear-gradient(90deg, #b8976a 0%, #d4b896 30%, #faf6f0 50%, #d4b896 70%, #b8976a 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -33,11 +33,11 @@ body {
 
 /* ── Generate button glow (static) ── */
 .btn-glow {
-  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 40px rgba(167, 139, 250, 0.05);
+  box-shadow: 0 0 20px rgba(184, 151, 106, 0.15), 0 0 40px rgba(184, 151, 106, 0.05);
 }
 
 .btn-glow:hover {
-  box-shadow: 0 0 30px rgba(167, 139, 250, 0.3), 0 0 60px rgba(167, 139, 250, 0.1);
+  box-shadow: 0 0 30px rgba(184, 151, 106, 0.3), 0 0 60px rgba(184, 151, 106, 0.1);
 }
 
 .btn-glow:disabled {
@@ -51,35 +51,40 @@ body {
 }
 
 .card-glow:hover {
-  border-color: rgba(167, 139, 250, 0.3);
-  box-shadow: 0 0 20px rgba(167, 139, 250, 0.06), inset 0 0 20px rgba(167, 139, 250, 0.02);
+  border-color: rgba(184, 151, 106, 0.3);
+  box-shadow: 0 0 20px rgba(184, 151, 106, 0.06), inset 0 0 20px rgba(184, 151, 106, 0.02);
 }
 
-/* ── Frosted glass (no blur — solid dark bg) ── */
+/* ── Frosted glass (warm dark bg) ── */
 .glass {
-  background: rgba(15, 15, 25, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(30, 25, 18, 0.88);
+  border: 1px solid rgba(184, 151, 106, 0.1);
 }
 
 .glass-input {
-  background: rgba(20, 20, 35, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(35, 28, 20, 0.9);
+  border: 1px solid rgba(184, 151, 106, 0.12);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-input:focus {
-  border-color: rgba(167, 139, 250, 0.4);
-  box-shadow: 0 0 20px rgba(167, 139, 250, 0.08);
+  border-color: rgba(184, 151, 106, 0.4);
+  box-shadow: 0 0 20px rgba(184, 151, 106, 0.08);
 }
 
-/* ── Icon neon aura ── */
+/* ── Icon warm aura ── */
 .icon-aura {
-  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.3));
+  filter: drop-shadow(0 0 8px rgba(184, 151, 106, 0.3));
   transition: filter 0.3s ease;
 }
 
 .group:hover .icon-aura {
-  filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.5));
+  filter: drop-shadow(0 0 12px rgba(184, 151, 106, 0.5));
+}
+
+/* ── Decorative gold border for section dividers ── */
+.border-ornate {
+  border-image: linear-gradient(90deg, transparent, rgba(184, 151, 106, 0.3), transparent) 1;
 }
 
 /* ── Scrollbar styling ── */
@@ -89,16 +94,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #1a1410;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: #3d2c12;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4b5563;
+  background: #543d1c;
 }
 
 /* ── Utility ── */
@@ -111,13 +116,13 @@ body {
 
 select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23c9b896' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 28px;
 }
 
 select option {
-  background-color: #111827;
-  color: #d1d5db;
+  background-color: #1e1810;
+  color: #e0d2b8;
 }

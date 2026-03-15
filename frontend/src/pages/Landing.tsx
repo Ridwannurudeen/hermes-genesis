@@ -34,13 +34,13 @@ const PLACEHOLDER_SEEDS = [
 ];
 
 const STAGE_MAP: Record<string, string> = {
-  geography: 'Shaping geography and climate...',
+  geography: 'Charting geography and climate...',
   geography_done: 'Terrain mapped!',
   factions: 'Breathing life into factions...',
   factions_done: 'Factions established!',
   characters: 'Forging characters with unique genomes...',
   characters_done: 'Characters born!',
-  assembling: 'Assembling the world...',
+  assembling: 'Binding the atlas...',
   prophecies: 'The oracle speaks...',
   complete: 'World is alive!',
 };
@@ -84,7 +84,7 @@ const FEATURES = [
     description:
       'Describe any world in natural language. Watch it materialize with regions, factions, and characters — each carrying a unique genetic code that shapes their destiny.',
     size: 'large' as const,
-    accent: 'from-genesis-400 to-violet-500',
+    accent: 'from-genesis-400 to-genesis-600',
   },
   {
     icon: Swords,
@@ -92,7 +92,7 @@ const FEATURES = [
     description:
       'Every event has consequences. Betrayals trigger wars, wars cause successions, alliances reshape borders.',
     size: 'medium' as const,
-    accent: 'from-amber-400 to-orange-500',
+    accent: 'from-amber-700 to-orange-800',
   },
   {
     icon: Dna,
@@ -100,7 +100,7 @@ const FEATURES = [
     description:
       'Characters reproduce, mutate, and die. Traits shift across generations through genetic crossover and natural selection.',
     size: 'medium' as const,
-    accent: 'from-violet-400 to-purple-500',
+    accent: 'from-genesis-500 to-genesis-700',
   },
   {
     icon: Brain,
@@ -108,7 +108,7 @@ const FEATURES = [
     description:
       'An autonomous World Master agent governs your world — triggering interventions, fulfilling prophecies, and weaving narrative arcs without human input.',
     size: 'large' as const,
-    accent: 'from-cyan-400 to-blue-500',
+    accent: 'from-amber-600 to-yellow-800',
   },
   {
     icon: Zap,
@@ -116,7 +116,7 @@ const FEATURES = [
     description:
       'Intervene as a deity. Command storms, forge alliances, or let the AI handle everything.',
     size: 'small' as const,
-    accent: 'from-yellow-400 to-amber-500',
+    accent: 'from-yellow-600 to-amber-700',
   },
   {
     icon: BookOpen,
@@ -124,7 +124,7 @@ const FEATURES = [
     description:
       'Export your world\'s history as an epic narrative you can read and share.',
     size: 'small' as const,
-    accent: 'from-rose-400 to-pink-500',
+    accent: 'from-genesis-300 to-genesis-500',
   },
 ];
 
@@ -267,17 +267,17 @@ function Footer() {
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
+  visible: { transition: { staggerChildren: 0.12 } },
 };
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
 };
 
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  hidden: { opacity: 0, scale: 0.96 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
 };
 
 /* ── Bento feature card ── */
@@ -304,15 +304,15 @@ function FeatureCard({
         <div
           className={`shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${feature.accent} p-[1px]`}
         >
-          <div className="w-full h-full rounded-xl bg-gray-950/80 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-white icon-aura" />
+          <div className="w-full h-full rounded-xl bg-genesis-950/80 flex items-center justify-center">
+            <Icon className="w-5 h-5 text-genesis-100 icon-aura" />
           </div>
         </div>
         <div className="min-w-0">
-          <h3 className="text-lg font-bold text-white mb-1 font-display">
+          <h3 className="text-lg font-bold text-genesis-100 mb-1 font-display">
             {feature.title}
           </h3>
-          <p className="text-sm text-gray-400 leading-relaxed">
+          <p className="text-sm text-genesis-300 leading-relaxed">
             {feature.description}
           </p>
         </div>
@@ -470,7 +470,7 @@ export default function Landing() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden">
+    <div className="min-h-screen bg-[#1a1410] relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-animated opacity-15 pointer-events-none" />
 
@@ -478,7 +478,7 @@ export default function Landing() {
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(167,139,250,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.06) 0%, transparent 70%)',
         }}
         aria-hidden="true"
       />

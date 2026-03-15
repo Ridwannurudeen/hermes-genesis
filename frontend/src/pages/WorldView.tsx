@@ -247,7 +247,7 @@ export default function WorldView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 p-6">
+      <div className="min-h-screen bg-[#1a1410] p-6">
         <div className="max-w-7xl mx-auto">
           <SkeletonBlock className="h-10 w-64 mb-6" />
           <SkeletonBlock className="h-8 w-96 mb-8" />
@@ -264,7 +264,7 @@ export default function WorldView() {
 
   if (!world) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#1a1410] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-400 text-lg mb-4">World not found</p>
           <Link to="/" className="text-genesis-400 hover:text-genesis-300 transition-colors">
@@ -276,9 +276,9 @@ export default function WorldView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-[#1a1410]">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b border-white/[0.06] bg-gray-950/60 backdrop-blur-xl sticky top-0 z-30">
+      <div className="border-b border-genesis-300/10 bg-[#1a1410]/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -362,7 +362,7 @@ export default function WorldView() {
       </div>
 
       {/* ── View Mode Selector ─────────────────────────────── */}
-      <div className="border-b border-white/[0.06]">
+      <div className="border-b border-genesis-300/10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-1 py-1">
             {VIEW_MODES.map((vm) => {
