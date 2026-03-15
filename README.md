@@ -4,6 +4,8 @@
 
 An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes Agent** framework. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
 
+**Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
+
 <p align="center">
   <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
   <br>
@@ -21,6 +23,8 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
 - Cinematic Mode &mdash; fullscreen immersive experience with ambient sound and voice narration
 - Genetic evolution &mdash; characters pass DNA to children, populations shift over generations
 - Autonomous World Master &mdash; an AI agent observes, reasons, intervenes, and chases prophecies on its own
+- **Download World** &mdash; export everything as structured Markdown for Obsidian, Notion, wikis, or TTRPG prep
+- **Campaign Kit / Session Prep** &mdash; AI-generated encounter tables, plot hooks, and GM session plans
 - Hermes Agent Skills &mdash; 5 custom skills + MCP bridge for hermes-agent integration
 
 <table>
@@ -60,6 +64,7 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
 | No persistent world state | No memory between sessions | No AI-driven narrative | **Characters remember, factions evolve, events chain** |
 | Requires constant prompting | Reactive only | Rule-based | **AI World Master acts on its own agenda** |
 | No genetic evolution | No evolution | Trait-based | **6-trait DNA with crossover, mutation, natural selection** |
+| No exportable output | Copy-paste fragments | ASCII logs | **Full Markdown export — Campaign Kit, Session Prep, Chronicle, World Download** |
 
 ---
 
@@ -231,6 +236,7 @@ Event breakdown:
 4. **Events cause events** — a betrayal triggers a war, which causes a succession crisis, which leads to an alliance
 5. **An AI agent governs** — the World Master watches, reasons about narrative arcs, and intervenes when the story needs it
 6. **Characters evolve** — offspring inherit traits via crossover + mutation. Over generations, natural selection reshapes the population
+7. **You use it** — download the world as Markdown for your wiki, generate a Campaign Kit for tonight's D&D session, or export a Chronicle as a narrative draft for your novel
 
 ---
 
@@ -267,16 +273,53 @@ Source: [`backend/simulation.py`](backend/simulation.py)
 ## Real Use Cases
 
 ### For TTRPG Game Masters
-D&D/Pathfinder GMs spend **4-8 hours** prepping a world. Genesis does it in **60 seconds** from one sentence. Hit "Download World" to get a full Markdown document — drop it into Obsidian or Notion and run a session tonight. Campaign Kit generates encounter tables, faction tensions, and plot hooks. Session Prep writes your next game plan. Character Chat lets you rehearse NPC dialogue before the table.
+
+D&D/Pathfinder GMs spend **4-8 hours** prepping a world before session zero. Genesis does it in **60 seconds** from one sentence.
+
+**Workflow:** Type "Norse mythology where Ragnarok approaches" → Genesis builds 6 regions, 4 factions, 15 characters with genomes, and 4 prophecies → Simulate 30 days to develop faction tensions → Hit **Download World** → Drop the Markdown file into **Obsidian or Notion** → Run session zero tonight.
+
+What you get:
+- **Campaign Kit** — encounter tables per region, faction tension matrix, NPC stat blocks with personality traits, 3 ready-to-run plot hooks
+- **Session Prep** — a structured GM plan for your next session with pacing, key NPCs to introduce, and decision points
+- **Character Chat** — rehearse NPC dialogue before the table. Each character responds in-character shaped by their genome (high cunning = evasive answers, high loyalty = unwavering stance)
+- **Faction Council** — simulate a political debate between faction leaders to preview how they'd react to player actions
+- **Chronicle** — a narrative history of everything that happened in the world, publishable as in-world lore handouts
+
+One sentence replaces hours of prep. The world is internally consistent because it was *simulated*, not written.
 
 ### For Writers & Worldbuilders
-Generate internally consistent worlds with faction dynamics, character relationships, and causal event chains. Export the chronicle as a narrative draft. Use Character Chat to test dialogue — each character responds shaped by their genetic traits (courage, cunning, loyalty) and personal history. Run the simulation for 100 days and watch how your world's politics evolve — then write the novel.
+
+Writing a novel or building a fantasy world? Genesis generates **internally consistent** settings where events cause other events — not a random pile of lore.
+
+**Workflow:** Describe your setting → Generate the world → Simulate 100+ days → Watch politics evolve, alliances form and shatter, characters rise and die → Export the chronicle as a **narrative draft** → Use it as the backbone of your story.
+
+What you get:
+- **Causal event chains** — "this betrayal triggered this war, which caused a succession crisis, which led to an unlikely alliance" — all emergent, not scripted
+- **Character depth for free** — 196 characters with genetic personalities, relationship histories, and faction loyalties. Each one responds differently in Character Chat based on who they are
+- **Genetic worldbuilding** — after 100 days, a world that rewards cunning breeds cunning people. The population itself tells a story about what kind of world this is
+- **Download the entire world** as structured Markdown — geography, faction details, character profiles with genome stats, prophecies, timeline. Import into your worldbuilding wiki
 
 ### For Educators
-Simulate geopolitical scenarios in real-time. Show students how alliances form and collapse, how resource scarcity drives conflict, how leadership succession reshapes power dynamics. Every event has visible cause and effect — "this betrayal triggered this war, which caused this faction to lose territory, which shifted the balance of power." Interactive, visual, and no textbook can replicate it.
+
+Simulate geopolitical dynamics in real-time. Show students how civilizations actually work — not through a textbook, but through a **living model** they can interact with.
+
+**Classroom applications:**
+- **Political Science** — watch how alliances form and collapse, how power vacuums create instability, how faction ideology shapes behavior
+- **Economics** — observe resource scarcity driving conflict, trade networks enabling alliances, economic power translating into political leverage
+- **History** — "What if the Roman Empire had a succession crisis after Caesar?" Type it, simulate it, watch what emerges. Compare emergent outcomes to real history
+- **Creative Writing** — students generate worlds, simulate them, then write narratives based on the events. Every student gets a unique world with its own internal logic
+- **Game Theory** — the genome system is a live genetic algorithm. Students can watch natural selection reshape a population: worlds that reward courage breed warriors, worlds that reward cunning breed politicians
+
+Every event has visible cause and effect in the timeline. The **Faction Power Chart** shows how power shifts over time. The **Relationship Graph** maps alliances and rivalries. Interactive, visual, shareable.
 
 ### For Game Designers & AI Researchers
-Procedural narrative engine with genetic algorithms, multi-agent coordination, and emergent behavior. Fork it, extend the genome system, add new event types, or plug in your own LLM. The simulation engine, evolution system, and autonomous agent are all open source.
+
+Procedural narrative engine with genetic algorithms, multi-agent coordination, and emergent storytelling — all open source.
+
+- **Extend it** — add new event types, new genome traits, new faction behaviors. The simulation engine is modular
+- **Benchmark it** — 941 events generated autonomously across 323 days. Test your own LLM against Hermes-4-70B on structured world generation
+- **Study emergence** — no event is scripted. Watch how simple rules (genome-weighted event selection + fitness-based survival) produce complex narrative arcs
+- **Fork the agent** — the World Master implements observe→reason→act. Swap in your own reasoning engine and compare outcomes
 
 ---
 
@@ -397,9 +440,9 @@ npm install && npm run dev
 
 **v1.0 (Hackathon)** — Core simulation, Theater Mode, Cinematic Mode, ambient sound, voice narration, autonomous World Master, genetic evolution, God Mode, character chat, faction council, chronicle export, campaign kit, session prep, Telegram bot
 
-**v1.1** — Multiplayer worlds (shared persistence), voice-to-world (speak your world into existence), mobile-responsive UI
+**v1.1** — Multiplayer worlds (shared persistence), voice-to-world (speak your world into existence), PDF export for print-ready TTRPG modules, mobile-responsive UI
 
-**v2.0** — Community world sharing marketplace, genetic drift analysis tools, AI dungeon master mode for live TTRPG sessions
+**v2.0** — Community world sharing marketplace, live AI dungeon master mode for TTRPG sessions over Discord/Roll20, classroom mode (teacher controls simulation, students observe and interact), genetic drift analysis tools for researchers
 
 ---
 
@@ -409,7 +452,9 @@ Hermes Genesis demonstrates what Hermes Agent can do when given full creative co
 
 Every character decision, every faction power shift, every prophecy fulfilled — all driven by Hermes-4-70B reasoning over structured world state through the agent framework.
 
-The world doesn't wait for you. It lives on its own.
+A GM preps tonight's session in 60 seconds. A writer exports a chronicle and starts drafting chapter one. A teacher simulates the fall of an empire in front of the class. A researcher forks the genome system and benchmarks emergence.
+
+The world doesn't wait for you. It lives on its own. And when you're ready — you take it with you.
 
 ---
 
