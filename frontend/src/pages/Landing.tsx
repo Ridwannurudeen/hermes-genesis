@@ -81,8 +81,6 @@ function formatTime(iso: string): string {
   }
 }
 
-/* ── (features merged inline into main component) ── */
-
 /* ── Sticky header ── */
 
 function Header({ connected }: { connected: boolean }) {
@@ -234,8 +232,6 @@ const scaleIn = {
   hidden: { opacity: 0, scale: 0.96 },
   visible: { opacity: 1, scale: 1, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
 };
-
-/* ── (feature card component removed — merged inline) ── */
 
 /* ── World card ── */
 
@@ -660,22 +656,18 @@ export default function Landing() {
               {
                 title: 'Tabletop RPG',
                 text: 'Generate campaign settings, lore, and NPCs in seconds. Export chronicles as session prep. Your next D&D campaign starts here.',
-                accent: 'genesis-400',
               },
               {
                 title: 'Writers & Worldbuilders',
                 text: 'Build rich, consistent worlds with emergent history. Let the simulation surprise you with plot twists you\'d never write yourself.',
-                accent: 'genesis-400',
               },
               {
                 title: 'Game Developers',
                 text: 'Prototype narrative systems and faction dynamics. Test how political AI behaves when left to govern itself.',
-                accent: 'genesis-400',
               },
               {
                 title: 'AI Research & Education',
                 text: 'Explore emergent behavior, causal reasoning, and multi-agent simulation. A sandbox for studying how LLMs model complex systems.',
-                accent: 'genesis-400',
               },
             ].map((item) => (
               <motion.div
@@ -684,7 +676,7 @@ export default function Landing() {
                 className="glass rounded-2xl p-5 group"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 mt-2 rounded-full bg-${item.accent} shrink-0`} />
+                  <div className="w-2 h-2 mt-2 rounded-full bg-genesis-400 shrink-0" />
                   <div>
                     <h3 className="text-base font-bold text-genesis-100 font-display mb-1">
                       {item.title}
