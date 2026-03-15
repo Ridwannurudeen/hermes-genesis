@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Loader2 } from 'lucide-react';
+import { X, Send, Loader2, Dna, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../api';
 import type { Character, Faction } from '../types';
 
@@ -35,6 +35,46 @@ function TypingIndicator() {
   );
 }
 
+const TRAIT_LABELS: Record<string, [string, string]> = {
+  courage: ['Bold', 'Cautious'],
+  cunning: ['Shrewd', 'Naive'],
+  loyalty: ['Devoted', 'Mercenary'],
+  ambition: ['Ruthless', 'Content'],
+  empathy: ['Gentle', 'Cold'],
+  resilience: ['Iron', 'Fragile'],
+};
+
+const TRAIT_COLORS: Record<string, string> = {
+  courage: 'bg-red-500',
+  cunning: 'bg-amber-500',
+  loyalty: 'bg-blue-500',
+  ambition: 'bg-purple-500',
+  empathy: 'bg-emerald-500',
+  resilience: 'bg-cyan-500',
+};
+
+function GenomeBar({ trait, value }: { trait: string; value: number }) {
+  const [high, low] = TRAIT_LABELS[trait] || ['High', 'Low'];
+  const label = value > 0.6 ? high : value < 0.4 ? low : trait.charAt(0).toUpperCase() + trait.slice(1);
+  const color = TRAIT_COLORS[trait] || 'bg-gray-500';
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] text-gray-500 w-14 text-right truncate">{label}</span>
+      <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${value * 100}%` }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className={`h-full ${color} rounded-full`}
+          style={{ opacity: 0.4 + value * 0.6 }}
+        />
+      </div>
+      <span className="text-[10px] text-gray-600 w-6">{(value * 100).toFixed(0)}</span>
+    </div>
+  );
+}
+
 export default function CharacterChatModal({
   worldId,
   character,
@@ -45,6 +85,7 @@ export default function CharacterChatModal({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -153,31 +194,86 @@ export default function CharacterChatModal({
           className="bg-gray-950/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/50"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-            <div className="flex items-center gap-3">
-              {faction && (
-                <span
-                  className="w-3 h-3 rounded-full shrink-0"
-                  style={{ backgroundColor: faction.color }}
-                />
-              )}
-              <div>
-                <h2 className="text-lg font-bold text-gray-100">
-                  {character.name}
-                </h2>
-                <p className="text-xs text-gray-500 capitalize">
-                  {character.role}
-                  {faction ? ` \u00B7 ${faction.name}` : ''}
-                  {' \u00B7 '}{character.location}
-                </p>
+          <div className="shrink-0 border-b border-white/[0.06]">
+            {/* Top bar with faction color accent */}
+            <div
+              className="h-1 w-full opacity-60"
+              style={{ background: `linear-gradient(90deg, transparent, ${faction?.color || '#22d3ee'}, transparent)` }}
+            />
+            <div className="flex items-center justify-between px-5 py-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shrink-0"
+                  style={{
+                    backgroundColor: `${faction?.color || '#22d3ee'}20`,
+                    color: faction?.color || '#22d3ee',
+                  }}
+                >
+                  {character.name.charAt(0)}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-100">
+                    {character.name}
+                  </h2>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {character.role}
+                    {faction ? ` \u00B7 ${faction.name}` : ''}
+                    {' \u00B7 '}{character.location}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowProfile((p) => !p)}
+                  className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+                  title={showProfile ? 'Hide profile' : 'Show profile'}
+                >
+                  {showProfile ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/[0.06]"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            {/* Collapsible genome profile */}
+            <AnimatePresence>
+              {showProfile && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-5 pb-3 space-y-2">
+                    {/* Genome bars */}
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Dna className="w-3 h-3 text-genesis-400" />
+                      <span className="text-[10px] text-genesis-400 uppercase tracking-wider font-medium">Genome</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      {(['courage', 'cunning', 'loyalty', 'ambition', 'empathy', 'resilience'] as const).map((trait) => (
+                        <GenomeBar
+                          key={trait}
+                          trait={trait}
+                          value={character.genome?.[trait] ?? 0.5}
+                        />
+                      ))}
+                    </div>
+                    {/* Backstory */}
+                    {character.backstory && (
+                      <p className="text-[11px] text-gray-500 italic leading-relaxed line-clamp-2 mt-1">
+                        &ldquo;{character.backstory}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Chat messages */}
