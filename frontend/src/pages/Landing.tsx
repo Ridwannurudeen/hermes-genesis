@@ -612,6 +612,127 @@ export default function Landing() {
           </div>
         </motion.section>
 
+        {/* ── How It Works ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          variants={stagger}
+          className="mb-24"
+        >
+          <motion.div variants={fadeUp} className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-white font-display mb-2">
+              How It Works
+            </h2>
+            <p className="text-sm text-gray-500">
+              From a single sentence to a living, breathing civilization.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                step: '01',
+                icon: BookOpen,
+                title: 'Describe',
+                text: 'Write a seed — any premise, any genre. A dying empire, a cyberpunk megacity, Norse Ragnarok. One sentence is all it takes.',
+              },
+              {
+                step: '02',
+                icon: Globe,
+                title: 'Generate',
+                text: 'Hermes builds an entire world: regions with terrain, factions with ideology, characters with genetic codes — all interconnected.',
+              },
+              {
+                step: '03',
+                icon: Swords,
+                title: 'Simulate',
+                text: 'Hit play and watch history unfold. Wars erupt, alliances shift, leaders fall, prophecies fulfill. Every event has consequences.',
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.step}
+                variants={scaleIn}
+                className="glass rounded-2xl p-6 text-center relative overflow-hidden group"
+              >
+                <span className="absolute top-4 right-4 text-genesis-800/40 font-display text-4xl font-black">
+                  {item.step}
+                </span>
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-genesis-400/20 to-genesis-600/20 border border-genesis-400/20 flex items-center justify-center">
+                  <item.icon className="w-6 h-6 text-genesis-400" />
+                </div>
+                <h3 className="text-lg font-bold text-genesis-100 font-display mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-genesis-300 leading-relaxed">
+                  {item.text}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* ── Use Cases ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          variants={stagger}
+          className="mb-24"
+        >
+          <motion.div variants={fadeUp} className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-white font-display mb-2">
+              Built For
+            </h2>
+            <p className="text-sm text-gray-500">
+              Whether you create worlds for fun or for work.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              {
+                title: 'Tabletop RPG',
+                text: 'Generate campaign settings, lore, and NPCs in seconds. Export chronicles as session prep. Your next D&D campaign starts here.',
+                accent: 'genesis-400',
+              },
+              {
+                title: 'Writers & Worldbuilders',
+                text: 'Build rich, consistent worlds with emergent history. Let the simulation surprise you with plot twists you\'d never write yourself.',
+                accent: 'genesis-400',
+              },
+              {
+                title: 'Game Developers',
+                text: 'Prototype narrative systems and faction dynamics. Test how political AI behaves when left to govern itself.',
+                accent: 'genesis-400',
+              },
+              {
+                title: 'AI Research & Education',
+                text: 'Explore emergent behavior, causal reasoning, and multi-agent simulation. A sandbox for studying how LLMs model complex systems.',
+                accent: 'genesis-400',
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.title}
+                variants={scaleIn}
+                className="glass rounded-2xl p-5 group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-2 h-2 mt-2 rounded-full bg-${item.accent} shrink-0`} />
+                  <div>
+                    <h3 className="text-base font-bold text-genesis-100 font-display mb-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-genesis-300 leading-relaxed">
+                      {item.text}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
         {/* ── Recent Worlds ── */}
         <AnimatePresence>
           {worlds.length > 0 && (
