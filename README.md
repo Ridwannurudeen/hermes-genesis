@@ -81,7 +81,55 @@ This project exists because of capabilities unique to Hermes:
 
 ## Hermes Agent Integration
 
-Hermes Genesis ships with **5 custom hermes-agent skills** and an **MCP bridge server**, so the [Hermes Agent](https://github.com/NousResearch/hermes-agent) framework can orchestrate worlds natively through its tool system.
+Hermes Genesis ships with **5 custom hermes-agent skills**, an **MCP bridge server** (11 tools), and a **one-command setup script**. [Hermes Agent v0.2.0](https://github.com/NousResearch/hermes-agent) is **installed and running on our production VPS**, orchestrating worlds through its native tool system.
+
+### Live Demo: hermes-agent Controlling Genesis
+
+hermes-agent discovers and calls our MCP tools automatically:
+
+```
+$ hermes chat -q "Use the genesis MCP tools to list all available worlds"
+
+⚡ mcp_genesis_genesis_list_worlds   0.2s
+
+Here are the available worlds:
+
+1. Crossroads of Hermes — Day 323, ready
+2. Silent Sky Voyager — Day 146, ready
+3. Wellspring Kingdom — Day 335, ready
+4. Crimson Tides — Day 57, ready
+...13 worlds total
+```
+
+hermes-agent runs simulation ticks that generate real events powered by Hermes-4-70B:
+
+```
+$ hermes chat -q "Simulate one tick for world_530e99fbdb22"
+
+💻 curl -X POST http://localhost:8003/api/worlds/world_530e99fbdb22/simulate   4.0s
+
+The simulation has been completed. Events that occurred:
+
+1. Military Conflict: Toius Ember vs Cyna Sand
+   - Territory Changes: faction_02 gained control of region_05
+   - Toius Ember fitness boosted by 0.1
+
+2. Betrayal: Cyrus Sand vs Toea Ember
+   - Toea Ember fitness dropped by 0.2
+
+3. Military Conflict: Toius Ember vs Seraion Silk (consequence)
+   - Territory Changes: faction_02 gained control of region_03
+   - Morale Changes: faction_03 morale decreased by 8
+```
+
+### Setup ([`setup-hermes-agent.sh`](setup-hermes-agent.sh))
+
+```bash
+./setup-hermes-agent.sh              # local backend
+./setup-hermes-agent.sh http://75.119.153.252:8003  # remote VPS
+```
+
+This installs hermes-agent, the MCP bridge, and 5 custom skills in one command.
 
 ### Custom Skills ([`skills/`](skills/))
 
@@ -95,38 +143,19 @@ Hermes Genesis ships with **5 custom hermes-agent skills** and an **MCP bridge s
 
 ### MCP Bridge ([`mcp-bridge/`](mcp-bridge/))
 
-The MCP bridge exposes 11 Genesis API tools to hermes-agent:
-
-```bash
-# Install the bridge
-cd mcp-bridge && npm install
-
-# Add to ~/.hermes/config.yaml
-mcp_servers:
-  genesis:
-    command: "node"
-    args: ["path/to/hermes-genesis/mcp-bridge/server.mjs"]
-    env:
-      GENESIS_API_URL: "http://localhost:8003"
-```
-
-Once connected, hermes-agent can create worlds, run simulations, intervene, chat with characters, and export chronicles — all through natural conversation:
+11 tools exposed via Model Context Protocol — hermes-agent auto-discovers them:
 
 ```
-hermes> Create a world about Viking raiders battling sea serpents
-# → calls genesis_create_world
-
-hermes> Start the World Master and let it run for 50 days
-# → calls genesis_agent_start
-
-hermes> Talk to the war chief about the last battle
-# → calls genesis_chat
+genesis_create_world    genesis_simulate      genesis_intervene
+genesis_get_world       genesis_list_worlds   genesis_chat
+genesis_council         genesis_chronicle     genesis_agent_start
+genesis_agent_stop      genesis_agent_status
 ```
 
 ### Architecture: How It Fits Together
 
 ```
-  hermes-agent CLI / Gateway
+  hermes-agent v0.2.0 (installed on VPS)
          |
     MCP Protocol (stdio)
          |
@@ -144,7 +173,36 @@ hermes> Talk to the war chief about the last battle
     Hermes-4-70B (NousResearch API)
 ```
 
-The World Master agent (`autonomous_agent.py`) implements the same observe→reason→act pattern as hermes-agent's core loop — but domain-specialized for world simulation with genetic evolution, prophecy tracking, and narrative arc planning.
+The World Master agent ([`autonomous_agent.py`](backend/autonomous_agent.py)) implements the same observe→reason→act pattern as hermes-agent's core loop — domain-specialized for world simulation with genetic evolution, prophecy tracking, and narrative arc planning.
+
+---
+
+## Proof of Scale — Live API Stats
+
+These numbers come from the **[live production API](http://75.119.153.252:8003)**, not a demo:
+
+```
+$ curl -s http://75.119.153.252:8003/api/worlds/world_530e99fbdb22 | jq '{...}'
+
+World: Crossroads of Hermes
+Day: 323
+Events: 941
+Characters: 146 alive, 50 dead (196 total)
+Factions: 4
+Regions: 6
+Prophecies: 4/4 fulfilled
+Agent logs: 14
+
+Event breakdown:
+  birth: 181          military_conflict: 168
+  political_intrigue: 124   alliance: 91
+  succession: 84      cultural_shift: 81
+  discovery: 73        betrayal: 52
+  death: 43            natural_disaster: 31
+  divine_intervention: 9    prophecy_fulfilled: 4
+```
+
+13 worlds running on the VPS. The largest (Wellspring Kingdom) has reached **Day 335**. All events, characters, and faction dynamics are generated autonomously by Hermes-4-70B — no human scripting.
 
 ---
 
