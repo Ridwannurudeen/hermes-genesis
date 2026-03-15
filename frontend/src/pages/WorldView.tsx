@@ -590,10 +590,19 @@ export default function WorldView() {
           </motion.div>
         </AnimatePresence>
 
-        {/* ── God Mode Panel (visible in any view mode) ───── */}
-        <AnimatePresence>
-          {godMode && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
+      </div>
+
+      {/* ── God Mode Panel (fixed bottom bar) ────────────── */}
+      <AnimatePresence>
+        {godMode && (
+          <motion.div
+            initial={{ opacity: 0, y: 80 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 80 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="fixed bottom-0 left-0 right-0 z-40 px-6 pb-4 pt-2"
+          >
+            <div className="max-w-4xl mx-auto">
               <Suspense fallback={<div className="text-sub p-4">Loading god mode...</div>}>
                 <GodModePanel
                   worldId={world.id}
@@ -603,10 +612,10 @@ export default function WorldView() {
                   }}
                 />
               </Suspense>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Analytics Drawer (right sidebar) ──────────────── */}
       <Suspense fallback={null}>
