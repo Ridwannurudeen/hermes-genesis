@@ -16,7 +16,6 @@ import {
   Wifi,
   WifiOff,
   ArrowRight,
-  Command,
   Sparkles,
   Map,
   Users,
@@ -734,77 +733,30 @@ export default function Landing() {
           </div>
         </motion.section>
 
-        {/* ── Create Your World (CTA) ── */}
+        {/* ── CTA — scroll back to top ── */}
         <motion.section
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={stagger}
-          className="max-w-2xl mx-auto mb-32"
+          className="max-w-2xl mx-auto mb-32 text-center"
         >
-          <motion.div variants={fadeUp} className="text-center mb-8">
+          <motion.div variants={fadeUp}>
             <h2 className="text-2xl font-bold text-heading font-display mb-2">
               Ready to Create?
             </h2>
-            <p className="text-sm text-dim">
+            <p className="text-sm text-dim mb-6">
               Describe any world. Genesis will do the rest.
             </p>
-          </motion.div>
-
-          <motion.div variants={fadeUp}>
-            <textarea
-              value={seed}
-              onChange={(e) => setSeed(e.target.value)}
-              placeholder={PLACEHOLDER_SEEDS[placeholderIdx]}
-              rows={4}
-              disabled={loading}
-              className="w-full glass-input rounded-2xl px-6 py-5 text-input text-lg placeholder-faint focus:outline-none resize-none disabled:opacity-50 font-light"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleGenerate();
-              }}
-              aria-label="World seed description"
-            />
-          </motion.div>
-
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                className="text-red-400 text-sm mt-2 text-center"
-                role="alert"
-              >
-                {error}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          <motion.div variants={fadeUp} className="mt-4">
             <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGenerate}
-              disabled={loading || !seed.trim()}
-              className="w-full py-4 bg-genesis-600 hover:bg-genesis-500 disabled:bg-genesis-900 disabled:text-genesis-700 text-white font-semibold text-lg rounded-2xl transition-colors flex items-center justify-center gap-3 btn-glow disabled:shadow-none"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-genesis-600 hover:bg-genesis-500 text-white font-semibold text-lg rounded-2xl transition-colors btn-glow"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{stageMessage}</span>
-                </>
-              ) : (
-                <>
-                  <Globe className="w-5 h-5" />
-                  Generate World
-                </>
-              )}
+              <Globe className="w-5 h-5" />
+              Generate World
             </motion.button>
-
-            <p className="text-faint text-xs text-center mt-3 flex items-center justify-center gap-1.5">
-              <Command className="w-3 h-3" />
-              <span>Ctrl + Enter to generate</span>
-            </p>
           </motion.div>
         </motion.section>
       </main>
