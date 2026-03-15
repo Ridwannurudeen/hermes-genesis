@@ -25,6 +25,7 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
 - Autonomous World Master &mdash; an AI agent observes, reasons, intervenes, and chases prophecies on its own
 - **Download World** &mdash; export everything as structured Markdown for Obsidian, Notion, wikis, or TTRPG prep
 - **Campaign Kit / Session Prep** &mdash; AI-generated encounter tables, plot hooks, and GM session plans
+- Light/Dark mode &mdash; warm parchment light theme, dark leather dark theme, persists via localStorage
 - Hermes Agent Skills &mdash; 5 custom skills + MCP bridge for hermes-agent integration
 
 <table>
@@ -253,6 +254,7 @@ Event breakdown:
 | **Interactive** | SVG world map with event markers, God Mode intervention, character chat, faction council debates |
 | **Analytics** | Faction power timeline (Recharts), genome evolution chart, D3 force-directed relationship graph |
 | **Export** | Chronicle (epic narrative), Campaign Kit (TTRPG module), Session Prep (GM plan), **Download World** (full Markdown export for Obsidian/Notion) |
+| **Theming** | Light/dark mode toggle with warm parchment (light) and dark leather (dark) themes, localStorage persistence, 30+ theme-aware components |
 | **Integration** | Telegram bot, SSE streaming, hermes-agent MCP bridge, autonomous agent with start/stop/status/logs API |
 
 ---
