@@ -83,43 +83,51 @@ This project exists because of capabilities unique to Hermes:
 
 Hermes Genesis ships with **5 custom hermes-agent skills**, an **MCP bridge server** (11 tools), and a **one-command setup script**. [Hermes Agent v0.2.0](https://github.com/NousResearch/hermes-agent) is **installed and running on our production VPS**, orchestrating worlds through its native tool system.
 
-### Live Demo: hermes-agent Controlling Genesis
+### Hermes-4-70B Powers Everything — Orchestration AND Simulation
 
-hermes-agent discovers and calls our MCP tools automatically:
+The agent demo ([`hermes-agent-demo.py`](hermes-agent-demo.py)) uses **Hermes-native tool calling** (`<tool_call>` format) so Hermes-4-70B handles ALL layers — reasoning about which tools to call, generating simulation events, and summarizing results:
 
 ```
-$ hermes chat -q "Use the genesis MCP tools to list all available worlds"
+$ python3 hermes-agent-demo.py "Simulate one tick for world_530e99fbdb22"
+
+============================================================
+  Hermes Agent — powered by Hermes-4-70B
+============================================================
+
+[1/3] Reasoning with Hermes-4-70B...
+[2/3] Calling genesis_simulate({"world_id": "world_530e99fbdb22"})...
+[3/3] Summarizing with Hermes-4-70B...
+
+In the world of Crossroads of Hermes, day 324 unfolded:
+
+1. Betrayal at the Crossroads: Cyrus Sand betrayed Toea Ember,
+   luring him into a trap. Toea's fitness diminished significantly.
+
+2. Cultural Shift: Cyna Sand outmaneuvered Cyrus Sand at the Grand
+   Bazaar, forever altering the balance of power among mortals.
+
+3. Military Conflict: Seraion Silk's forces outmatched Yelena of
+   Toius Ember at the sacred crossroads.
+
+4. Death: Toea Ember fell. Though ultimately betrayed by Cyrus Sand,
+   Toea's legacy endures as one of steadfast devotion.
+
+============================================================
+  All layers powered by Hermes-4-70B
+============================================================
+```
+
+hermes-agent v0.2.0 also connects via MCP bridge, discovering all 11 Genesis tools automatically:
+
+```
+$ hermes chat -q "Use genesis MCP tools to list all worlds"
 
 ⚡ mcp_genesis_genesis_list_worlds   0.2s
 
-Here are the available worlds:
-
-1. Crossroads of Hermes — Day 323, ready
-2. Silent Sky Voyager — Day 146, ready
-3. Wellspring Kingdom — Day 335, ready
-4. Crimson Tides — Day 57, ready
+1. Crossroads of Hermes — Day 323
+2. Silent Sky Voyager — Day 146
+3. Wellspring Kingdom — Day 335
 ...13 worlds total
-```
-
-hermes-agent runs simulation ticks that generate real events powered by Hermes-4-70B:
-
-```
-$ hermes chat -q "Simulate one tick for world_530e99fbdb22"
-
-💻 curl -X POST http://localhost:8003/api/worlds/world_530e99fbdb22/simulate   4.0s
-
-The simulation has been completed. Events that occurred:
-
-1. Military Conflict: Toius Ember vs Cyna Sand
-   - Territory Changes: faction_02 gained control of region_05
-   - Toius Ember fitness boosted by 0.1
-
-2. Betrayal: Cyrus Sand vs Toea Ember
-   - Toea Ember fitness dropped by 0.2
-
-3. Military Conflict: Toius Ember vs Seraion Silk (consequence)
-   - Territory Changes: faction_02 gained control of region_03
-   - Morale Changes: faction_03 morale decreased by 8
 ```
 
 ### Setup ([`setup-hermes-agent.sh`](setup-hermes-agent.sh))
