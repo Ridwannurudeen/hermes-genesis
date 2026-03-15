@@ -18,6 +18,12 @@ import {
   ArrowRight,
   Command,
   Sparkles,
+  Map,
+  Users,
+  Scroll,
+  Music,
+  Eye,
+  Crown,
 } from 'lucide-react';
 import { api } from '../api';
 import type { WorldSummary } from '../types';
@@ -515,13 +521,38 @@ export default function Landing() {
 
           <motion.p
             variants={fadeUp}
-            className="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed"
+            className="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed mb-6"
           >
             An autonomous living world engine powered by{' '}
             <span className="text-gray-400">Hermes-4-70B</span>. AI agents govern
             civilizations, fulfill prophecies, and write history — no human input
             required.
           </motion.p>
+
+          {/* Powered by badge */}
+          <motion.div variants={fadeUp} className="flex items-center justify-center gap-3 mb-4">
+            <a
+              href="https://nousresearch.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-genesis-950/80 border border-genesis-700/30 hover:border-genesis-500/50 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-genesis-400" />
+              <span className="text-xs font-medium text-genesis-300">Powered by</span>
+              <span className="text-xs font-bold text-genesis-100">Hermes-4-70B</span>
+              <span className="text-[10px] text-genesis-500">by Nous Research</span>
+            </a>
+          </motion.div>
+
+          {/* Tech stack line */}
+          <motion.div variants={fadeUp} className="flex items-center justify-center gap-2 flex-wrap">
+            {['Genetic Simulation', 'Causal Event Engine', 'Autonomous AI Agents', 'Voice & Ambient Audio', 'Cinematic Mode'].map((tag, i) => (
+              <span key={tag} className="flex items-center gap-1.5">
+                {i > 0 && <span className="text-genesis-800 text-xs">·</span>}
+                <span className="text-[11px] text-genesis-500 tracking-wide">{tag}</span>
+              </span>
+            ))}
+          </motion.div>
         </motion.section>
 
         {/* ── Seed Input ── */}
@@ -610,6 +641,65 @@ export default function Landing() {
               <FeatureCard key={feature.title} feature={feature} />
             ))}
           </div>
+        </motion.section>
+
+        {/* ── What Gets Generated (Preview) ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          variants={stagger}
+          className="mb-24"
+        >
+          <motion.div variants={fadeUp} className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-white font-display mb-2">
+              One Sentence Creates All of This
+            </h2>
+            <p className="text-sm text-gray-500 max-w-lg mx-auto">
+              From a single prompt, Genesis builds an entire living civilization — then lets you watch it evolve.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { icon: Map, label: 'Regions', detail: '5+ with terrain, resources & borders', color: 'text-green-400' },
+              { icon: Users, label: 'Factions', detail: 'Ideology, morale, territory & armies', color: 'text-blue-400' },
+              { icon: Crown, label: 'Characters', detail: '12+ with genetics, roles & lineage', color: 'text-genesis-400' },
+              { icon: Swords, label: 'Events', detail: 'Wars, alliances, betrayals, births', color: 'text-red-400' },
+              { icon: Scroll, label: 'Prophecies', detail: 'Planted and fulfilled dynamically', color: 'text-purple-400' },
+              { icon: Music, label: 'Soundtrack', detail: 'Reactive ambient music per event', color: 'text-cyan-400' },
+            ].map((item) => (
+              <motion.div
+                key={item.label}
+                variants={scaleIn}
+                className="glass rounded-xl p-4 text-center group"
+              >
+                <item.icon className={`w-7 h-7 mx-auto mb-2 ${item.color} opacity-80`} />
+                <p className="text-sm font-bold text-genesis-100 font-display">{item.label}</p>
+                <p className="text-[11px] text-genesis-400 mt-1 leading-snug">{item.detail}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Immersive modes row */}
+          <motion.div variants={fadeUp} className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { icon: Eye, title: 'Cinematic Mode', desc: 'AI-generated scene art, voice narration, and reactive music — fully autonomous.' },
+              { icon: Zap, title: 'God Mode', desc: 'Type a command in natural language. Reality bends. The world absorbs it and evolves.' },
+              { icon: Brain, title: 'Autonomous Agent', desc: 'A World Master AI runs the simulation on its own — observing, deciding, intervening.' },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="glass rounded-xl p-4 border border-genesis-800/30"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <item.icon className="w-4 h-4 text-genesis-400" />
+                  <h4 className="text-sm font-bold text-genesis-100 font-display">{item.title}</h4>
+                </div>
+                <p className="text-[12px] text-genesis-300 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </motion.div>
         </motion.section>
 
         {/* ── How It Works ── */}
