@@ -19,11 +19,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
-      },
-      animation: {
-        'shimmer': 'text-shimmer 4s linear infinite',
-        'glow': 'glow-pulse 2.5s ease-in-out infinite',
+        display: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

@@ -1,18 +1,53 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-/* ── Sound profiles per event type ──────────────────────────── */
+/* ── Theme detection from world seed ── */
+
+type ThemeKey = 'cyberpunk' | 'scifi' | 'horror' | 'mythology' | 'medieval' | 'postapoc' | 'default';
+
+interface ThemeModifier {
+  freqMultiplier: number;    // shift all frequencies up/down
+  preferOsc: OscillatorType; // override base oscillator tendency
+  filterShift: number;       // add/subtract from filter cutoff
+  noiseBoost: number;        // add to noise level
+  lfoShift: number;          // add to LFO rate
+  gainMultiplier: number;
+}
+
+const THEME_MODIFIERS: Record<ThemeKey, ThemeModifier> = {
+  cyberpunk:  { freqMultiplier: 1.3,  preferOsc: 'sawtooth',  filterShift: 200,  noiseBoost: 0.06, lfoShift: 0.5, gainMultiplier: 1.1 },
+  scifi:     { freqMultiplier: 1.2,  preferOsc: 'triangle',  filterShift: 300,  noiseBoost: 0.03, lfoShift: 0.3, gainMultiplier: 1.0 },
+  horror:    { freqMultiplier: 0.7,  preferOsc: 'sawtooth',  filterShift: -200, noiseBoost: 0.1,  lfoShift: -0.2, gainMultiplier: 1.2 },
+  mythology: { freqMultiplier: 1.0,  preferOsc: 'sine',      filterShift: 100,  noiseBoost: 0.02, lfoShift: 0.0, gainMultiplier: 1.0 },
+  medieval:  { freqMultiplier: 0.85, preferOsc: 'triangle',  filterShift: -100, noiseBoost: 0.02, lfoShift: -0.1, gainMultiplier: 1.0 },
+  postapoc:  { freqMultiplier: 0.8,  preferOsc: 'sawtooth',  filterShift: -150, noiseBoost: 0.12, lfoShift: 0.8, gainMultiplier: 1.15 },
+  default:   { freqMultiplier: 1.0,  preferOsc: 'sine',      filterShift: 0,    noiseBoost: 0,    lfoShift: 0, gainMultiplier: 1.0 },
+};
+
+function detectTheme(seed: string): ThemeKey {
+  const s = seed.toLowerCase();
+  if (/cyber|neon|corp|hack|ai\b|android|robot|digital|synth/.test(s)) return 'cyberpunk';
+  if (/space|ship|galact|planet|star|orbit|asteroid|colony/.test(s)) return 'scifi';
+  if (/horror|undead|demon|curse|dark|shadow|blood|eldritch|lovecraft|cthulhu/.test(s)) return 'horror';
+  if (/myth|god|norse|greek|olymp|ragnarok|zeus|odin|pantheon|divine/.test(s)) return 'mythology';
+  if (/apocalyp|wasteland|survive|ruin|collapse|fallout|bunker/.test(s)) return 'postapoc';
+  if (/rome|empire|caesar|medieval|knight|king|queen|throne|castle|sword|kingdom/.test(s)) return 'medieval';
+  return 'default';
+}
+
+/* ── Sound profiles per event type ── */
+
 interface SoundProfile {
   baseFreq: number;
   oscType: OscillatorType;
   secondOscType?: OscillatorType;
-  secondInterval?: number; // multiplier for chord interval (e.g. 1.5 = perfect 5th)
-  detune?: number;         // cents detune for second osc
+  secondInterval?: number;
+  detune?: number;
   filterType: BiquadFilterType;
   filterFreq: number;
   lfoRate: number;
-  lfoDepth: number;       // 0-1 how much LFO modulates gain
-  noiseLevel: number;     // 0-1
-  gain: number;           // base gain 0-1
+  lfoDepth: number;
+  noiseLevel: number;
+  gain: number;
 }
 
 const PROFILES: Record<string, SoundProfile> = {
@@ -25,7 +60,7 @@ const PROFILES: Record<string, SoundProfile> = {
     lfoRate: 0.5, lfoDepth: 0.2, noiseLevel: 0.08, gain: 0.10,
   },
   political_intrigue: {
-    baseFreq: 131, oscType: 'sine', secondOscType: 'triangle', secondInterval: 1.189, // minor 3rd
+    baseFreq: 131, oscType: 'sine', secondOscType: 'triangle', secondInterval: 1.189,
     filterType: 'bandpass', filterFreq: 800, lfoRate: 1.5, lfoDepth: 0.25, noiseLevel: 0.06, gain: 0.09,
   },
   alliance: {
@@ -33,7 +68,7 @@ const PROFILES: Record<string, SoundProfile> = {
     lfoRate: 0.3, lfoDepth: 0.15, noiseLevel: 0.03, gain: 0.08,
   },
   succession: {
-    baseFreq: 262, oscType: 'sine', secondOscType: 'sine', secondInterval: 1.5, // perfect 5th
+    baseFreq: 262, oscType: 'sine', secondOscType: 'sine', secondInterval: 1.5,
     filterType: 'lowpass', filterFreq: 1500, lfoRate: 0.4, lfoDepth: 0.15, noiseLevel: 0.04, gain: 0.08,
   },
   discovery: {
@@ -75,6 +110,18 @@ const DEFAULT_PROFILE: SoundProfile = {
   lfoRate: 0.5, lfoDepth: 0.15, noiseLevel: 0.04, gain: 0.07,
 };
 
+function applyTheme(profile: SoundProfile, mod: ThemeModifier): SoundProfile {
+  return {
+    ...profile,
+    baseFreq: profile.baseFreq * mod.freqMultiplier,
+    oscType: mod.preferOsc !== 'sine' ? mod.preferOsc : profile.oscType,
+    filterFreq: Math.max(100, profile.filterFreq + mod.filterShift),
+    noiseLevel: Math.min(0.4, profile.noiseLevel + mod.noiseBoost),
+    lfoRate: Math.max(0.1, profile.lfoRate + mod.lfoShift),
+    gain: profile.gain * mod.gainMultiplier,
+  };
+}
+
 const FADE_IN = 1.5;
 const FADE_OUT = 1.5;
 
@@ -89,18 +136,23 @@ interface ActiveSound {
   filter: BiquadFilterNode;
 }
 
-export function useAmbientSound(enabled: boolean) {
+export function useAmbientSound(enabled: boolean, worldSeed: string = '') {
   const ctxRef = useRef<AudioContext | null>(null);
   const activeRef = useRef<ActiveSound | null>(null);
   const currentTypeRef = useRef<string | null>(null);
   const volumeRef = useRef(0.5);
   const mountedRef = useRef(true);
+  const themeRef = useRef<ThemeKey>('default');
+
+  // Detect theme from seed once
+  useEffect(() => {
+    themeRef.current = worldSeed ? detectTheme(worldSeed) : 'default';
+  }, [worldSeed]);
 
   const getContext = useCallback(() => {
     if (!ctxRef.current || ctxRef.current.state === 'closed') {
       ctxRef.current = new AudioContext();
     }
-    // Resume if suspended (browser autoplay policy)
     if (ctxRef.current.state === 'suspended') {
       ctxRef.current.resume();
     }
@@ -108,7 +160,7 @@ export function useAmbientSound(enabled: boolean) {
   }, []);
 
   const createNoiseBuffer = useCallback((ctx: AudioContext): AudioBuffer => {
-    const size = ctx.sampleRate * 2; // 2 seconds of noise
+    const size = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, size, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < size; i++) {
@@ -143,11 +195,12 @@ export function useAmbientSound(enabled: boolean) {
 
   const play = useCallback((eventType: string) => {
     if (!enabled || !mountedRef.current) return;
-    // Same type already playing — skip
     if (currentTypeRef.current === eventType && activeRef.current) return;
 
     const ctx = getContext();
-    const profile = PROFILES[eventType] || DEFAULT_PROFILE;
+    const baseProfile = PROFILES[eventType] || DEFAULT_PROFILE;
+    const themeMod = THEME_MODIFIERS[themeRef.current];
+    const profile = applyTheme(baseProfile, themeMod);
 
     // Fade out current sound
     if (activeRef.current) {
@@ -157,7 +210,7 @@ export function useAmbientSound(enabled: boolean) {
 
     const now = ctx.currentTime;
 
-    // Master gain (volume envelope)
+    // Master gain
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(0, now);
     masterGain.gain.linearRampToValueAtTime(profile.gain * volumeRef.current, now + FADE_IN);
@@ -168,7 +221,7 @@ export function useAmbientSound(enabled: boolean) {
     filter.frequency.setValueAtTime(profile.filterFreq, now);
     filter.Q.setValueAtTime(1, now);
 
-    // LFO → tremolo on master gain
+    // LFO
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
     lfo.frequency.setValueAtTime(profile.lfoRate, now);
@@ -186,17 +239,17 @@ export function useAmbientSound(enabled: boolean) {
 
     // Oscillator 2 (optional chord/detune layer)
     let osc2: OscillatorNode | undefined;
-    if (profile.secondOscType) {
+    if (baseProfile.secondOscType) {
       osc2 = ctx.createOscillator();
-      osc2.type = profile.secondOscType;
-      if (profile.secondInterval) {
-        osc2.frequency.setValueAtTime(profile.baseFreq * profile.secondInterval, now);
+      osc2.type = baseProfile.secondOscType;
+      if (baseProfile.secondInterval) {
+        osc2.frequency.setValueAtTime(profile.baseFreq * baseProfile.secondInterval, now);
       } else {
         osc2.frequency.setValueAtTime(profile.baseFreq, now);
-        if (profile.detune) osc2.detune.setValueAtTime(profile.detune, now);
+        if (baseProfile.detune) osc2.detune.setValueAtTime(baseProfile.detune, now);
       }
       const osc2Gain = ctx.createGain();
-      osc2Gain.gain.setValueAtTime(0.6, now); // slightly quieter than osc1
+      osc2Gain.gain.setValueAtTime(0.6, now);
       osc2.connect(osc2Gain);
       osc2Gain.connect(filter);
       osc2.start(now);
@@ -216,10 +269,9 @@ export function useAmbientSound(enabled: boolean) {
       noiseSource.start(now);
     }
 
-    // Connect: filter → masterGain → destination
+    // Connect
     filter.connect(masterGain);
     masterGain.connect(ctx.destination);
-
     osc1.start(now);
 
     const sound: ActiveSound = {
@@ -239,10 +291,10 @@ export function useAmbientSound(enabled: boolean) {
 
   const setVolume = useCallback((vol: number) => {
     volumeRef.current = Math.max(0, Math.min(1, vol));
-    // Update live gain if playing
     if (activeRef.current && ctxRef.current) {
       const now = ctxRef.current.currentTime;
-      const profile = PROFILES[currentTypeRef.current || ''] || DEFAULT_PROFILE;
+      const baseProfile = PROFILES[currentTypeRef.current || ''] || DEFAULT_PROFILE;
+      const profile = applyTheme(baseProfile, THEME_MODIFIERS[themeRef.current]);
       activeRef.current.masterGain.gain.cancelScheduledValues(now);
       activeRef.current.masterGain.gain.setValueAtTime(
         activeRef.current.masterGain.gain.value, now
@@ -253,14 +305,10 @@ export function useAmbientSound(enabled: boolean) {
     }
   }, []);
 
-  // Stop when disabled
   useEffect(() => {
-    if (!enabled) {
-      stop();
-    }
+    if (!enabled) stop();
   }, [enabled, stop]);
 
-  // Cleanup on unmount — hard stop, no fade
   useEffect(() => {
     mountedRef.current = true;
     return () => {

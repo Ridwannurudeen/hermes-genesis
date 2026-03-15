@@ -28,6 +28,7 @@ const SCENE_GRADIENTS: Record<string, string> = {
 interface Props {
   worldId: string;
   worldName: string;
+  worldSeed?: string;
   currentDay: number;
   geography: Geography;
   factionMap: Record<string, { name: string; color: string }>;
@@ -41,6 +42,7 @@ interface Props {
 export default function CinematicMode({
   worldId,
   worldName,
+  worldSeed = '',
   currentDay,
   geography,
   factionMap,
@@ -65,7 +67,7 @@ export default function CinematicMode({
   const onQueueDrainRef = useRef<(() => void) | null>(null);
 
   const { speak } = useVoiceNarration(true);
-  const { play: playAmbient } = useAmbientSound(true);
+  const { play: playAmbient } = useAmbientSound(true, worldSeed);
 
   // Lock body scroll
   useEffect(() => {

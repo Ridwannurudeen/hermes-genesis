@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,24 +10,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Animated gradient background ── */
+/* ── Static gradient background ── */
 .bg-gradient-animated {
-  background: linear-gradient(
-    135deg,
-    #0f0520 0%,
-    #1e1145 25%,
-    #0c1631 50%,
-    #1a0a2e 75%,
-    #0f0520 100%
-  );
-  background-size: 400% 400%;
-  animation: gradient-shift 12s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  background: linear-gradient(135deg, #0f0520 0%, #1e1145 25%, #0c1631 50%, #1a0a2e 75%, #0f0520 100%);
 }
 
 /* ── Subtle grid pattern ── */
@@ -39,40 +23,24 @@ body {
   background-size: 40px 40px;
 }
 
-/* ── Text shimmer effect ── */
-@keyframes text-shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
+/* ── Static gradient text ── */
 .text-shimmer {
-  background: linear-gradient(
-    90deg,
-    #a78bfa 0%,
-    #c4b5fd 25%,
-    #ffffff 50%,
-    #c4b5fd 75%,
-    #a78bfa 100%
-  );
-  background-size: 200% auto;
+  background: linear-gradient(90deg, #a78bfa 0%, #c4b5fd 30%, #ffffff 50%, #c4b5fd 70%, #a78bfa 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: text-shimmer 4s linear infinite;
 }
 
-/* ── Glow pulse for Generate button ── */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 40px rgba(167, 139, 250, 0.05); }
-  50% { box-shadow: 0 0 30px rgba(167, 139, 250, 0.3), 0 0 60px rgba(167, 139, 250, 0.1); }
-}
-
+/* ── Generate button glow (static) ── */
 .btn-glow {
-  animation: glow-pulse 2.5s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 40px rgba(167, 139, 250, 0.05);
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.3), 0 0 60px rgba(167, 139, 250, 0.1);
 }
 
 .btn-glow:disabled {
-  animation: none;
   box-shadow: none;
 }
 
@@ -87,25 +55,21 @@ body {
   box-shadow: 0 0 20px rgba(167, 139, 250, 0.06), inset 0 0 20px rgba(167, 139, 250, 0.02);
 }
 
-/* ── Frosted glass ── */
+/* ── Frosted glass (no blur — solid dark bg) ── */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(15, 15, 25, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 20, 35, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-input:focus {
   border-color: rgba(167, 139, 250, 0.4);
-  box-shadow: 0 0 30px rgba(167, 139, 250, 0.08), inset 0 0 30px rgba(167, 139, 250, 0.02);
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.08);
 }
 
 /* ── Icon neon aura ── */
@@ -116,23 +80,6 @@ body {
 
 .group:hover .icon-aura {
   filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.5));
-}
-
-/* ── Particle field ── */
-@keyframes particle-float {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
-}
-
-.particle {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: rgba(167, 139, 250, 0.4);
-  border-radius: 50%;
-  animation: particle-float linear infinite;
 }
 
 /* ── Scrollbar styling ── */

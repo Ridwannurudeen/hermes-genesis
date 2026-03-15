@@ -445,6 +445,7 @@ export default function WorldView() {
                   factionMap={mapData?.factions || {}}
                   currentDay={world.current_day}
                   ambientEnabled={ambientEnabled}
+                  worldSeed={world.seed}
                 />
               </Suspense>
             )}
@@ -551,7 +552,7 @@ export default function WorldView() {
       {showCinematic && mapData && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black"><div className="text-white/60">Entering cinematic mode...</div></div>}>
           <CinematicMode
-            worldId={world.id} worldName={world.name} currentDay={world.current_day}
+            worldId={world.id} worldName={world.name} worldSeed={world.seed} currentDay={world.current_day}
             geography={mapData.geography} factionMap={mapData.factions} characters={characters} events={events}
             onClose={() => setShowCinematic(false)}
             onNewEvents={(newEvents) => { setEvents((prev) => [...prev, ...newEvents]); fetchAll(); }}
@@ -562,7 +563,7 @@ export default function WorldView() {
       {showReplay && mapData && (
         <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black"><div className="text-white/60">Entering replay mode...</div></div>}>
           <CinematicMode
-            worldId={world.id} worldName={world.name} currentDay={world.current_day}
+            worldId={world.id} worldName={world.name} worldSeed={world.seed} currentDay={world.current_day}
             geography={mapData.geography} factionMap={mapData.factions} characters={characters} events={events}
             onClose={() => setShowReplay(false)} onNewEvents={() => {}}
             mode="replay"

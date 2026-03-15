@@ -13,6 +13,7 @@ interface Props {
   factionMap: Record<string, { name: string; color: string }>;
   currentDay: number;
   ambientEnabled?: boolean;
+  worldSeed?: string;
 }
 
 /* ── Scene backgrounds per event type ────────────────────────── */
@@ -217,6 +218,7 @@ export default function TheaterMode({
   factionMap,
   currentDay,
   ambientEnabled = false,
+  worldSeed = '',
 }: Props) {
   const [eventIndex, setEventIndex] = useState<number | null>(
     events.length > 0 ? events.length - 1 : null,
@@ -231,7 +233,7 @@ export default function TheaterMode({
   const speechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sceneCacheRef = useRef<Map<string, string>>(new Map());
 
-  const { play: playAmbient, stop: stopAmbient } = useAmbientSound(ambientEnabled);
+  const { play: playAmbient, stop: stopAmbient } = useAmbientSound(ambientEnabled, worldSeed);
 
   const aliveChars = useMemo(
     () => characters.filter((c) => c.alive).slice(0, 30),

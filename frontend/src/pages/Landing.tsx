@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -127,43 +127,6 @@ const FEATURES = [
     accent: 'from-rose-400 to-pink-500',
   },
 ];
-
-/* ── Particle field background ── */
-
-function ParticleField() {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 15 }, (_, i) => ({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        delay: `${Math.random() * 8}s`,
-        duration: `${8 + Math.random() * 12}s`,
-        size: Math.random() > 0.7 ? 3 : 2,
-        opacity: 0.2 + Math.random() * 0.4,
-      })),
-    []
-  );
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="particle"
-          style={{
-            left: p.left,
-            bottom: '-10px',
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            opacity: p.opacity,
-            animationDelay: p.delay,
-            animationDuration: p.duration,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 /* ── Sticky header ── */
 
@@ -508,10 +471,8 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gray-950 relative overflow-hidden">
-      {/* Layered backgrounds */}
+      {/* Background */}
       <div className="absolute inset-0 bg-gradient-animated opacity-15 pointer-events-none" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
-      <ParticleField />
 
       {/* Radial glow behind hero */}
       <div
