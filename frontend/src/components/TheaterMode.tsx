@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Play, Pause, SkipForward, SkipBack } from 'l
 import type { WorldEvent, Character, Faction } from '../types';
 import { EVENT_TYPE_ICONS } from '../types';
 import { api } from '../api';
+import { useAmbientSound } from '../hooks/useAmbientSound';
 
 interface Props {
   events: WorldEvent[];
@@ -11,6 +12,7 @@ interface Props {
   factions: Faction[];
   factionMap: Record<string, { name: string; color: string }>;
   currentDay: number;
+  ambientEnabled?: boolean;
 }
 
 /* ── Scene backgrounds per event type ────────────────────────── */
@@ -214,6 +216,7 @@ export default function TheaterMode({
   factions,
   factionMap,
   currentDay,
+  ambientEnabled = false,
 }: Props) {
   const [eventIndex, setEventIndex] = useState<number | null>(
     events.length > 0 ? events.length - 1 : null,
@@ -227,6 +230,8 @@ export default function TheaterMode({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const speechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sceneCacheRef = useRef<Map<string, string>>(new Map());
+
+  const { play: playAmbient, stop: stopAmbient } = useAmbientSound(ambientEnabled);
 
   const aliveChars = useMemo(
     () => characters.filter((c) => c.alive).slice(0, 30),
@@ -289,6 +294,15 @@ export default function TheaterMode({
       }
     }
   }, [currentEvent?.id]);
+
+  // Ambient sound — crossfade on event type change
+  useEffect(() => {
+    if (currentEvent) {
+      playAmbient(currentEvent.type);
+    } else {
+      stopAmbient();
+    }
+  }, [currentEvent?.id, playAmbient, stopAmbient]);
 
   // Lead actor for speech bubble (first actor in event)
   const leadActor = useMemo(() => {

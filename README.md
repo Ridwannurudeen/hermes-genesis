@@ -6,7 +6,7 @@ An autonomous living world engine. You type one sentence — "a dying kingdom wh
 
 No scripting. No prompting. The world just... lives.
 
-**Live Demo:** [http://75.119.153.252:8003](http://75.119.153.252:8003)
+**Live Demo:** [genesis.hermes-ouroboros.online](https://genesis.hermes-ouroboros.online)
 
 ---
 
@@ -23,26 +23,43 @@ No scripting. No prompting. The world just... lives.
 
 ## What You Can Do
 
-- **Just watch** — toggle auto-play and the world advances every 8 seconds with events exploding on the map
-- **Play god** — type "destroy the capital" or "assassinate the king" and watch the consequences ripple out
-- **Talk to characters** — chat with anyone in-world; they respond based on their personality, faction loyalty, and lived history
-- **Read the story** — generate an epic chronicle of your world's history, export it as markdown
-- **Prep a D&D session** — get a full campaign module or GM session plan from your world's current state
+- **Theater Mode** — watch events play out on a dramatic stage with curtains, spotlights, character sprites, faction-based positioning, and AI-generated scene images
+- **Cinematic Mode** — fullscreen immersive experience with world map overlay, auto-simulation, procedural ambient sound, voice narration, and Ken Burns camera effects (live or replay)
+- **Ambient Sound** — procedural Web Audio drones that shift mood per event type: aggressive sawtooth for war, ethereal sine pads for divine intervention, chaotic noise for disasters
+- **Voice Narration** — events are read aloud with dramatic pacing via Web Speech API
+- **Play God** — type "destroy the capital" or "assassinate the king" and watch the consequences ripple out
+- **Talk to Characters** — chat with anyone in-world; they respond based on their personality, faction loyalty, and lived history
+- **Faction Council** — summon faction leaders to debate and argue about world events
+- **Read the Story** — generate an epic chronicle of your world's history, export it as markdown
+- **Prep a D&D Session** — get a full campaign module or GM session plan from your world's current state
+- **Just Watch** — toggle auto-play and the world advances every 8 seconds with events exploding on the map
 
 ---
 
-## The Demo World: Crossroads of Hermes
+## Features
 
-Our flagship world, themed around Hermes the trickster god:
+| Category | Features |
+|---|---|
+| **Core Simulation** | World generation from natural language, genome-based character evolution, 13 event types, causality chains, prophecy tracking + fulfillment |
+| **Autonomous Agent** | World Master AI with observe-reason-act loop, narrative arc planning, autonomous intervention, prophecy chasing |
+| **Theater Mode** | Dramatic stage with curtains, spotlights, character sprites, faction-aware positioning, speech bubbles, AI scene images, auto-play scrubber |
+| **Cinematic Mode** | Fullscreen world map overlay, live auto-simulation, history replay/documentary mode, event title cards with Ken Burns zoom |
+| **Audio** | Procedural ambient sound (Web Audio API, 13 mood profiles, crossfade transitions), voice narration (Web Speech API) |
+| **Interactive** | SVG world map with event markers, God Mode intervention, character chat, faction council debates |
+| **Analytics** | Faction power timeline (Recharts), genome evolution chart, D3 force-directed relationship graph |
+| **Export** | Chronicle (epic narrative), Campaign Kit (TTRPG module), Session Prep (GM plan) |
+| **Integration** | Telegram bot, SSE streaming, autonomous agent with start/stop/status/logs |
 
-- **317 days** of autonomous history
-- **928 events** — wars, betrayals, prophecies, births, deaths
-- **194 characters** across 4 factions (48 have died)
-- **101 chain reactions** — events causing events causing events
-- **4/4 prophecies fulfilled** — including "Titan's Wrath Unleashed," a volcanic eruption the AI agent triggered to fulfill an ancient prophecy
-- **Factions:** Nightshade Syndicate, Emberstone Legion, Silk Road Cartel, Oracle Guardians
+---
 
-Open it in the live demo and explore the history.
+## The Genome System
+
+Every character carries 6 genetic traits: **courage, cunning, loyalty, ambition, empathy, resilience** (each 0.0-1.0).
+
+- Traits drive events: high courage wins battles, high cunning wins intrigue, low loyalty enables betrayal
+- Children inherit traits via crossover (50% from each parent) + 10% mutation chance
+- Low-fitness characters die off — natural selection reshapes the population over generations
+- After 100+ days, you can see the population evolve: worlds that reward cunning breed cunning people
 
 ---
 
@@ -67,20 +84,10 @@ Open it in the live demo and explore the history.
 | **World Master Agent** | Observes, reasons, decides to simulate, intervene, or focus — then sees consequences |
 | **Divine Intervention** | Interprets "destroy the capital" and applies real effects (casualties, territory, deaths) |
 | **Character Chat** | Responds in-character shaped by genome, faction loyalty, and personal history |
+| **Faction Council** | Each faction leader argues their position based on current power dynamics |
 | **Prophecy Fulfillment** | Detects when world events match prophecy conditions, marks them fulfilled |
 | **Chronicle / Campaign** | Writes publishable narrative histories and TTRPG campaign modules |
 | **Obituaries** | Memorial text for fallen characters based on their life events |
-
----
-
-## The Genome System
-
-Every character carries 6 genetic traits: **courage, cunning, loyalty, ambition, empathy, resilience** (each 0.0–1.0).
-
-- Traits drive events: high courage wins battles, high cunning wins intrigue, low loyalty enables betrayal
-- Children inherit traits via crossover (50% from each parent) + 10% mutation chance
-- Low-fitness characters die off — natural selection reshapes the population over generations
-- After 100+ days, you can see the population evolve: worlds that reward cunning breed cunning people
 
 ---
 
@@ -121,33 +128,36 @@ docker compose up -d    # http://localhost:8003
 
 ```
          Hermes-4-70B (NousResearch API)
-                    │
-     ┌──────────────▼──────────────┐
-     │     FastAPI Backend         │
-     │     Python 3.11             │
-     │                             │
-     │  World Generation           │
-     │  Simulation Engine          │
-     │  Autonomous Agent           │
-     │  Genetic Evolution          │
-     │  Prophecy Checker           │
-     │  Telegram Bot               │
-     │  30+ API endpoints          │
-     │  SSE Streaming              │
-     └──────────────┬──────────────┘
-                    │
-     ┌──────────────▼──────────────┐
-     │     React 18 Frontend       │
-     │     TypeScript + Tailwind   │
-     │                             │
-     │  Cinematic World Map (SVG)  │
-     │  Event Animations           │
-     │  D3 Relationship Graph      │
-     │  Faction Power Charts       │
-     │  Auto-play Mode             │
-     │  Voice Narration            │
-     │  God Mode / Chronicle       │
-     └────────────────────────────┘
+                    |
+     +--------------v--------------+
+     |     FastAPI Backend         |
+     |     Python 3.11             |
+     |                             |
+     |  World Generation           |
+     |  Simulation Engine          |
+     |  Autonomous Agent           |
+     |  Genetic Evolution          |
+     |  Prophecy Checker           |
+     |  Telegram Bot               |
+     |  29 API endpoints           |
+     |  SSE Streaming              |
+     +--------------+--------------+
+                    |
+     +--------------v--------------+
+     |     React 18 Frontend       |
+     |     TypeScript + Tailwind   |
+     |                             |
+     |  Theater Mode (Stage View)  |
+     |  Cinematic Mode (Fullscreen)|
+     |  Procedural Ambient Sound   |
+     |  Voice Narration            |
+     |  Cinematic World Map (SVG)  |
+     |  D3 Relationship Graph      |
+     |  Faction Power Charts       |
+     |  God Mode / Chronicle       |
+     |  Campaign Kit / Session Prep|
+     |  29 code-split chunks       |
+     +-----------------------------+
 ```
 
 ---
@@ -162,7 +172,7 @@ docker compose up -d    # http://localhost:8003
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Hermes](https://img.shields.io/badge/NousResearch-Hermes--4--70B-8B5CF6?style=flat-square)
 
-**70 tests** | **24 code-split chunks** | **30+ API endpoints** | **Deployed on VPS**
+**71 tests** | **29 code-split chunks** | **29 API endpoints** | **Deployed on VPS**
 
 ---
 

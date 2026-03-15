@@ -5,6 +5,7 @@ import { api } from '../api';
 import type { Character, WorldEvent, Geography } from '../types';
 import { EVENT_TYPE_ICONS } from '../types';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
+import { useAmbientSound } from '../hooks/useAmbientSound';
 import WorldMap from './WorldMap';
 
 /** CSS gradient fallbacks per event type — shown while AI image loads or when unavailable */
@@ -64,6 +65,7 @@ export default function CinematicMode({
   const onQueueDrainRef = useRef<(() => void) | null>(null);
 
   const { speak } = useVoiceNarration(true);
+  const { play: playAmbient } = useAmbientSound(true);
 
   // Lock body scroll
   useEffect(() => {
@@ -135,6 +137,7 @@ export default function CinematicMode({
     }
     const next = eventQueueRef.current.shift()!;
     setDisplayedEvent(next);
+    playAmbient(next.type);
     setSceneImage(null);
 
     // Wait for image (with 10s timeout so we don't hang forever)
@@ -161,7 +164,7 @@ export default function CinematicMode({
         processQueue();
       }, 800);
     }, 7000);
-  }, [speak, fetchSceneImage, prefetchNext]);
+  }, [speak, playAmbient, fetchSceneImage, prefetchNext]);
 
   // REPLAY MODE: play through all past events
   useEffect(() => {
