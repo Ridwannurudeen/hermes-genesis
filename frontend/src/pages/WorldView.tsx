@@ -550,17 +550,6 @@ export default function WorldView() {
                   />
                 </Suspense>
                 <ProphecyPanel prophecies={prophecies} />
-                {godMode && (
-                  <Suspense fallback={<div className="text-sub p-4">Loading god mode...</div>}>
-                    <GodModePanel
-                      worldId={world.id}
-                      onIntervention={(event) => {
-                        setEvents((prev) => [...prev, event]);
-                        fetchAll();
-                      }}
-                    />
-                  </Suspense>
-                )}
               </div>
             )}
 
@@ -599,6 +588,23 @@ export default function WorldView() {
               </Suspense>
             )}
           </motion.div>
+        </AnimatePresence>
+
+        {/* ── God Mode Panel (visible in any view mode) ───── */}
+        <AnimatePresence>
+          {godMode && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
+              <Suspense fallback={<div className="text-sub p-4">Loading god mode...</div>}>
+                <GodModePanel
+                  worldId={world.id}
+                  onIntervention={(event) => {
+                    setEvents((prev) => [...prev, event]);
+                    fetchAll();
+                  }}
+                />
+              </Suspense>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
