@@ -6,3 +6,12 @@ node_modules/
 dist/
 .vite/
 *.log
+.pytest_cache/
+demo-audio/
+demo-video/
+demo-record.mjs
+demo-script.txt
+elevenlabs-sections.txt
+gen-manual-voice-guide.py
+gen-simple-guide.py
+gen-video-guide.py
