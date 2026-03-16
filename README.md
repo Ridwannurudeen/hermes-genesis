@@ -62,6 +62,41 @@ An autonomous living world engine. Type one sentence — the AI builds a complet
 
 ---
 
+## Demo Video
+
+[![Demo Video](https://img.youtube.com/vi/FLgX_k4wtPM/maxresdefault.jpg)](https://youtu.be/FLgX_k4wtPM)
+
+---
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/landing.png" alt="Landing Page">
+      <br>
+      <b>Landing Page</b> — One-sentence world creation with live generation status
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/map-view.png" alt="World Map">
+      <br>
+      <b>World Map</b> — SVG regions, faction territories, prophecy tracking
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/network-graph.png" alt="Network Graph">
+      <br>
+      <b>Relationship Graph</b> — D3 force-directed network across 146 characters
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/chronicle-view.png" alt="Chronicle">
+      <br>
+      <b>Chronicle</b> — 941 events across 322 days of autonomous history
+    </td>
+  </tr>
+</table>
+
+---
+
 ## At a Glance
 
 - Type one sentence &rarr; AI builds a living world with geography, factions, characters, prophecies
@@ -236,12 +271,6 @@ Event breakdown:
 ```
 
 13 worlds running on the VPS. The largest (Wellspring Kingdom) has reached **Day 335**. All events, characters, and faction dynamics are generated autonomously by Hermes-4-70B — no human scripting.
-
----
-
-## Demo Video
-
-[![Demo Video](https://img.youtube.com/vi/FLgX_k4wtPM/maxresdefault.jpg)](https://youtu.be/FLgX_k4wtPM)
 
 ---
 
