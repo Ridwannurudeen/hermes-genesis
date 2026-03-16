@@ -19,6 +19,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
+  <br>
+  <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
+</p>
+
 An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
 
 **Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
