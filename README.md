@@ -19,15 +19,40 @@
 
 ---
 
-<p align="center">
-  <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
-  <br>
-  <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
-</p>
-
 An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
 
 **Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
+
+---
+
+## See It In Action
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/theater-mode.gif" alt="Theater Mode">
+      <br>
+      <b>Theater Mode</b> — Dramatic stage with character sprites, AI scene images, voice narration
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/cinematic-mode.gif" alt="Cinematic Mode">
+      <br>
+      <b>Cinematic Mode</b> — Fullscreen immersive replay with AI-generated art and ambient sound
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/world-gen.gif" alt="World Generation">
+      <br>
+      <b>World Generation</b> — One sentence creates regions, factions, characters with DNA, prophecies
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/prophecy.gif" alt="Prophecy Fulfilled">
+      <br>
+      <b>Prophecy System</b> — Ancient prophecies resolve autonomously through simulation events
+    </td>
+  </tr>
+</table>
 
 ---
 
