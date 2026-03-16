@@ -2,9 +2,22 @@
 
 **Describe a world. Watch it live. Watch it die.**
 
-An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes Agent** framework. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
+> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](https://youtu.be/FLgX_k4wtPM)** | **[Hermes Agent Skills](skills/)** | **[MCP Bridge](mcp-bridge/)**
 
-**Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
+---
+
+### Built with the Hermes Agent Framework
+
+| | |
+|---|---|
+| **Model** | Hermes-4-70B via [Nous Inference API](https://inference-api.nousresearch.com) |
+| **Agent** | Autonomous World Master — observe &rarr; reason &rarr; act loop ([source](backend/autonomous_agent.py)) |
+| **Skills** | 5 custom [hermes-agent skills](skills/) — world creation, simulation, chat, chronicle, intervention |
+| **MCP Bridge** | [11 tools](mcp-bridge/server.mjs) auto-discovered by hermes-agent via Model Context Protocol |
+| **Demo** | [`hermes-agent-demo.py`](hermes-agent-demo.py) — Hermes-native tool calling, zero human prompting |
+| **Setup** | [`./setup-hermes-agent.sh`](setup-hermes-agent.sh) — one command installs hermes-agent + MCP + skills |
+
+---
 
 <p align="center">
   <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
@@ -12,7 +25,9 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
   <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
 </p>
 
-> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](https://youtu.be/FLgX_k4wtPM)**
+An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
+
+**Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
 
 ---
 
@@ -22,11 +37,11 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
 - Theater Mode &mdash; events play out on a dramatic stage with AI-generated scene images
 - Cinematic Mode &mdash; fullscreen immersive experience with ambient sound and voice narration
 - Genetic evolution &mdash; characters pass DNA to children, populations shift over generations
-- Autonomous World Master &mdash; an AI agent observes, reasons, intervenes, and chases prophecies on its own
+- Autonomous World Master &mdash; Hermes Agent observes, reasons, intervenes, and chases prophecies on its own
 - **Download World** &mdash; export everything as structured Markdown for Obsidian, Notion, wikis, or TTRPG prep
 - **Campaign Kit / Session Prep** &mdash; AI-generated encounter tables, plot hooks, and GM session plans
 - Light/Dark mode &mdash; warm parchment light theme, dark leather dark theme, persists via localStorage
-- Hermes Agent Skills &mdash; 5 custom skills + MCP bridge for hermes-agent integration
+- **5 Hermes Agent Skills** + **MCP bridge** with 11 tools for [hermes-agent](https://github.com/NousResearch/hermes-agent) integration
 
 <table>
   <tr>
