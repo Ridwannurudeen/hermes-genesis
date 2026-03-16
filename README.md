@@ -505,4 +505,4 @@ The world doesn't wait for you. It lives on its own. And when you're ready — y
 
 ---
 
-MIT License
+[MIT License](LICENSE)
