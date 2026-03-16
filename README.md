@@ -74,33 +74,6 @@ An autonomous living world engine. Type one sentence — the AI builds a complet
 - Light/Dark mode &mdash; warm parchment light theme, dark leather dark theme, persists via localStorage
 - **5 Hermes Agent Skills** + **MCP bridge** with 11 tools for [hermes-agent](https://github.com/NousResearch/hermes-agent) integration
 
-<table>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/theater-mode.png" alt="Theater Mode">
-      <br>
-      <b>Theater Mode</b> — Dramatic stage with character sprites, AI scene images, faction positioning
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/map-view.png" alt="World Map">
-      <br>
-      <b>World Map</b> — SVG regions, faction territories, prophecy tracking
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/network-graph.png" alt="Network Graph">
-      <br>
-      <b>Relationship Graph</b> — D3 force-directed network across 146 characters
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/chronicle-view.png" alt="Chronicle">
-      <br>
-      <b>Chronicle</b> — 941 events across 322 days of autonomous history
-    </td>
-  </tr>
-</table>
-
 ---
 
 ## What Makes This Different
