@@ -12,7 +12,7 @@ An autonomous living world engine powered by **Hermes-4-70B** and the **Hermes A
   <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
 </p>
 
-> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](#demo-video)**
+> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](https://youtu.be/FLgX_k4wtPM)**
 
 ---
 
@@ -222,10 +222,7 @@ Event breakdown:
 
 ## Demo Video
 
-<!-- Replace with your actual video link -->
-<!-- [![Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://youtu.be/YOUR_VIDEO_ID) -->
-
-*Video coming soon — world generation, map exploration, simulation, cinematic mode, character chat, and chronicle export in 3 minutes.*
+[![Demo Video](https://img.youtube.com/vi/FLgX_k4wtPM/maxresdefault.jpg)](https://youtu.be/FLgX_k4wtPM)
 
 ---
 
