@@ -405,7 +405,45 @@ export default function Landing() {
 
       <Header connected={connected} />
 
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-16">
+      {/* ── Chroniclon banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="relative z-20 max-w-5xl mx-auto px-6 mt-24"
+      >
+        <button
+          onClick={() => navigate('/chronicle')}
+          className="group w-full block text-left"
+        >
+          <div className="relative overflow-hidden rounded-xl border border-amber-700/40 bg-gradient-to-r from-amber-950/40 via-slate-900/60 to-slate-950/40 hover:border-amber-500/60 transition-colors">
+            <div
+              className="absolute inset-0 opacity-30 pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(800px 200px at 80% 50%, rgba(251,191,36,0.18), transparent 60%)',
+              }}
+            />
+            <div className="relative px-5 py-4 sm:px-6 sm:py-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300/80 font-mono">
+                new · chroniclon
+              </span>
+              <span className="font-serif text-base sm:text-lg text-slate-100 leading-snug">
+                A wikipedia for a world that doesn't exist —{' '}
+                <span className="text-amber-300/90">written autonomously</span>.
+              </span>
+              <span className="text-xs text-slate-500 hidden sm:inline">
+                Hermes Agent + Kimi K2.6
+              </span>
+              <span className="ml-auto inline-flex items-center gap-1.5 text-amber-200/90 text-sm group-hover:text-amber-100">
+                browse the canon <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+        </button>
+      </motion.div>
+
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-16">
         {/* ── Hero ── */}
         <motion.section
           initial="hidden"

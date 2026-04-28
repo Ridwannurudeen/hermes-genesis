@@ -4,6 +4,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const WorldView = lazy(() => import('./pages/WorldView'));
+const Chronicle = lazy(() => import('./pages/Chronicle'));
+const Regen = lazy(() => import('./pages/Regen'));
 
 function PageLoader() {
   return (
@@ -21,6 +23,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/world/:id" element={<WorldView />} />
+            <Route path="/chronicle" element={<Chronicle />} />
+            <Route path="/chronicle/:slug" element={<Chronicle />} />
+            <Route path="/regen" element={<Regen />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

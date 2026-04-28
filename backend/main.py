@@ -11,6 +11,7 @@ from routes.worlds import router as worlds_router
 from routes.simulate import router as simulate_router
 from routes.stream import router as stream_router
 from routes.scenes import router as scenes_router
+from chroniclon.routes import router as chronicle_router
 from telegram_bot import create_bot
 from llm import close_client
 from rate_limit import rate_limit_middleware
@@ -71,6 +72,7 @@ app.include_router(worlds_router)
 app.include_router(simulate_router)
 app.include_router(stream_router)
 app.include_router(scenes_router)
+app.include_router(chronicle_router)
 
 @app.get("/api/health")
 async def health():

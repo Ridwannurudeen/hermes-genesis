@@ -286,3 +286,101 @@ export const api = {
   simulateStream: (id: string, days: number, handlers: SSEHandler) =>
     streamSSE(`/api/worlds/${id}/simulate/stream?days=${days}`, {}, handlers),
 };
+
+// =============================================================================
+// Chroniclon — civilizational canon engine
+// =============================================================================
+
+export type ChronicleStats = {
+  article_count: number;
+  total_words: number;
+  era_count: number;
+  current_era: string | null;
+  linguistic_eras: number;
+  contributor_count: number;
+};
+
+export type ArticleKind =
+  | 'event' | 'person' | 'faction' | 'place'
+  | 'language' | 'concept' | 'artifact' | 'prophecy';
+
+export type VoiceTone =
+  | 'scholarly' | 'diary' | 'newspaper' | 'scripture' | 'court';
+
+export type ArticleSummary = {
+  article_id: string;
+  slug: string;
+  title: string;
+  kind: ArticleKind;
+  era_id: string;
+  in_world_year: number;
+  voice: VoiceTone;
+  word_count: number;
+  contributor: string | null;
+  updated_at: string;
+};
+
+export type Article = ArticleSummary & {
+  body_md: string;
+  backlinks: string[];
+  inbound: string[];
+  sources_cited: string[];
+  illustration_url: string | null;
+  audio_url: string | null;
+  anti_slop_score: number | null;
+  fact_check_score: number | null;
+  critic_passes: number;
+  written_year: number | null;
+  created_at: string;
+};
+
+export type EraSummary = {
+  era_id: string;
+  name: string;
+  ordinal: number;
+  start_year: number;
+  end_year: number | null;
+  summary: string;
+  art_style: string;
+  dominant_factions: string[];
+};
+
+export const chronicle = {
+  stats: () => fetchJson<ChronicleStats>('/api/chronicle/stats'),
+
+  listArticles: (params: { era_id?: string; kind?: ArticleKind; limit?: number; offset?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.era_id) qs.set('era_id', params.era_id);
+    if (params.kind) qs.set('kind', params.kind);
+    if (params.limit !== undefined) qs.set('limit', String(params.limit));
+    if (params.offset !== undefined) qs.set('offset', String(params.offset));
+    const q = qs.toString();
+    return fetchJson<{ items: ArticleSummary[] }>(
+      `/api/chronicle/articles${q ? `?${q}` : ''}`
+    );
+  },
+
+  getArticle: (slug: string) => fetchJson<Article>(`/api/chronicle/articles/${slug}`),
+
+  listEras: () => fetchJson<{ items: EraSummary[] }>('/api/chronicle/eras'),
+
+  lexicon: () =>
+    fetchJson<{
+      items: {
+        era_id: string;
+        era_name: string;
+        in_world_year: number;
+        parent_era: string | null;
+        phonology_notes: string;
+        sample_lexicon: Record<string, string>;
+        sample_text: string;
+      }[];
+    }>('/api/chronicle/lexicon'),
+
+  submit: (contributor_handle: string, seed_text: string) =>
+    fetchJson<{ submission_id: string; status: string }>('/api/chronicle/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contributor_handle, seed_text }),
+    }),
+};

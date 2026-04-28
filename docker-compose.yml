@@ -14,3 +14,26 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # Chroniclon autonomous canon runner — same image, separate process so
+  # a 144-hour LLM loop cannot crash the demo web service.
+  # Reads worlds from the shared /app/data volume, writes articles into
+  # /app/data/chroniclon/ via the cursor-file pattern (idempotent restart).
+  # Disabled by default until CHRONICLON_WORLD_ID is set in .env — Compose
+  # will refuse to start the service with an empty arg, which is intentional.
+  chroniclon-runner:
+    build: .
+    container_name: chroniclon-runner
+    command: python -m chroniclon.runner --world-id ${CHRONICLON_WORLD_ID:?set CHRONICLON_WORLD_ID in .env to start the runner}
+    depends_on:
+      genesis:
+        condition: service_healthy
+    volumes:
+      - /opt/genesis/data:/app/data
+    env_file:
+      - .env
+    environment:
+      - DATA_DIR=/app/data/worlds
+      - CHRONICLON_DIR=/app/data/chroniclon
+    restart: unless-stopped
+    profiles: ["canon"]   # only starts when invoked: docker compose --profile canon up -d

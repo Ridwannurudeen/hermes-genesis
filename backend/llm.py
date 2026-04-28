@@ -2,25 +2,53 @@ import re
 import httpx
 import json
 import logging
-from config import NOUS_API_KEY, NOUS_BASE_URL, NOUS_MODEL
+from config import NOUS_API_KEY, NOUS_BASE_URL, NOUS_MODEL, KIMI_API_KEY, KIMI_BASE_URL, KIMI_MODEL
 
 logger = logging.getLogger(__name__)
 
-# Shared client — reused across calls to avoid connection overhead
-_client: httpx.AsyncClient | None = None
+# Per-provider client pool — reused across calls to avoid connection overhead
+_clients: dict[str, httpx.AsyncClient] = {}
+
+_PROVIDERS = {
+    "nous": {"key": NOUS_API_KEY, "base": NOUS_BASE_URL, "model": NOUS_MODEL, "timeout": 120.0},
+    "kimi": {"key": KIMI_API_KEY, "base": KIMI_BASE_URL, "model": KIMI_MODEL, "timeout": 300.0},
+}
 
 
-def _get_client() -> httpx.AsyncClient:
-    global _client
-    if _client is None or _client.is_closed:
-        _client = httpx.AsyncClient(
-            timeout=120.0,
+def _get_client(provider: str = "nous") -> httpx.AsyncClient:
+    cfg = _PROVIDERS[provider]
+    client = _clients.get(provider)
+    if client is None or client.is_closed:
+        client = httpx.AsyncClient(
+            timeout=cfg["timeout"],
             headers={
-                "Authorization": f"Bearer {NOUS_API_KEY}",
+                "Authorization": f"Bearer {cfg['key']}",
                 "Content-Type": "application/json",
             },
         )
-    return _client
+        _clients[provider] = client
+    return client
+
+
+def _coerce_temperature(provider: str, model: str, temperature: float) -> float:
+    """Some models constrain temperature. Kimi K2.6 (with built-in reasoning)
+    only accepts temperature=1. Coerce silently rather than fail.
+    """
+    if provider == "kimi" and "k2.6" in model.lower():
+        return 1.0
+    return temperature
+
+
+def _coerce_max_tokens(provider: str, model: str, max_tokens: int) -> int:
+    """Kimi K2.6 emits hidden reasoning tokens BEFORE the final content.
+    A small max_tokens budget gets entirely consumed by reasoning, leaving
+    content empty. Floor reasoning models at a budget that's enough for
+    typical reasoning + the requested output.
+    """
+    if provider == "kimi" and "k2.6" in model.lower():
+        # Reasoning typically eats 400-800 tokens. Add headroom + caller's request.
+        return max(max_tokens + 1024, 1500)
+    return max_tokens
 
 
 async def chat_completion(
@@ -29,38 +57,58 @@ async def chat_completion(
     temperature: float = 0.9,
     max_tokens: int = 4000,
     retries: int = 2,
+    provider: str = "nous",
+    model: str | None = None,
 ) -> str:
-    client = _get_client()
+    cfg = _PROVIDERS[provider]
+    if provider == "kimi" and not cfg["key"]:
+        logger.warning("KIMI_API_KEY missing — falling back to Nous Hermes")
+        provider, cfg = "nous", _PROVIDERS["nous"]
+    client = _get_client(provider)
+    chosen_model = model or cfg["model"]
+    chosen_temp = _coerce_temperature(provider, chosen_model, temperature)
+    chosen_max = _coerce_max_tokens(provider, chosen_model, max_tokens)
     last_err = None
     for attempt in range(retries + 1):
         try:
             resp = await client.post(
-                f"{NOUS_BASE_URL}/chat/completions",
+                f"{cfg['base']}/chat/completions",
                 json={
-                    "model": NOUS_MODEL,
+                    "model": chosen_model,
                     "messages": [
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    "temperature": temperature,
-                    "max_tokens": max_tokens,
+                    "temperature": chosen_temp,
+                    "max_tokens": chosen_max,
                 },
             )
             resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"]
+            payload = resp.json()
+            msg = payload["choices"][0]["message"]
+            content = (msg.get("content") or "").strip()
+            if not content and msg.get("reasoning_content"):
+                # Reasoning model produced no final answer — likely budget ran out
+                # mid-reasoning. Surface the partial reasoning so the caller can
+                # log/skip rather than silently return empty.
+                logger.warning(
+                    f"empty content from {chosen_model}; reasoning consumed budget "
+                    f"({chosen_max} tokens). Bump max_tokens or shorten prompt."
+                )
+            return content
         except Exception as e:
             last_err = e
             if attempt < retries:
-                logger.warning(f"LLM call failed (attempt {attempt + 1}), retrying: {e}")
+                logger.warning(f"LLM call failed (provider={provider}, attempt {attempt + 1}): {e}")
             else:
                 raise last_err
 
 
 async def close_client():
-    global _client
-    if _client and not _client.is_closed:
-        await _client.aclose()
-        _client = None
+    for client in _clients.values():
+        if not client.is_closed:
+            await client.aclose()
+    _clients.clear()
 
 
 def _repair_json(text: str) -> str:
