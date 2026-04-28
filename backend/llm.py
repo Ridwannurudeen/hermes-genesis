@@ -40,14 +40,14 @@ def _coerce_temperature(provider: str, model: str, temperature: float) -> float:
 
 
 def _coerce_max_tokens(provider: str, model: str, max_tokens: int) -> int:
-    """Kimi K2.6 emits hidden reasoning tokens BEFORE the final content.
+    """Both K2.5 and K2.6 emit hidden reasoning tokens BEFORE the final
+    content. Empirically: a 200-word output uses ~2000 tokens of reasoning.
     A small max_tokens budget gets entirely consumed by reasoning, leaving
-    content empty. Floor reasoning models at a budget that leaves room
-    for both reasoning AND the requested output. K2.5 is non-reasoning and
-    needs no padding.
+    content empty or truncated. Add 2048 tokens of reasoning headroom on
+    top of whatever the caller asked for, with a floor of 3000.
     """
-    if provider == "kimi" and "k2.6" in model.lower():
-        return max(max_tokens + 1024, 1500)
+    if provider == "kimi" and "k2." in model.lower():
+        return max(max_tokens + 2048, 3000)
     return max_tokens
 
 
