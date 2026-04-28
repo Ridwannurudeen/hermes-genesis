@@ -24,7 +24,7 @@ services:
   chroniclon-runner:
     build: .
     container_name: chroniclon-runner
-    command: python -m chroniclon.runner --world-id ${CHRONICLON_WORLD_ID:?set CHRONICLON_WORLD_ID in .env to start the runner}
+    command: python -m chroniclon.runner --world-id ${CHRONICLON_WORLD_ID:-set-in-env-first}
     depends_on:
       genesis:
         condition: service_healthy
