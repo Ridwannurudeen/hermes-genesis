@@ -152,10 +152,12 @@ async def canonize_event(
     article.fact_check_score = fact["score"]
     article.critic_passes = 1
 
+    # Revision is expensive (full second Kimi call). Only fire on real quality
+    # failures. The fourth-wall flag is folded into the slop score by the critic;
+    # we don't separately revise on it (was over-firing in early runs).
     needs_revision = (
         slop["score"] < ANTISLOP_REVISE_THRESHOLD
         or fact["score"] < FACTCHECK_REVISE_THRESHOLD
-        or slop["fourth_wall_breaks"]
     )
     if needs_revision:
         revision_notes = []
