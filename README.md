@@ -1,3 +1,58 @@
+# Chroniclon — Hermes Agent Creative Hackathon entry
+
+**One sentence in. A civilization's encyclopedia out.**
+
+Chroniclon turns a Hermes Genesis world into a self-writing wiki: long-form
+articles cross-linked across eras, with a language that drifts as the
+civilization ages. Hermes-4 runs the canon agent and the adversarial critic
+loop; Kimi writes the prose.
+
+> **[Live](https://hermesgenesis.world/chronicle)** ·
+> **[Skill](skills/chroniclon/SKILL.md)** ·
+> **[Backend module](backend/chroniclon/)** ·
+> **[Deploy runbook](deploy/chroniclon.md)** ·
+> **[Demo script](deploy/demo-script.md)**
+
+### What Chroniclon adds to Hermes Genesis
+
+| Layer | Role | Model |
+|---|---|---|
+| Canon agent | Decides if event → article, picks kind/voice/title | Hermes-4 |
+| Article writer | Long-form, in-world, cross-linked | Kimi (Moonshot) |
+| Anti-slop critic | Rejects formulaic prose, fourth-wall breaks | Hermes-4 |
+| Fact-check critic | Scores against canon, flags hard contradictions | Hermes-4 |
+| Cross-link agent | Inserts `[[slug]]` references at first occurrence | Hermes-4 |
+| Era ticker | Closes eras at thresholds, opens next | Hermes-4 |
+| Linguistic drift | Phonology + lexicon evolution at era boundaries | Hermes-4 |
+| Moon X persona | Persona-driven X presence with safety gate | Kimi + Hermes-4 |
+
+Ships as a vanilla Hermes Agent skill at `skills/chroniclon/`. The runner is
+a separate Compose service so a 144-hour LLM loop cannot crash the demo
+web service.
+
+### Quick start
+
+```bash
+# 1. Generate a world (Genesis pipeline, unchanged)
+curl -X POST http://localhost:8003/api/worlds \
+  -H "Content-Type: application/json" \
+  -d '{"seed":"A world where the moon is sentient and writes letters to the queen."}'
+# → world_id
+
+# 2. Inspect Chroniclon stats
+curl http://localhost:8003/api/chronicle/stats
+
+# 3. Run the canon agent (autonomous, restartable)
+docker compose --profile canon up -d chroniclon-runner
+
+# 4. Browse the wiki
+open https://hermesgenesis.world/chronicle
+```
+
+The full deploy runbook is at [`deploy/chroniclon.md`](deploy/chroniclon.md).
+
+---
+
 # HERMES GENESIS
 
 **Describe a world. Watch it live. Watch it die.**
