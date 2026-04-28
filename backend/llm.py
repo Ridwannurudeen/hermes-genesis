@@ -31,10 +31,10 @@ def _get_client(provider: str = "nous") -> httpx.AsyncClient:
 
 
 def _coerce_temperature(provider: str, model: str, temperature: float) -> float:
-    """Some models constrain temperature. Kimi K2.6 (with built-in reasoning)
-    only accepts temperature=1. Coerce silently rather than fail.
+    """Moonshot's Kimi K2.x line (K2.5, K2.6, …) only accepts temperature=1.
+    Coerce silently rather than fail on the API's 400.
     """
-    if provider == "kimi" and "k2.6" in model.lower():
+    if provider == "kimi" and "k2." in model.lower():
         return 1.0
     return temperature
 
@@ -42,11 +42,11 @@ def _coerce_temperature(provider: str, model: str, temperature: float) -> float:
 def _coerce_max_tokens(provider: str, model: str, max_tokens: int) -> int:
     """Kimi K2.6 emits hidden reasoning tokens BEFORE the final content.
     A small max_tokens budget gets entirely consumed by reasoning, leaving
-    content empty. Floor reasoning models at a budget that's enough for
-    typical reasoning + the requested output.
+    content empty. Floor reasoning models at a budget that leaves room
+    for both reasoning AND the requested output. K2.5 is non-reasoning and
+    needs no padding.
     """
     if provider == "kimi" and "k2.6" in model.lower():
-        # Reasoning typically eats 400-800 tokens. Add headroom + caller's request.
         return max(max_tokens + 1024, 1500)
     return max_tokens
 
