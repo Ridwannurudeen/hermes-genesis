@@ -18,6 +18,7 @@ from chroniclon.models import Era, WikiArticle, LinguisticEra, CanonSubmission
 _FILE_LOCK_TIMEOUT = 10
 _article_locks: dict[str, asyncio.Lock] = {}
 _era_locks: dict[str, asyncio.Lock] = {}
+_slug_locks: dict[str, asyncio.Lock] = {}
 
 # Top-level subdirs under CHRONICLON_DIR
 _ARTICLES = "articles"
@@ -61,6 +62,16 @@ def article_lock(article_id: str) -> asyncio.Lock:
     if article_id not in _article_locks:
         _article_locks[article_id] = asyncio.Lock()
     return _article_locks[article_id]
+
+
+def article_lock_by_slug(slug: str) -> asyncio.Lock:
+    """Per-slug asyncio lock for concurrent media updates on the same article.
+    Image and audio render can fire in parallel; without this lock both load
+    a stale copy then race-save, clobbering each other's url field.
+    """
+    if slug not in _slug_locks:
+        _slug_locks[slug] = asyncio.Lock()
+    return _slug_locks[slug]
 
 
 def era_lock(era_id: str) -> asyncio.Lock:

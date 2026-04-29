@@ -500,12 +500,14 @@ async def canonize_event(
                         era_art_style=art_style,
                         character=char,
                     )
-                    # Update article record with the served URL.
-                    persisted = store.load_article_by_slug(slug)
-                    if persisted is not None:
-                        persisted.illustration_url = result["url"]
-                        persisted.updated_at = datetime.utcnow()
-                        store.save_article(persisted)
+                    # Update article record with the served URL — under the
+                    # per-slug lock so we don't race the audio render.
+                    async with store.article_lock_by_slug(slug):
+                        persisted = store.load_article_by_slug(slug)
+                        if persisted is not None:
+                            persisted.illustration_url = result["url"]
+                            persisted.updated_at = datetime.utcnow()
+                            store.save_article(persisted)
                     _control_emit({
                         "phase": "image_complete",
                         "pipeline_id": pipeline_id,

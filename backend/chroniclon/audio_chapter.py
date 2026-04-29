@@ -99,15 +99,19 @@ async def render_chapter(slug: str, lead_genome: dict | None = None) -> dict:
     output_path = await synthesize(plain, archetype=archetype, output_path=target)
     logger.info(f"wrote audio: {output_path}")
 
-    # Update the article's audio_url
-    article.audio_url = f"/api/chronicle/audio/{article.slug}"
-    store.save_article(article)
+    # Update the article's audio_url under a per-slug lock and re-read inside
+    # the lock so we don't clobber a concurrent illustration_url write.
+    audio_url = f"/api/chronicle/audio/{slug}"
+    async with store.article_lock_by_slug(slug):
+        latest = store.load_article_by_slug(slug) or article
+        latest.audio_url = audio_url
+        store.save_article(latest)
 
     return {
         "slug": slug,
         "audio_path": str(output_path),
         "char_count": len(plain),
-        "audio_url": article.audio_url,
+        "audio_url": audio_url,
         "archetype": archetype,
     }
 
