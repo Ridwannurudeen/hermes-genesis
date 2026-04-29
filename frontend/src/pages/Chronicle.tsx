@@ -350,6 +350,12 @@ export default function Chronicle() {
                   <span className="text-[11px] text-emerald-400">via @{article.contributor}</span>
                 ) : null}
               </div>
+              {article.audio_url && (
+                <div className="mb-6 px-4 py-3 rounded border border-amber-800/40 bg-amber-950/20">
+                  <div className="text-[11px] uppercase tracking-widest text-amber-400/80 mb-2">narration</div>
+                  <audio controls preload="none" src={article.audio_url} className="w-full" />
+                </div>
+              )}
               <div className="font-serif">{renderBody(article.body_md, (s) => nav(`/chronicle/${s}`))}</div>
               {article.inbound.length > 0 && (
                 <section className="mt-10 pt-6 border-t border-slate-800">
