@@ -49,16 +49,26 @@ Decide:
 5. Estimated WORD_COUNT_TARGET? (300 = brief; 1200 = standard; 4000 = pivotal)
 6. Up to 4 RELATED slugs from prior articles to link to (omit if none fit)
 
-Return JSON:
-{{
-  "canonize": true,
-  "kind": "event",
-  "voice": "scholarly",
-  "title": "The Salt Wars of the Cinder Era",
-  "word_count_target": 1200,
-  "related": ["queen-aelis", "the-cinder-era"],
-  "reasoning": "1-sentence why this matters"
-}}"""
+VOICE GUIDANCE — pick the one that fits the source the article would have come from:
+- scholarly: long retrospective by a historian. Wars, treaties, eras, languages, places.
+- newspaper: contemporaneous reportage. Coups, sudden deaths, public spectacles, scandals.
+- court: official chronicle. Sovereign acts, royal lineages, edicts, court intrigue.
+- diary: personal first-person account. Singular figures, private moments, exiles, intimate betrayals.
+- scripture: sacred / mythic register. Prophecies, fulfillments, sacred artifacts, founding myths.
+
+The voice is NOT a default. It's a deliberate choice per article. A wiki where every entry
+sounds the same has no texture. Reach for diary, court, scripture, or newspaper whenever
+the source-of-record fits — only fall back to scholarly when nothing else does.
+
+Examples (do not copy — these are for shape):
+{{"canonize": true, "kind": "event", "voice": "newspaper", "title": "The Quillspire Coup of 21 C.E.", "word_count_target": 900, "related": ["the-inkwell-syndicate"], "reasoning": "sudden civic upheaval, contemporaneous reportage fits"}}
+{{"canonize": true, "kind": "person", "voice": "court", "title": "Queen Aelis the Younger", "word_count_target": 1400, "related": ["the-lunar-epistle"], "reasoning": "sovereign biography belongs in the court chronicle"}}
+{{"canonize": true, "kind": "prophecy", "voice": "scripture", "title": "The Silver-Ink Prophecy", "word_count_target": 700, "related": [], "reasoning": "sacred utterance demands sacred register"}}
+{{"canonize": true, "kind": "person", "voice": "diary", "title": "Silas Stargaze, in his own hand", "word_count_target": 1100, "related": ["the-betrayal-of-silas-stargaze"], "reasoning": "an exile's private record reads as diary, not chronicle"}}
+{{"canonize": true, "kind": "event", "voice": "scholarly", "title": "The Salt Wars of the Cinder Era", "word_count_target": 1800, "related": ["the-cinder-era"], "reasoning": "multi-decade conflict best surveyed by a historian"}}
+{{"canonize": false, "kind": "event", "voice": "scholarly", "title": "", "word_count_target": 0, "related": [], "reasoning": "minor border skirmish, not pivotal"}}
+
+Return ONE JSON object for THIS event:"""
 
 
 # =============================================================================
