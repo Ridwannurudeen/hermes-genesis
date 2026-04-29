@@ -211,6 +211,20 @@ async def control_backlog(limit: int = Query(default=50, ge=1, le=80)) -> dict:
     return {"items": control_stream.backlog_snapshot(limit=limit)}
 
 
+@router.post("/control/ingest")
+async def control_ingest(event: dict) -> dict:
+    """Receive a phase event from a sibling process (e.g. the chroniclon
+    runner container). Re-broadcasts to local SSE subscribers.
+
+    Auth is enforced upstream by the global API-key middleware on POST
+    routes. Without a valid key, this 403s before reaching here.
+    """
+    if not isinstance(event, dict) or not event:
+        raise HTTPException(400, "event payload required")
+    control_stream.ingest_remote(event)
+    return {"ingested": True}
+
+
 @router.get("/control/stream")
 async def control_event_stream():
     """SSE feed of canonization phase events for the Control Room.

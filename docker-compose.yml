@@ -43,5 +43,9 @@ services:
     environment:
       - DATA_DIR=/app/data/worlds
       - CHRONICLON_DIR=/app/data/chroniclon
+      # Fan-out canonization phase events to the API container's broker so
+      # the Control Room SSE feed sees runner-driven canonizations live.
+      # CONTROL_EMIT_KEY is read from .env automatically (GENESIS_API_KEY).
+      - CONTROL_EMIT_URL=http://genesis-api:8003/api/chronicle/control/ingest
     restart: unless-stopped
     profiles: ["canon"]   # only starts when invoked: docker compose --profile canon up -d
