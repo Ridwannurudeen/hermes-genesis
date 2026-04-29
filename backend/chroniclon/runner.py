@@ -115,6 +115,33 @@ async def run_once(world_id: str, max_events: int | None = None) -> dict:
     new_events = _new_events_since(world, cursor.get("last_event_id"))
     logger.info(f"{world_id}: {len(new_events)} new events to consider")
 
+    # Cache for character lookups so we don't rebuild per-event.
+    char_by_id = {c.id: c for c in world.characters}
+    faction_name_by_id = {f.id: f.name for f in world.factions}
+
+    def _lead_character_for(event_dict: dict) -> dict | None:
+        """Build a rich descriptor of the event's lead actor — name, role,
+        faction, genome — used by audio archetype routing and image grounding.
+        Returns None if no actor matches; both downstream renderers handle that."""
+        actors = event_dict.get("actors") or []
+        for cid in actors:
+            char = char_by_id.get(cid)
+            if not char:
+                continue
+            g = getattr(char, "genome", None)
+            genome_dict = (
+                g.model_dump() if g is not None and hasattr(g, "model_dump") else g
+            )
+            return {
+                "id": getattr(char, "id", cid),
+                "name": getattr(char, "name", "") or "",
+                "role": getattr(char, "role", "") or "",
+                "faction_id": getattr(char, "faction_id", "") or "",
+                "faction_name": faction_name_by_id.get(getattr(char, "faction_id", ""), ""),
+                "genome": genome_dict,
+            }
+        return None
+
     processed = 0
     for ev in new_events:
         if max_events is not None and processed >= max_events:
@@ -129,9 +156,11 @@ async def run_once(world_id: str, max_events: int | None = None) -> dict:
                 seed=world.seed,
                 era_id=active_era.era_id,
                 era_name=active_era.name,
+                era_art_style=getattr(active_era, "art_style", "") or "",
                 in_world_year=in_world_year,
                 event=ev,
                 linguistic_notes=linguistic_notes_for_era(active_era),
+                lead_character=_lead_character_for(ev),
             )
             if article is not None:
                 cursor["events_canonized"] = cursor.get("events_canonized", 0) + 1

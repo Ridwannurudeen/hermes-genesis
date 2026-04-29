@@ -435,8 +435,18 @@ export default function Landing() {
               <span className="text-xs text-slate-500 hidden sm:inline">
                 Hermes Agent + Kimi K2.6
               </span>
-              <span className="ml-auto inline-flex items-center gap-1.5 text-amber-200/90 text-sm group-hover:text-amber-100">
-                browse the canon <ArrowRight className="w-3.5 h-3.5" />
+              <span className="ml-auto inline-flex items-center gap-3 text-sm">
+                <span
+                  role="button"
+                  onClick={(e) => { e.stopPropagation(); navigate('/control'); }}
+                  className="hidden md:inline-flex items-center gap-1.5 text-amber-200/90 hover:text-amber-100 px-2 py-0.5 rounded border border-amber-700/40 hover:border-amber-500/60"
+                  title="Live agentic pipeline"
+                >
+                  control room
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-amber-200/90 group-hover:text-amber-100">
+                  browse the canon <ArrowRight className="w-3.5 h-3.5" />
+                </span>
               </span>
             </div>
           </div>

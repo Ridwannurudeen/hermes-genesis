@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 
 REGEN_DEFAULT_DAYS = 5
 REGEN_MAX_ARTICLES = 6
+# Default writer for live regen demos. Defaults to Kimi so the Kimi track has a
+# demonstrable interactive surface; callers can override via the API.
+REGEN_DEFAULT_WRITER = "kimi"
 
 
 def _sse_event(name: str, data: dict | str) -> str:
@@ -36,9 +39,16 @@ def _sse_event(name: str, data: dict | str) -> str:
     return f"event: {name}\ndata: {body}\n\n"
 
 
-async def stream_regen(seed: str, days: int = REGEN_DEFAULT_DAYS) -> AsyncIterator[str]:
+async def stream_regen(
+    seed: str,
+    days: int = REGEN_DEFAULT_DAYS,
+    writer_provider: str = REGEN_DEFAULT_WRITER,
+) -> AsyncIterator[str]:
     """Yield SSE events for a fresh civilization regen."""
-    yield _sse_event("progress", {"stage": "starting", "detail": f"seed: {seed[:120]}"})
+    yield _sse_event(
+        "progress",
+        {"stage": "starting", "detail": f"seed: {seed[:120]}", "writer": writer_provider},
+    )
 
     progress_q: asyncio.Queue[dict] = asyncio.Queue()
 
@@ -135,7 +145,7 @@ async def stream_regen(seed: str, days: int = REGEN_DEFAULT_DAYS) -> AsyncIterat
                 in_world_year=int(ed.get("day", 0)),
                 event=ed,
                 linguistic_notes=notes,
-                writer_provider="nous",  # regen demos use Hermes to keep Kimi budget for the canon
+                writer_provider=writer_provider,
             )
         except Exception as e:
             logger.exception(f"canonize {ed.get('id','?')} failed")
@@ -152,6 +162,10 @@ async def stream_regen(seed: str, days: int = REGEN_DEFAULT_DAYS) -> AsyncIterat
                 "voice": article.voice,
                 "word_count": article.word_count,
                 "in_world_year": article.in_world_year,
+                # Make model provenance visible in the regen UI for the
+                # Kimi-track demo. Backend → frontend pass-through.
+                "writer": writer_provider,
+                "writer_label": "Kimi-K2.6" if writer_provider == "kimi" else "Hermes-4-70B",
             },
         )
 

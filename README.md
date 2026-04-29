@@ -68,7 +68,7 @@ The full deploy runbook is at [`deploy/chroniclon.md`](deploy/chroniclon.md).
 | **Model** | Hermes-4-70B via [Nous Inference API](https://inference-api.nousresearch.com) |
 | **Agent** | Autonomous World Master — observe &rarr; reason &rarr; act loop ([source](backend/autonomous_agent.py)) |
 | **Skills** | 5 custom [hermes-agent skills](skills/) — world creation, simulation, chat, chronicle, intervention |
-| **MCP Bridge** | [11 tools](mcp-bridge/server.mjs) auto-discovered by hermes-agent via Model Context Protocol |
+| **MCP Bridge** | [16 tools](mcp-bridge/server.mjs) auto-discovered by hermes-agent via Model Context Protocol — 11 Genesis + 5 Chroniclon (`chronicle_stats`, `chronicle_list_articles`, `chronicle_get_article`, `chronicle_render_audio`, `chronicle_control_backlog`) |
 | **Demo** | [`hermes-agent-demo.py`](hermes-agent-demo.py) — Hermes-native tool calling, zero human prompting |
 | **Setup** | [`./setup-hermes-agent.sh`](setup-hermes-agent.sh) — one command installs hermes-agent + MCP + skills |
 
@@ -162,7 +162,7 @@ An autonomous living world engine. Type one sentence — the AI builds a complet
 - **Download World** &mdash; export everything as structured Markdown for Obsidian, Notion, wikis, or TTRPG prep
 - **Campaign Kit / Session Prep** &mdash; AI-generated encounter tables, plot hooks, and GM session plans
 - Light/Dark mode &mdash; warm parchment light theme, dark leather dark theme, persists via localStorage
-- **5 Hermes Agent Skills** + **MCP bridge** with 11 tools for [hermes-agent](https://github.com/NousResearch/hermes-agent) integration
+- **6 Hermes Agent Skills** + **MCP bridge** with 16 tools (Genesis + Chroniclon) for [hermes-agent](https://github.com/NousResearch/hermes-agent) integration
 
 ---
 
@@ -196,7 +196,7 @@ This project exists because of capabilities unique to Hermes:
 
 ## Hermes Agent Integration
 
-Hermes Genesis ships with **5 custom hermes-agent skills**, an **MCP bridge server** (11 tools), and a **one-command setup script**. [Hermes Agent v0.2.0](https://github.com/NousResearch/hermes-agent) is **installed and running on our production VPS**, orchestrating worlds through its native tool system.
+Hermes Genesis ships with **5 custom hermes-agent skills**, an **MCP bridge server** (11 tools), and a **one-command setup script**. [Hermes Agent v0.11.0](https://github.com/NousResearch/hermes-agent) is **installed and running on our production VPS**, orchestrating worlds through its native tool system.
 
 ### Hermes-4-70B Powers Everything — Orchestration AND Simulation
 
@@ -232,7 +232,7 @@ In the world of Crossroads of Hermes, day 324 unfolded:
 ============================================================
 ```
 
-hermes-agent v0.2.0 also connects via MCP bridge, discovering all 11 Genesis tools automatically:
+hermes-agent v0.11.0 also connects via MCP bridge, discovering all 11 Genesis tools automatically:
 
 ```
 $ hermes chat -q "Use genesis MCP tools to list all worlds"
@@ -266,25 +266,30 @@ This installs hermes-agent, the MCP bridge, and 5 custom skills in one command.
 
 ### MCP Bridge ([`mcp-bridge/`](mcp-bridge/))
 
-11 tools exposed via Model Context Protocol — hermes-agent auto-discovers them:
+16 tools exposed via Model Context Protocol — hermes-agent auto-discovers them:
 
 ```
+# Genesis world API
 genesis_create_world    genesis_simulate      genesis_intervene
 genesis_get_world       genesis_list_worlds   genesis_chat
 genesis_council         genesis_chronicle     genesis_agent_start
 genesis_agent_stop      genesis_agent_status
+
+# Chroniclon — autonomous wiki engine
+chronicle_stats         chronicle_list_articles    chronicle_get_article
+chronicle_render_audio  chronicle_control_backlog
 ```
 
 ### Architecture: How It Fits Together
 
 ```
-  hermes-agent v0.2.0 (installed on VPS)
+  hermes-agent v0.11.0 (installed on VPS)
          |
     MCP Protocol (stdio)
          |
   +----- v --------+
   | MCP Bridge     |  mcp-bridge/server.mjs
-  | (11 tools)     |  genesis_create_world, genesis_simulate, ...
+  | (16 tools)     |  genesis_*, chronicle_*
   +----- | --------+
          |
     REST API (HTTP)

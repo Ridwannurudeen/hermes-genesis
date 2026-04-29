@@ -226,3 +226,95 @@ def test_moon_safety_prompt_shape():
     assert "Candidate Moon post" in p
     assert "approve" in p
     assert '"approve":' in p
+
+
+def test_extract_tool_call_args_happy_path():
+    from llm import extract_tool_call_args
+    raw = '<tool_call>{"name": "submit_x", "arguments": {"score": 0.9, "verdict": "approve"}}</tool_call>'
+    args = extract_tool_call_args(raw, "submit_x")
+    assert args == {"score": 0.9, "verdict": "approve"}
+
+
+def test_extract_tool_call_args_with_prose():
+    from llm import extract_tool_call_args
+    raw = 'Reasoning... \n\n<tool_call>{"name": "x", "arguments": {"a": 1}}</tool_call>\nDone.'
+    assert extract_tool_call_args(raw, "x") == {"a": 1}
+
+
+def test_extract_tool_call_args_wrong_name():
+    from llm import extract_tool_call_args
+    raw = '<tool_call>{"name": "other_tool", "arguments": {}}</tool_call>'
+    assert extract_tool_call_args(raw, "expected_tool") is None
+
+
+def test_extract_tool_call_args_malformed_json():
+    from llm import extract_tool_call_args
+    raw = '<tool_call>{"name": "x", "arguments": {invalid}}</tool_call>'
+    assert extract_tool_call_args(raw, "x") is None
+
+
+def test_extract_tool_call_args_no_envelope():
+    from llm import extract_tool_call_args
+    assert extract_tool_call_args('{"a": 1}', "x") is None
+    assert extract_tool_call_args("", "x") is None
+
+
+def test_diversity_hint_fires_on_dominant_voice():
+    from chroniclon.canon_agent import _diversity_hint
+    recent = [{"voice": "scholarly"}] * 9 + [{"voice": "newspaper"}] * 3
+    hint = _diversity_hint(recent)
+    assert "scholarly" in hint
+    assert "Reach for a different register" in hint
+
+
+def test_diversity_hint_quiet_when_diverse():
+    from chroniclon.canon_agent import _diversity_hint
+    recent = [{"voice": v} for v in ["scholarly", "newspaper", "court", "diary", "scripture", "scholarly"]]
+    assert _diversity_hint(recent) == ""
+
+
+def test_fallback_voice_distribution():
+    from collections import Counter
+    from chroniclon.canon_agent import _pick_fallback_voice, _VOICE_POOL
+    samples = Counter(_pick_fallback_voice() for _ in range(2000))
+    # Every legal voice must appear at least once across 2000 draws.
+    for v in _VOICE_POOL:
+        assert samples[v] > 0, f"{v} never picked in 2000 draws"
+    # No voice runs away with more than 50% of mass.
+    assert max(samples.values()) < 1000
+
+
+def test_illustration_prompt_grounds_era_and_character():
+    from chroniclon.illustrations import build_prompt
+    char = {
+        "name": "Aelis",
+        "role": "Queen",
+        "genome": {
+            "courage": 0.9, "cunning": 0.4, "loyalty": 0.6,
+            "ambition": 0.7, "empathy": 0.4, "resilience": 0.85,
+        },
+    }
+    p = build_prompt(
+        kind="person",
+        title="Queen Aelis the Younger",
+        era_art_style="charcoal woodcut, sepia tones, smoke-stained vellum",
+        character=char,
+    )
+    assert "Aelis" in p
+    assert "Queen" in p
+    # Warrior descriptor (high courage + resilience) leaks into prompt.
+    assert "warrior" in p.lower() or "scarred" in p.lower()
+    assert "charcoal" in p
+    assert "no text" in p.lower()
+
+
+def test_illustration_prompt_no_character():
+    from chroniclon.illustrations import build_prompt
+    p = build_prompt(
+        kind="artifact",
+        title="The Lunar Epistle",
+        era_art_style="hand-illuminated manuscript, parchment tones",
+        character=None,
+    )
+    assert "Lunar Epistle" in p
+    assert "Featured" not in p  # no character → no Featured: clause

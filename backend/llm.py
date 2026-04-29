@@ -142,6 +142,104 @@ def _truncate_at_last_complete(text: str) -> str:
     return text
 
 
+_TOOL_CALL_RE = re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>", re.DOTALL)
+
+
+def extract_tool_call_args(raw: str, tool_name: str) -> dict | None:
+    """Parse a Hermes-native ``<tool_call>{...}</tool_call>`` envelope and
+    return the arguments dict if it matches *tool_name*. Otherwise returns
+    None so callers can fall back to the JSON repair path.
+
+    The model is expected to emit a single tool call. We tolerate prose
+    around it; the regex finds the first envelope.
+    """
+    if not raw:
+        return None
+    match = _TOOL_CALL_RE.search(raw)
+    if not match:
+        return None
+    try:
+        envelope = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(envelope, dict):
+        return None
+    if envelope.get("name") != tool_name:
+        return None
+    args = envelope.get("arguments")
+    return args if isinstance(args, dict) else None
+
+
+async def call_with_tool(
+    *,
+    system: str,
+    user: str,
+    tool_name: str,
+    tool_description: str,
+    parameters_schema: dict,
+    temperature: float = 0.3,
+    max_tokens: int = 1000,
+    retries: int = 2,
+    provider: str = "nous",
+    model: str | None = None,
+    fallback_to_json: bool = True,
+) -> dict:
+    """High-reliability structured output via Hermes-native ``<tool_call>``.
+
+    Wraps `chat_completion`: appends a `<tools>` block + a strict instruction
+    to the system prompt so Hermes-4-70B emits a single tool call whose
+    arguments object IS the structured answer. Empirically this is far more
+    reliable than asking the model for "STRICT JSON ONLY" — it eliminates the
+    trailing-comma / unquoted-keys / truncation problems that drove the
+    4-tier repair tower in `extract_json`.
+
+    On failure (no tool_call found, malformed envelope), optionally falls
+    back to the JSON repair path on the raw response so existing prompts
+    that already produced bare JSON keep working.
+    """
+    tool_def = {
+        "type": "function",
+        "function": {
+            "name": tool_name,
+            "description": tool_description,
+            "parameters": parameters_schema,
+        },
+    }
+    augmented_system = (
+        f"{system}\n\n"
+        f"<tools>\n{json.dumps([tool_def], indent=2)}\n</tools>\n\n"
+        "Respond with EXACTLY ONE tool call in this format and nothing else:\n"
+        f"<tool_call>{{\"name\": \"{tool_name}\", \"arguments\": {{ ... }}}}</tool_call>\n"
+        "The arguments object IS your answer. Do not add prose before or after."
+    )
+
+    raw = await chat_completion(
+        system=augmented_system,
+        user=user,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retries=retries,
+        provider=provider,
+        model=model,
+    )
+
+    args = extract_tool_call_args(raw, tool_name)
+    if args is not None:
+        return args
+
+    if fallback_to_json:
+        try:
+            data = extract_json(raw)
+            if isinstance(data, dict):
+                logger.info(f"call_with_tool '{tool_name}': fell back to JSON repair")
+                return data
+        except Exception:
+            pass
+
+    logger.warning(f"call_with_tool '{tool_name}': no parseable response (raw len={len(raw)})")
+    return {}
+
+
 def extract_json(text: str) -> dict | list:
     """Extract JSON from LLM response with repair fallback."""
     text = text.strip()

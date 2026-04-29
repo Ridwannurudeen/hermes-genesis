@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authHeaders } from '../api';
 
 const PROMPTS = [
   'A world where the moon is sentient and writes letters to the queen.',
@@ -14,16 +15,23 @@ type RegenEvent =
   | { t: 'era_opened'; era_id: string; name: string }
   | { t: 'linguistic_drift'; era_id: string; lexicon: [string, string][] }
   | { t: 'day_complete'; day: number; new_events_count: number }
-  | { t: 'article_canonized'; slug: string; title: string; kind: string; voice: string; word_count: number }
+  | { t: 'article_canonized'; slug: string; title: string; kind: string; voice: string; word_count: number; writer?: string; writer_label?: string }
   | { t: 'complete'; world_id: string; world_name: string; era_id: string; articles_written: number }
   | { t: 'error'; message: string };
 
-function streamRegen(seed: string, days: number, onEvent: (e: RegenEvent) => void): () => void {
+type RegenProvider = 'kimi' | 'nous';
+
+function streamRegen(
+  seed: string,
+  days: number,
+  provider: RegenProvider,
+  onEvent: (e: RegenEvent) => void,
+): () => void {
   const ctrl = new AbortController();
   fetch('/api/chronicle/regen/stream', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ seed, days }),
+    headers: authHeaders('POST'),
+    body: JSON.stringify({ seed, days, provider }),
     signal: ctrl.signal,
   })
     .then(async (r) => {
@@ -72,6 +80,7 @@ export default function Regen() {
   const nav = useNavigate();
   const [seed, setSeed] = useState('');
   const [days, setDays] = useState(5);
+  const [provider, setProvider] = useState<RegenProvider>('kimi');
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [progress, setProgress] = useState<string>('');
@@ -80,7 +89,7 @@ export default function Regen() {
   const [eraName, setEraName] = useState<string | null>(null);
   const [lexicon, setLexicon] = useState<[string, string][]>([]);
   const [daysCompleted, setDaysCompleted] = useState(0);
-  const [articles, setArticles] = useState<{ slug: string; title: string; kind: string; voice: string; word_count: number }[]>([]);
+  const [articles, setArticles] = useState<{ slug: string; title: string; kind: string; voice: string; word_count: number; writer_label?: string }[]>([]);
   const [completion, setCompletion] = useState<{ world_id: string; articles_written: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<(() => void) | null>(null);
@@ -100,7 +109,7 @@ export default function Regen() {
     setCompletion(null);
     setError(null);
 
-    abortRef.current = streamRegen(s, days, (ev) => {
+    abortRef.current = streamRegen(s, days, provider, (ev) => {
       if (ev.t === 'progress') setProgress(ev.detail || ev.stage);
       else if (ev.t === 'world_ready') {
         setWorldName(ev.name);
@@ -109,7 +118,10 @@ export default function Regen() {
       else if (ev.t === 'linguistic_drift') setLexicon(ev.lexicon);
       else if (ev.t === 'day_complete') setDaysCompleted(ev.day);
       else if (ev.t === 'article_canonized')
-        setArticles((prev) => [...prev, { slug: ev.slug, title: ev.title, kind: ev.kind, voice: ev.voice, word_count: ev.word_count }]);
+        setArticles((prev) => [
+          ...prev,
+          { slug: ev.slug, title: ev.title, kind: ev.kind, voice: ev.voice, word_count: ev.word_count, writer_label: ev.writer_label },
+        ]);
       else if (ev.t === 'complete') {
         setCompletion({ world_id: ev.world_id, articles_written: ev.articles_written });
         setRunning(false);
@@ -119,7 +131,7 @@ export default function Regen() {
         setRunning(false);
       }
     });
-  }, [seed, days]);
+  }, [seed, days, provider]);
 
   const cancel = useCallback(() => {
     abortRef.current?.();
@@ -164,7 +176,7 @@ export default function Regen() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-4 mt-6">
+            <div className="flex items-center gap-4 mt-6 flex-wrap">
               <label className="text-sm text-slate-500">
                 days
                 <input
@@ -175,6 +187,27 @@ export default function Regen() {
                   onChange={(e) => setDays(Math.max(1, Math.min(12, Number(e.target.value) || 5)))}
                   className="ml-2 w-16 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-sm text-slate-200"
                 />
+              </label>
+              <label className="text-sm text-slate-500 flex items-center gap-2">
+                writer
+                <div className="flex bg-slate-900 border border-slate-700/60 rounded overflow-hidden text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setProvider('kimi')}
+                    className={`px-3 py-1 ${provider === 'kimi' ? 'bg-amber-700/70 text-slate-50' : 'text-slate-400 hover:text-slate-200'}`}
+                    title="Moonshot Kimi K2.6 — long-form prose, 256K context"
+                  >
+                    Kimi K2.6
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProvider('nous')}
+                    className={`px-3 py-1 border-l border-slate-700/60 ${provider === 'nous' ? 'bg-amber-700/70 text-slate-50' : 'text-slate-400 hover:text-slate-200'}`}
+                    title="Nous Hermes-4-70B — faster, structured"
+                  >
+                    Hermes-4
+                  </button>
+                </div>
               </label>
               <button
                 onClick={start}
@@ -197,21 +230,45 @@ export default function Regen() {
                 <div className="font-serif text-2xl text-slate-100 mt-0.5">{worldName || 'unnamed civilization'}</div>
                 {eraName && <div className="text-sm text-amber-300 mt-0.5">era: {eraName}</div>}
               </div>
-              {running ? (
-                <button onClick={cancel} className="text-slate-500 hover:text-rose-300 text-sm">
-                  cancel
-                </button>
-              ) : completion ? (
-                <button
-                  onClick={() => nav('/chronicle')}
-                  className="px-4 py-2 rounded-md bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm"
-                >
-                  open the canon →
-                </button>
-              ) : null}
+              <div className="flex items-center gap-3">
+                {(running || completion) && (
+                  <button
+                    onClick={() => nav('/control')}
+                    className="text-amber-300 hover:text-amber-200 text-sm border border-amber-700/40 hover:border-amber-500/60 rounded px-3 py-1.5"
+                    title="Live agentic pipeline view"
+                  >
+                    control room →
+                  </button>
+                )}
+                {running ? (
+                  <button onClick={cancel} className="text-slate-500 hover:text-rose-300 text-sm">
+                    cancel
+                  </button>
+                ) : completion ? (
+                  <button
+                    onClick={() => nav('/chronicle')}
+                    className="px-4 py-2 rounded-md bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm"
+                  >
+                    open the canon →
+                  </button>
+                ) : null}
+              </div>
             </div>
 
-            <div className="text-sm text-slate-400 italic">{progress}</div>
+            <div className="text-sm text-slate-400 italic flex items-center gap-2">
+              <span>{progress}</span>
+              {(running || done) && (
+                <span
+                  className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+                    provider === 'kimi'
+                      ? 'border-violet-700/60 text-violet-200 bg-violet-900/30'
+                      : 'border-amber-700/60 text-amber-200 bg-amber-900/30'
+                  }`}
+                >
+                  writer · {provider === 'kimi' ? 'Kimi-K2.6' : 'Hermes-4-70B'}
+                </span>
+              )}
+            </div>
 
             {stats && (
               <div className="grid grid-cols-3 gap-px bg-slate-800/40 border border-slate-700/60 rounded-md overflow-hidden">
@@ -258,7 +315,20 @@ export default function Regen() {
                       onClick={() => nav(`/chronicle/${a.slug}`)}
                       className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"
                     >
-                      <div className="font-serif text-base text-slate-100">{a.title}</div>
+                      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                        <div className="font-serif text-base text-slate-100">{a.title}</div>
+                        {a.writer_label && (
+                          <span
+                            className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+                              /kimi/i.test(a.writer_label)
+                                ? 'border-violet-700/60 text-violet-200 bg-violet-900/30'
+                                : 'border-amber-700/60 text-amber-200 bg-amber-900/30'
+                            }`}
+                          >
+                            {a.writer_label}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[11px] text-slate-500 mt-0.5">
                         {a.kind} · {a.voice} · {a.word_count.toLocaleString()} words
                       </div>

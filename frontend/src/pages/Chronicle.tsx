@@ -106,6 +106,14 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
       <div className="flex items-baseline justify-between gap-3">
         <div className="font-serif text-lg text-slate-100 leading-tight flex items-center gap-2">
           {a.title}
+          {a.illustration_url ? (
+            <span
+              title="hero image available"
+              className="inline-flex items-center text-cyan-300 text-[10px] uppercase tracking-widest border border-cyan-700/50 rounded px-1.5 py-0.5"
+            >
+              image
+            </span>
+          ) : null}
           {a.audio_url ? (
             <span
               title="audio narration available"
@@ -287,6 +295,13 @@ export default function Chronicle() {
               className="bg-slate-900/80 border border-slate-700/60 rounded px-3 py-1.5 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-600/50 w-64"
             />
             <button
+              onClick={() => nav('/control')}
+              className="px-3 py-1.5 rounded border border-amber-700/40 text-amber-200/90 hover:border-amber-500/60 hover:text-amber-100 text-sm"
+              title="Live agentic pipeline view"
+            >
+              control room
+            </button>
+            <button
               onClick={() => nav('/regen')}
               className="px-3 py-1.5 rounded border border-slate-700/60 text-slate-300 hover:text-slate-100 hover:border-slate-500 text-sm"
             >
@@ -360,6 +375,19 @@ export default function Chronicle() {
                   <span className="text-[11px] text-emerald-400">via @{article.contributor}</span>
                 ) : null}
               </div>
+              {article.illustration_url && (
+                <figure className="mb-6 -mx-2">
+                  <img
+                    src={article.illustration_url}
+                    alt={article.title}
+                    loading="lazy"
+                    className="w-full rounded-md border border-slate-800/60 shadow-lg"
+                  />
+                  <figcaption className="text-[11px] uppercase tracking-widest text-slate-500 mt-2 text-center">
+                    {article.kind} · era {article.era_id}
+                  </figcaption>
+                </figure>
+              )}
               {article.audio_url && (
                 <div className="mb-6 px-4 py-3 rounded border border-amber-800/40 bg-amber-950/20">
                   <div className="text-[11px] uppercase tracking-widest text-amber-400/80 mb-2">narration</div>
