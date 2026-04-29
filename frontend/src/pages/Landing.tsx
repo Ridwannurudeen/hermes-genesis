@@ -88,9 +88,12 @@ function Header({ connected }: { connected: boolean }) {
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-subtle">
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-genesis-400" />
+          <Sparkles className="w-5 h-5 text-amber-400" />
           <span className="font-display font-bold text-heading text-sm tracking-wide">
-            HERMES GENESIS
+            CHRONICLON
+          </span>
+          <span className="text-faint text-[10px] uppercase tracking-widest hidden sm:inline">
+            built on Hermes Genesis
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -405,118 +408,116 @@ export default function Landing() {
 
       <Header connected={connected} />
 
-      {/* ── Chroniclon banner ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-        className="relative z-20 max-w-5xl mx-auto px-6 mt-24"
-      >
-        <button
-          onClick={() => navigate('/chronicle')}
-          className="group w-full block text-left"
-        >
-          <div className="relative overflow-hidden rounded-xl border border-amber-700/40 bg-gradient-to-r from-amber-950/40 via-slate-900/60 to-slate-950/40 hover:border-amber-500/60 transition-colors">
-            <div
-              className="absolute inset-0 opacity-30 pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(800px 200px at 80% 50%, rgba(251,191,36,0.18), transparent 60%)',
-              }}
-            />
-            <div className="relative px-5 py-4 sm:px-6 sm:py-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300/80 font-mono">
-                new · chroniclon
-              </span>
-              <span className="font-serif text-base sm:text-lg text-slate-100 leading-snug">
-                A wikipedia for a world that doesn't exist —{' '}
-                <span className="text-amber-300/90">written autonomously</span>.
-              </span>
-              <span className="text-xs text-slate-500 hidden sm:inline">
-                Hermes Agent + Kimi K2.6
-              </span>
-              <span className="ml-auto inline-flex items-center gap-3 text-sm">
-                <span
-                  role="button"
-                  onClick={(e) => { e.stopPropagation(); navigate('/control'); }}
-                  className="hidden md:inline-flex items-center gap-1.5 text-amber-200/90 hover:text-amber-100 px-2 py-0.5 rounded border border-amber-700/40 hover:border-amber-500/60"
-                  title="Live agentic pipeline"
-                >
-                  control room
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-amber-200/90 group-hover:text-amber-100">
-                  browse the canon <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </span>
-            </div>
-          </div>
-        </button>
-      </motion.div>
-
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-16">
-        {/* ── Hero ── */}
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-16">
+        {/* ── Hero — Chroniclon-first ── */}
         <motion.section
           initial="hidden"
           animate="visible"
           variants={stagger}
-          className="text-center mb-28"
+          className="text-center mb-24"
         >
+          <motion.div
+            variants={fadeUp}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-700/40 bg-amber-950/30 mb-6"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-[11px] uppercase tracking-[0.2em] text-amber-300 font-mono">
+              live · written autonomously
+            </span>
+          </motion.div>
+
           <motion.h1
             variants={fadeUp}
             className="text-shimmer text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight font-display mb-6"
           >
-            HERMES GENESIS
+            CHRONICLON
           </motion.h1>
 
-          <motion.div variants={fadeUp} className="overflow-hidden mb-3">
+          <motion.div variants={fadeUp} className="overflow-hidden mb-4">
             <motion.p
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="text-xl sm:text-2xl text-sub font-light"
+              className="text-xl sm:text-2xl text-sub font-light font-serif italic"
             >
-              Describe a world.{' '}
-              <span className="text-genesis-400 font-normal">Watch it live.</span>{' '}
-              <span className="text-dim">Watch it die.</span>
+              A wikipedia for a world that doesn't exist.
             </motion.p>
           </motion.div>
 
           <motion.p
             variants={fadeUp}
-            className="text-sm text-dim max-w-xl mx-auto leading-relaxed mb-6"
+            className="text-sm text-dim max-w-2xl mx-auto leading-relaxed mb-7"
           >
-            An autonomous living world engine powered by{' '}
-            <span className="text-sub">Hermes-4-70B</span>. AI agents govern
-            civilizations, fulfill prophecies, and write history — no human input
-            required.
+            One sentence in, a self-writing encyclopedia out. Long-form articles, era-by-era
+            linguistic drift, illustrations and narration for every entry — composed by{' '}
+            <span className="text-amber-300">Hermes-4-70B</span> (canon agent &amp; critics) and{' '}
+            <span className="text-violet-300">Kimi K2.6</span> (long-form prose).
           </motion.p>
 
-          {/* Powered by badge */}
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-3 mb-4">
-            <a
-              href="https://nousresearch.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-genesis-950/80 border border-genesis-700/30 hover:border-genesis-500/50 transition-colors"
+          {/* Primary CTAs */}
+          <motion.div variants={fadeUp} className="flex items-center justify-center gap-3 flex-wrap mb-8">
+            <button
+              onClick={() => navigate('/chronicle')}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-700/80 hover:bg-amber-600 text-slate-50 font-semibold text-sm transition-colors btn-glow"
             >
-              <Sparkles className="w-3.5 h-3.5 text-genesis-400" />
-              <span className="text-xs font-medium text-genesis-body">Powered by</span>
-              <span className="text-xs font-bold text-genesis-title">Hermes-4-70B</span>
-              <span className="text-[10px] text-genesis-500">by Nous Research</span>
-            </a>
+              <BookOpen className="w-4 h-4" />
+              Browse the canon
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => navigate('/regen')}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-amber-700/50 hover:border-amber-500 text-amber-200 hover:text-amber-100 font-semibold text-sm transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              Regen a civilization
+            </button>
+            <button
+              onClick={() => navigate('/control')}
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 text-dim hover:text-heading text-sm transition-colors"
+              title="Live agentic pipeline"
+            >
+              <Eye className="w-4 h-4" />
+              Control room
+            </button>
           </motion.div>
 
-          {/* Tech stack line */}
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-2 flex-wrap mb-8">
-            {['Genetic Simulation', 'Causal Event Engine', 'Autonomous AI Agents', 'Voice & Ambient Audio', 'Cinematic Mode'].map((tag, i) => (
-              <span key={tag} className="flex items-center gap-1.5">
-                {i > 0 && <span className="text-genesis-800 text-xs">·</span>}
-                <span className="text-[11px] text-genesis-500 tracking-wide">{tag}</span>
-              </span>
-            ))}
+          {/* Model provenance pills — make the dual-model story visible */}
+          <motion.div variants={fadeUp} className="flex items-center justify-center gap-2 flex-wrap mb-10 text-[11px] font-mono">
+            <span className="px-2 py-0.5 rounded border border-amber-700/40 bg-amber-950/30 text-amber-300">
+              Hermes-4-70B
+            </span>
+            <span className="text-faint">·</span>
+            <span className="px-2 py-0.5 rounded border border-violet-700/40 bg-violet-950/30 text-violet-300">
+              Kimi-K2.6
+            </span>
+            <span className="text-faint">·</span>
+            <span className="px-2 py-0.5 rounded border border-cyan-700/40 bg-cyan-950/30 text-cyan-300">
+              FLUX
+            </span>
+            <span className="text-faint">·</span>
+            <span className="px-2 py-0.5 rounded border border-emerald-700/40 bg-emerald-950/30 text-emerald-300">
+              ElevenLabs / OpenAI TTS
+            </span>
+          </motion.div>
+        </motion.section>
+
+        {/* ── Sandbox: build your own world from scratch (Genesis flow) ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+          variants={stagger}
+          className="mb-28"
+        >
+          <motion.div variants={fadeUp} className="text-center mb-6">
+            <h2 className="text-xs uppercase tracking-[0.2em] text-faint font-mono">
+              Sandbox · Hermes Genesis
+            </h2>
+            <p className="text-sm text-dim mt-2">
+              Or skip the wiki and just generate a fresh living world.
+            </p>
           </motion.div>
 
-          {/* Quick create input */}
           <motion.div variants={fadeUp} className="max-w-xl mx-auto">
             <div className="flex gap-2">
               <input
