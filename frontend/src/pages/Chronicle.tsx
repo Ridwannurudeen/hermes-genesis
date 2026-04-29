@@ -104,7 +104,17 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
       className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <div className="font-serif text-lg text-slate-100 leading-tight">{a.title}</div>
+        <div className="font-serif text-lg text-slate-100 leading-tight flex items-center gap-2">
+          {a.title}
+          {a.audio_url ? (
+            <span
+              title="audio narration available"
+              className="inline-flex items-center text-amber-400/90 text-[10px] uppercase tracking-widest border border-amber-700/50 rounded px-1.5 py-0.5"
+            >
+              audio
+            </span>
+          ) : null}
+        </div>
         <div className="shrink-0 text-[11px] text-slate-500 font-mono">y. {a.in_world_year}</div>
       </div>
       <div className="flex flex-wrap items-center gap-2 mt-1">

@@ -317,6 +317,7 @@ export type ArticleSummary = {
   voice: VoiceTone;
   word_count: number;
   contributor: string | null;
+  audio_url: string | null;
   updated_at: string;
 };
 

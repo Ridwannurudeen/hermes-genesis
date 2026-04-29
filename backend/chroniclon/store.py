@@ -133,6 +133,7 @@ def list_articles(
             "voice": a.get("voice", "scholarly"),
             "word_count": a.get("word_count", 0),
             "contributor": a.get("contributor"),
+            "audio_url": a.get("audio_url"),
             "updated_at": a.get("updated_at"),
         })
     return rows[offset : offset + limit]
