@@ -12,8 +12,23 @@ import type {
 
 const BASE = '';
 
+// Optional API key injected at build time. Backend gates POST/DELETE on this.
+// Wire VITE_GENESIS_API_KEY in the build env (same value as GENESIS_API_KEY on
+// the backend). When unset, we send no header — fine for read-only browsing.
+const API_KEY: string = (import.meta.env.VITE_GENESIS_API_KEY as string | undefined) ?? '';
+
+function withAuth(options?: RequestInit): RequestInit {
+  if (!API_KEY) return options ?? {};
+  const method = (options?.method || 'GET').toUpperCase();
+  // Reads (GET) don't need the key; only mutating routes do.
+  if (method === 'GET') return options ?? {};
+  const headers = new Headers(options?.headers || {});
+  headers.set('X-API-Key', API_KEY);
+  return { ...(options ?? {}), headers };
+}
+
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${url}`, options);
+  const res = await fetch(`${BASE}${url}`, withAuth(options));
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }
@@ -26,12 +41,18 @@ type SSEHandler = {
   onError?: (error: Error) => void;
 };
 
+export function authHeaders(method: string = 'POST'): Record<string, string> {
+  const h: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (API_KEY && method.toUpperCase() !== 'GET') h['X-API-Key'] = API_KEY;
+  return h;
+}
+
 function streamSSE(url: string, body: Record<string, unknown>, handlers: SSEHandler): () => void {
   const controller = new AbortController();
 
   fetch(`${BASE}${url}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders('POST'),
     body: JSON.stringify(body),
     signal: controller.signal,
   })
@@ -318,6 +339,7 @@ export type ArticleSummary = {
   word_count: number;
   contributor: string | null;
   audio_url: string | null;
+  illustration_url?: string | null;
   updated_at: string;
 };
 

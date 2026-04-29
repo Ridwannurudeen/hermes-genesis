@@ -1,9 +1,17 @@
 services:
   genesis:
-    build: .
+    build:
+      context: .
+      args:
+        # Forward the public deploy token into the SPA build so the bundled
+        # frontend can call mutating backend routes once GENESIS_API_KEY is
+        # required. Treat as a shared deploy token, not a hard secret.
+        VITE_GENESIS_API_KEY: ${GENESIS_API_KEY:-}
     container_name: genesis-api
     ports:
-      - "8003:8003"
+      # Bind to loopback only — public traffic must go through nginx + TLS.
+      # Override to "0.0.0.0:8003:8003" only for local dev where nginx is absent.
+      - "127.0.0.1:8003:8003"
     volumes:
       - /opt/genesis/data:/app/data
     env_file:

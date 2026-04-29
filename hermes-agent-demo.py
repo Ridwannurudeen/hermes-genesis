@@ -173,9 +173,10 @@ def execute_tool(name: str, args: dict) -> dict:
             return r.json()
 
         elif name == "genesis_chat":
+            # Backend route is /characters/{char_id}/chat — character_id goes in the URL.
             r = client.post(
-                f"{GENESIS_API}/api/worlds/{args['world_id']}/chat",
-                json={"character_id": args["character_id"], "message": args["message"]},
+                f"{GENESIS_API}/api/worlds/{args['world_id']}/characters/{args['character_id']}/chat",
+                json={"message": args["message"]},
             )
             return r.json()
 
@@ -183,11 +184,28 @@ def execute_tool(name: str, args: dict) -> dict:
             return {"error": f"Unknown tool: {name}"}
 
 
+def _load_nous_key() -> str:
+    """Read NOUS_API_KEY from env; fall back to a local .env via python-dotenv."""
+    import os
+    key = os.environ.get("NOUS_API_KEY")
+    if key:
+        return key
+    try:
+        from dotenv import dotenv_values
+        # Try the repo-local .env first, then the legacy VPS path.
+        for candidate in (".env", "backend/.env", "/opt/genesis/.env"):
+            vals = dotenv_values(candidate)
+            if vals.get("NOUS_API_KEY"):
+                return vals["NOUS_API_KEY"]
+    except ImportError:
+        pass
+    raise SystemExit("NOUS_API_KEY not set. Export it or add it to .env.")
+
+
 def run_agent(query: str):
     """Run one agent turn: prompt → tool calls → results → summary."""
-    import os
     global LLM_KEY
-    LLM_KEY = os.environ.get("NOUS_API_KEY") or open("/opt/genesis/.env").read().split("NOUS_API_KEY=")[1].split("\n")[0]
+    LLM_KEY = _load_nous_key()
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},

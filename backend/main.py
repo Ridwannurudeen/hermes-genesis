@@ -37,17 +37,28 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Hermes Genesis", version="0.1.0", lifespan=lifespan)
 
-# CORS: restrict to configured origins, fall back to permissive only when none set
-_cors_origins = CORS_ORIGINS if CORS_ORIGINS else ["*"]
-if not CORS_ORIGINS:
+# CORS: never wildcard. If CORS_ORIGINS is unset we fall back to safe localhost
+# defaults so dev still works, but production MUST set CORS_ORIGINS explicitly.
+if CORS_ORIGINS:
+    _cors_origins = CORS_ORIGINS
+else:
     import logging
-    logging.getLogger(__name__).warning("CORS_ORIGINS not set — allowing all origins. Set CORS_ORIGINS in .env for production.")
+    logging.getLogger(__name__).warning(
+        "CORS_ORIGINS not set — defaulting to localhost only. Set CORS_ORIGINS "
+        "in .env to your public domain(s) for production."
+    )
+    _cors_origins = [
+        "http://localhost:5173",  # Vite dev
+        "http://localhost:8003",  # bundled prod (same-origin)
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:8003",
+    ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-API-Key"],
-    allow_credentials=bool(CORS_ORIGINS),
+    allow_credentials=True,
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=500)

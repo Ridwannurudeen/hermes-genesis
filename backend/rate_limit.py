@@ -1,8 +1,15 @@
 """Simple in-memory sliding-window rate limiter for LLM-calling endpoints."""
+import os
 import time
 from collections import defaultdict
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
+# IPs we trust to set X-Forwarded-For honestly (the reverse proxy that fronts us).
+# Default to the loopback range — nginx running on the same host will hit us via
+# 127.0.0.1. Override via TRUSTED_PROXY_IPS env var (comma-separated) when
+# fronted by a non-loopback proxy.
+_TRUSTED_PROXY_IPS = {ip.strip() for ip in os.getenv("TRUSTED_PROXY_IPS", "127.0.0.1,::1").split(",") if ip.strip()}
 
 # Endpoints that trigger LLM calls — these are the expensive ones
 LLM_ENDPOINTS = {
@@ -57,8 +64,16 @@ async def rate_limit_middleware(request: Request, call_next):
         and request.url.path.startswith("/api/")
         and _is_llm_endpoint(request.url.path)
     ):
-        ip = (request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-              or (request.client.host if request.client else "unknown"))
+        # Only trust X-Forwarded-For when the request actually came from a proxy
+        # we control. Otherwise the header is attacker-controlled and would let
+        # any client get a fresh rate-limit bucket per request.
+        peer = request.client.host if request.client else "unknown"
+        xff = request.headers.get("x-forwarded-for", "")
+        if peer in _TRUSTED_PROXY_IPS and xff:
+            # Take the leftmost entry (the original client) from the chain.
+            ip = xff.split(",")[0].strip() or peer
+        else:
+            ip = peer
         now = time.monotonic()
         _cleanup_old_entries(ip, now)
 

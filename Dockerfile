@@ -1,6 +1,11 @@
 # Stage 1: Build frontend
 FROM node:20-alpine AS frontend-build
 WORKDIR /build
+# Vite reads VITE_* env vars at build time. Forward the API key so the
+# bundled SPA can authenticate to mutating routes once GENESIS_API_KEY is
+# enforced on the backend.
+ARG VITE_GENESIS_API_KEY=""
+ENV VITE_GENESIS_API_KEY=$VITE_GENESIS_API_KEY
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
