@@ -145,6 +145,7 @@ def list_articles(
             "word_count": a.get("word_count", 0),
             "contributor": a.get("contributor"),
             "audio_url": a.get("audio_url"),
+            "illustration_url": a.get("illustration_url"),
             "updated_at": a.get("updated_at"),
         })
     return rows[offset : offset + limit]
