@@ -146,6 +146,7 @@ async def stream_regen(
                 event=ed,
                 linguistic_notes=notes,
                 writer_provider=writer_provider,
+                world_id=world.id,
             )
         except Exception as e:
             logger.exception(f"canonize {ed.get('id','?')} failed")

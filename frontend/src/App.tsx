@@ -6,6 +6,7 @@ const Landing = lazy(() => import('./pages/Landing'));
 const WorldView = lazy(() => import('./pages/WorldView'));
 const Chronicle = lazy(() => import('./pages/Chronicle'));
 const Regen = lazy(() => import('./pages/Regen'));
+const Demo = lazy(() => import('./pages/Demo'));
 const Control = lazy(() => import('./pages/Control'));
 
 function PageLoader() {
@@ -27,6 +28,8 @@ export default function App() {
             <Route path="/chronicle" element={<Chronicle />} />
             <Route path="/chronicle/:slug" element={<Chronicle />} />
             <Route path="/regen" element={<Regen />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/try-it" element={<Demo />} />
             <Route path="/control" element={<Control />} />
           </Routes>
         </Suspense>

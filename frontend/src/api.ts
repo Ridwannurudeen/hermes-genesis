@@ -395,13 +395,34 @@ export const chronicle = {
         in_world_year: number;
         parent_era: string | null;
         phonology_notes: string;
+        phonological_rules?: { from_sound: string; to_sound: string; context: string }[];
+        morphology?: {
+          plural_marker?: string;
+          honorific_prefix?: string;
+          place_name_suffix?: string;
+          diminutive?: string;
+          notes?: string;
+        };
         sample_lexicon: Record<string, string>;
         sample_text: string;
+        inscriptions?: { in_world_text: string; translation: string; context: string }[];
       }[];
     }>('/api/chronicle/lexicon'),
 
   submit: (contributor_handle: string, seed_text: string) =>
-    fetchJson<{ submission_id: string; status: string }>('/api/chronicle/submit', {
+    fetchJson<{
+      submission_id: string;
+      status: 'canonized' | 'rejected' | 'approved_but_skipped' | string;
+      reason?: string;
+      contributor?: string;
+      article?: {
+        slug: string;
+        title: string;
+        kind: string;
+        voice: string;
+        word_count: number;
+      };
+    }>('/api/chronicle/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contributor_handle, seed_text }),

@@ -1,14 +1,37 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
+export type PhonologicalRule = {
+  from_sound: string;
+  to_sound: string;
+  context: string;
+};
+
+export type Morphology = {
+  plural_marker?: string;
+  honorific_prefix?: string;
+  place_name_suffix?: string;
+  diminutive?: string;
+  notes?: string;
+};
+
+export type Inscription = {
+  in_world_text: string;
+  translation: string;
+  context: string;
+};
+
 type LinguisticEraSummary = {
   era_id: string;
   era_name: string;
   in_world_year: number;
   parent_era: string | null;
   phonology_notes: string;
+  phonological_rules?: PhonologicalRule[];
+  morphology?: Morphology;
   sample_lexicon: Record<string, string>;
   sample_text: string;
+  inscriptions?: Inscription[];
 };
 
 type Props = {
@@ -92,8 +115,11 @@ export default function LanguageTree({ data, height = 520 }: Props) {
               in_world_year: -1,
               parent_era: null,
               phonology_notes: '',
+              phonological_rules: [],
+              morphology: {},
               sample_lexicon: {},
               sample_text: '',
+              inscriptions: [],
             },
             children: tree,
           };
@@ -164,6 +190,17 @@ export default function LanguageTree({ data, height = 520 }: Props) {
     return Object.entries(selected.sample_lexicon).slice(0, 18);
   }, [selected]);
 
+  const morphEntries = useMemo(() => {
+    if (!selected?.morphology) return [];
+    const m = selected.morphology;
+    const rows: Array<[string, string]> = [];
+    if (m.plural_marker) rows.push(['plural', m.plural_marker]);
+    if (m.honorific_prefix) rows.push(['honorific', m.honorific_prefix]);
+    if (m.place_name_suffix) rows.push(['place-name', m.place_name_suffix]);
+    if (m.diminutive) rows.push(['diminutive', m.diminutive]);
+    return rows;
+  }, [selected]);
+
   return (
     <div ref={ref} className="w-full">
       <div className="flex items-baseline justify-between mb-3">
@@ -201,18 +238,71 @@ export default function LanguageTree({ data, height = 520 }: Props) {
                   </div>
                 </div>
               )}
+              {(selected.phonological_rules?.length ?? 0) > 0 && (
+                <div className="mb-3">
+                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Sound shifts</div>
+                  <div className="space-y-1 text-sm font-mono">
+                    {selected.phonological_rules!.map((r, i) => (
+                      <div key={i} className="flex items-baseline gap-2">
+                        <span className="text-slate-400">{r.from_sound}</span>
+                        <span className="text-amber-300">→</span>
+                        <span className="text-amber-200">{r.to_sound}</span>
+                        {r.context && (
+                          <span className="text-slate-600 text-xs italic ml-auto">{r.context}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {morphEntries.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Morphology</div>
+                  <div className="text-sm space-y-1">
+                    {morphEntries.map(([k, v]) => (
+                      <div key={k} className="flex items-baseline gap-2">
+                        <span className="text-slate-500 w-20 flex-shrink-0">{k}</span>
+                        <span className="text-slate-300">{v}</span>
+                      </div>
+                    ))}
+                    {selected.morphology?.notes && (
+                      <div className="text-xs text-slate-500 italic mt-1">{selected.morphology.notes}</div>
+                    )}
+                  </div>
+                </div>
+              )}
               {selected.sample_text && (
-                <div>
+                <div className="mb-3">
                   <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Sample</div>
                   <div className="text-sm text-slate-300 italic leading-relaxed font-serif">
                     “{selected.sample_text}”
                   </div>
                 </div>
               )}
+              {(selected.inscriptions?.length ?? 0) > 0 && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Inscriptions</div>
+                  <div className="space-y-3">
+                    {selected.inscriptions!.map((ins, i) => (
+                      <div key={i} className="border-l-2 border-amber-900/60 pl-2">
+                        <div className="text-sm text-amber-200 font-serif italic">
+                          “{ins.in_world_text}”
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5">{ins.translation}</div>
+                        {ins.context && (
+                          <div className="text-[10px] uppercase tracking-widest text-slate-600 mt-0.5">
+                            {ins.context}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-slate-500 text-sm">
-              Click an era node to inspect its lexicon and a sample of its prose.
+              Click an era node to inspect its lexicon, sound shifts, morphology, and in-world inscriptions.
             </div>
           )}
         </div>

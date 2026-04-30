@@ -161,6 +161,115 @@ def _canon_facts_for(era_id: str, limit: int = 30) -> list[str]:
     return facts
 
 
+_AUDIENCE_MODERATION_SYSTEM = """You are the canon-keeper of a fictional civilization
+welcoming audience contributions. A viewer has submitted a sentence-or-two event
+they think should join the canon. Your job is to:
+  (1) decide whether it can be accepted
+  (2) if yes, synthesize a structured Event we can canonize
+
+Reject when the seed is:
+  - real-world references (modern brands, current politics, real names)
+  - safety violations (slurs, sexual content, doxx, instructions for harm)
+  - flat contradictions of established canon (a dead character returns, etc.)
+  - off-genre noise that breaks immersion
+
+Accept when the seed is in-world, novel, and consistent with the era's mood.
+
+Output STRICT JSON ONLY."""
+
+
+def _audience_moderation_prompt(
+    seed_text: str,
+    world_name: str,
+    world_seed: str,
+    era_name: str,
+    era_summary: str,
+    in_world_year: int,
+    recent_titles: list[str],
+) -> str:
+    titles_block = "\n".join(f"- {t}" for t in recent_titles[-12:]) or "(none yet)"
+    return f"""World: "{world_name}"
+World seed: "{world_seed}"
+Current era: "{era_name}" — {era_summary or "(no summary yet)"}
+In-world year: {in_world_year}
+
+Recent canonized titles (avoid contradicting these):
+{titles_block}
+
+AUDIENCE SUBMISSION (verbatim):
+\"\"\"{seed_text}\"\"\"
+
+Decide:
+{{
+  "accept": true,
+  "reasoning": "1 sentence",
+  "event": {{
+    "type": "battle | discovery | succession | omen | famine | edict | rite | misc",
+    "title": "≤80 chars, in-world wording",
+    "narrative": "1-3 sentence in-world prose, third person, present-or-past",
+    "kind_hint": "event | person | place | concept | prophecy",
+    "voice_hint": "scholarly | newspaper | court | diary | scripture"
+  }}
+}}
+
+If you reject, set "accept": false, give "reasoning", and omit "event".
+The "title" and "narrative" you produce will be the seed Kimi rewrites into the
+final article — they should already feel like in-canon prose."""
+
+
+async def moderate_and_synthesize_submission(
+    *,
+    seed_text: str,
+    world_name: str,
+    world_seed: str,
+    era_name: str,
+    era_summary: str,
+    in_world_year: int,
+) -> dict:
+    """Hermes moderation gate for audience submissions. Returns:
+      {accept: True, event: {...}, reasoning: str}
+      {accept: False, reasoning: str}
+    """
+    from llm import chat_completion, extract_json
+
+    recent = [r["title"] for r in store.list_articles(limit=12)]
+    raw = await chat_completion(
+        system=_AUDIENCE_MODERATION_SYSTEM,
+        user=_audience_moderation_prompt(
+            seed_text, world_name, world_seed, era_name, era_summary, in_world_year, recent,
+        ),
+        temperature=0.3,
+        max_tokens=600,
+        provider="nous",
+    )
+    try:
+        data = extract_json(raw)
+        if not isinstance(data, dict):
+            return {"accept": False, "reasoning": "moderator returned non-object"}
+    except Exception as e:
+        logger.warning(f"audience moderation parse failed: {e}")
+        return {"accept": False, "reasoning": "moderator output unparseable"}
+
+    if not data.get("accept"):
+        return {"accept": False, "reasoning": str(data.get("reasoning", "rejected"))[:240]}
+
+    ev = data.get("event")
+    if not isinstance(ev, dict) or not ev.get("title") or not ev.get("narrative"):
+        return {"accept": False, "reasoning": "moderator approved but produced no event payload"}
+
+    return {
+        "accept": True,
+        "reasoning": str(data.get("reasoning", ""))[:240],
+        "event": {
+            "type": str(ev.get("type", "misc"))[:32],
+            "title": str(ev.get("title", ""))[:120],
+            "narrative": str(ev.get("narrative", ""))[:1200],
+            "kind_hint": str(ev.get("kind_hint", "event"))[:32],
+            "voice_hint": str(ev.get("voice_hint", "scholarly"))[:32],
+        },
+    }
+
+
 async def canonize_event(
     *,
     world_name: str,
@@ -174,6 +283,8 @@ async def canonize_event(
     writer_provider: str = "kimi",
     lead_character: dict | None = None,
     era_art_style: str = "",
+    world_id: str | None = None,
+    contributor: str | None = None,
 ) -> WikiArticle | None:
     """Run the full canonization pipeline for one simulation event.
     Returns the persisted WikiArticle if canonized, None if skipped.
@@ -279,6 +390,7 @@ async def canonize_event(
         related_articles=related_articles,
         linguistic_notes=linguistic_notes,
         canon_excerpts=canon_excerpts,
+        contributor=contributor,
         provider=writer_provider,
     )
 
@@ -403,6 +515,10 @@ async def canonize_event(
         article.backlinks = _extract_backlinks(article.body_md)
         article.word_count = _word_count(article.body_md)
 
+    # Provenance: link the article back to the simulation event so the
+    # Civilization Autopsy view can walk causation chains.
+    article.source_event_id = event.get("id") or article.source_event_id
+    article.source_world_id = world_id or event.get("world_id") or article.source_world_id
     article.updated_at = datetime.utcnow()
     store.save_article(article)
 

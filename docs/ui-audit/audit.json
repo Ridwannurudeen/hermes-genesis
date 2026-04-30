@@ -4,12 +4,12 @@
       "surface": "landing",
       "screenshot": "C:\\Users\\HP\\Desktop\\Github files\\hermes-genesis\\docs\\ui-audit\\01-landing.png",
       "checks": {
-        "chroniclon_banner_visible": true,
-        "hermes_genesis_hero_visible": true,
-        "describe_subtitle": true,
+        "chroniclon_banner_visible": false,
+        "hermes_genesis_hero_visible": false,
+        "describe_subtitle": false,
         "kimi_mention_in_banner": true,
-        "control_room_link": true,
-        "browse_canon_cta": true,
+        "control_room_link": false,
+        "browse_canon_cta": false,
         "powered_by_hermes_4": true
       }
     },
@@ -47,31 +47,15 @@
         "active_pipelines_section": true,
         "stage_decision": false,
         "stage_writing": false,
-        "stage_antislop": true,
+        "stage_antislop": false,
         "stage_factcheck": false,
         "stage_crosslink": true,
         "stage_image": false,
         "stage_audio": false,
         "model_badge_hermes": true,
         "model_badge_kimi": true,
-        "backlog_count": 20,
-        "backlog_sample": [
-          {
-            "phase": "audio_started",
-            "model": "ElevenLabs / OpenAI TTS",
-            "title": "roor-quillbanes-final-epistle"
-          },
-          {
-            "phase": "image_complete",
-            "model": "FLUX",
-            "title": "roor-quillbanes-final-epistle"
-          },
-          {
-            "phase": "audio_complete",
-            "model": "ElevenLabs / OpenAI TTS",
-            "title": "roor-quillbanes-final-epistle"
-          }
-        ]
+        "backlog_count": 0,
+        "backlog_sample": []
       }
     },
     {

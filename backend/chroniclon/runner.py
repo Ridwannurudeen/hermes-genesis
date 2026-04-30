@@ -161,6 +161,7 @@ async def run_once(world_id: str, max_events: int | None = None) -> dict:
                 event=ev,
                 linguistic_notes=linguistic_notes_for_era(active_era),
                 lead_character=_lead_character_for(ev),
+                world_id=world.id,
             )
             if article is not None:
                 cursor["events_canonized"] = cursor.get("events_canonized", 0) + 1

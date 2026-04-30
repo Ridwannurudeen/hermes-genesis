@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from config import HOST, PORT, API_KEY, CORS_ORIGINS
+import config
+from config import HOST, PORT, CORS_ORIGINS
 from routes.worlds import router as worlds_router
 from routes.simulate import router as simulate_router
 from routes.stream import router as stream_router
@@ -65,12 +66,14 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 
 
 # API key gate on mutating routes (POST/DELETE) when GENESIS_API_KEY is set.
-# Origin header is client-controlled so cannot be trusted for auth bypass.
+# Header-only — query-param keys leak into logs, browser history, proxies.
+# `config.API_KEY` is read at call time (not import time) so tests can rebind it.
 @app.middleware("http")
 async def api_key_middleware(request: Request, call_next):
-    if API_KEY and request.method in ("POST", "DELETE") and request.url.path.startswith("/api/"):
-        key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
-        if not key or not hmac.compare_digest(key, API_KEY):
+    api_key = config.API_KEY
+    if api_key and request.method in ("POST", "DELETE") and request.url.path.startswith("/api/"):
+        key = request.headers.get("X-API-Key")
+        if not key or not hmac.compare_digest(key, api_key):
             return JSONResponse(status_code=403, content={"detail": "Invalid or missing API key"})
     return await call_next(request)
 
@@ -87,7 +90,7 @@ app.include_router(chronicle_router)
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "version": "0.1.0", "auth_required": bool(API_KEY)}
+    return {"status": "ok", "version": "0.1.0", "auth_required": bool(config.API_KEY)}
 
 # Serve frontend static files (in production, after Docker build copies dist/ to static/)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")

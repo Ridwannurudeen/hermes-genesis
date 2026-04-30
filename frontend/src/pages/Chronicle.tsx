@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Autopsy from '../components/Autopsy';
 import ContributeModal from '../components/ContributeModal';
+import EraCeremony from '../components/EraCeremony';
 import LanguageTree from '../components/LanguageTree';
 import {
   chronicle,
@@ -60,10 +62,12 @@ function EraNav({
   eras,
   active,
   onSelect,
+  onCeremony,
 }: {
   eras: EraSummary[];
   active: string | null;
   onSelect: (id: string | null) => void;
+  onCeremony: (eraId: string) => void;
 }) {
   return (
     <aside className="text-sm">
@@ -77,21 +81,37 @@ function EraNav({
         All eras
       </button>
       {eras.map((e) => (
-        <button
+        <div
           key={e.era_id}
-          onClick={() => onSelect(e.era_id)}
-          className={`block w-full text-left px-3 py-2 rounded mt-0.5 ${
-            active === e.era_id
-              ? 'bg-slate-700/50 text-slate-100'
-              : 'text-slate-400 hover:bg-slate-800/40'
+          className={`group relative mt-0.5 rounded ${
+            active === e.era_id ? 'bg-slate-700/50' : 'hover:bg-slate-800/40'
           }`}
         >
-          <div className="font-medium">{e.name}</div>
-          <div className="text-[11px] text-slate-500">
-            year {e.start_year}
-            {e.end_year ? `–${e.end_year}` : '+'}
-          </div>
-        </button>
+          <button
+            onClick={() => onSelect(e.era_id)}
+            className={`block w-full text-left px-3 py-2 ${
+              active === e.era_id ? 'text-slate-100' : 'text-slate-400'
+            }`}
+          >
+            <div className="font-medium pr-8">{e.name}</div>
+            <div className="text-[11px] text-slate-500">
+              year {e.start_year}
+              {e.end_year ? `–${e.end_year}` : '+'}
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={(ev) => {
+              ev.stopPropagation();
+              onCeremony(e.era_id);
+            }}
+            title="View the era's transition ceremony"
+            aria-label={`View ${e.name} transition ceremony`}
+            className="absolute top-2 right-2 text-amber-500/60 hover:text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity text-base"
+          >
+            ✦
+          </button>
+        </div>
       ))}
     </aside>
   );
@@ -227,6 +247,8 @@ export default function Chronicle() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [contributeOpen, setContributeOpen] = useState(false);
+  const [ceremonyEra, setCeremonyEra] = useState<string | null>(null);
+  const [autopsySlug, setAutopsySlug] = useState<string | null>(null);
   const [view, setView] = useState<'articles' | 'languages'>('articles');
   const [linguistic, setLinguistic] = useState<
     { era_id: string; era_name: string; in_world_year: number; parent_era: string | null; phonology_notes: string; sample_lexicon: Record<string, string>; sample_text: string }[]
@@ -282,6 +304,14 @@ export default function Chronicle() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       <ContributeModal open={contributeOpen} onClose={() => setContributeOpen(false)} />
+      {ceremonyEra && <EraCeremony eraId={ceremonyEra} onClose={() => setCeremonyEra(null)} />}
+      {autopsySlug && (
+        <Autopsy
+          slug={autopsySlug}
+          onClose={() => setAutopsySlug(null)}
+          onOpenArticle={(s) => nav(`/chronicle/${s}`)}
+        />
+      )}
       <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
           <button onClick={() => nav('/')} className="text-slate-400 hover:text-slate-200 text-sm">
@@ -326,7 +356,7 @@ export default function Chronicle() {
 
       <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
         <div className="col-span-12 md:col-span-3">
-          <EraNav eras={eras} active={activeEra} onSelect={setActiveEra} />
+          <EraNav eras={eras} active={activeEra} onSelect={setActiveEra} onCeremony={setCeremonyEra} />
           <div className="mt-8 text-sm">
             <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Browse by kind</div>
             <div className="flex flex-wrap gap-1.5">
@@ -378,6 +408,14 @@ export default function Chronicle() {
                 {article.contributor ? (
                   <span className="text-[11px] text-emerald-400">via @{article.contributor}</span>
                 ) : null}
+                <button
+                  type="button"
+                  onClick={() => setAutopsySlug(article.slug)}
+                  title="Trace this article back to the simulation event"
+                  className="ml-auto text-[11px] uppercase tracking-widest text-amber-300/80 hover:text-amber-200 border border-amber-700/40 hover:border-amber-500/60 rounded px-2 py-1"
+                >
+                  ✦ autopsy
+                </button>
               </div>
               {article.illustration_url && (
                 <figure className="mb-6 -mx-2">

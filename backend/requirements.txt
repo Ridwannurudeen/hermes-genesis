@@ -1,13 +1,12 @@
 # Pinned with security floors so pip-audit doesn't flag known CVEs.
-# fastapi 0.115 pulls a recent enough starlette; we still pin a starlette
-# floor explicitly to defeat older transitive overrides.
-fastapi>=0.115.0,<0.120
-starlette>=0.40.0
+# fastapi >=0.119 is required to pull Starlette >=0.47 (CVE patches).
+fastapi>=0.119.0,<0.140
+starlette>=0.47.2,<1.0
 uvicorn[standard]>=0.30.0,<0.32
 httpx>=0.27.0,<0.28
 pydantic>=2.9.0
 websockets>=13.0,<14
-python-dotenv>=1.0.1
+python-dotenv>=1.2.2
 sse-starlette>=2.1.0
 python-telegram-bot>=21.5
 filelock>=3.13.0

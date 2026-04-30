@@ -1,5 +1,7 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+import hmac
+from typing import Literal
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from store import list_worlds, load_world, save_world, delete_world, get_lock, cleanup_lock, creation_semaphore
 from generator import generate_world
@@ -17,15 +19,36 @@ from simulation import repair_leadership
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
+
+def _is_admin(x_api_key: str | None) -> bool:
+    """True if X-API-Key matches GENESIS_API_KEY. When no API key is configured
+    (dev/test mode), treat everyone as admin so local workflows aren't blocked.
+    Reads config at call time so tests can rebind it."""
+    import config
+    if not config.API_KEY:
+        return True
+    return bool(x_api_key) and hmac.compare_digest(x_api_key, config.API_KEY)
+
+
 class CreateWorldRequest(BaseModel):
     seed: str = Field(..., min_length=3, max_length=500)
     num_regions: int = Field(default=4, ge=3, le=12)
     num_factions: int = Field(default=3, ge=2, le=8)
     num_characters: int = Field(default=8, ge=4, le=30)
+    # Default unlisted: world is reachable by direct URL but not advertised in
+    # the public list. Set "public" only for curated showcase worlds.
+    visibility: Literal["private", "unlisted", "public"] = "unlisted"
+
 
 @router.get("")
-async def get_worlds():
-    return list_worlds()
+async def get_worlds(x_api_key: str | None = Header(default=None, alias="X-API-Key")):
+    """Public list returns only worlds with visibility=public. Admin (with
+    X-API-Key) sees every world including private/unlisted entries."""
+    worlds = list_worlds()
+    if _is_admin(x_api_key):
+        return worlds
+    return [w for w in worlds if w.get("visibility") == "public"]
+
 
 @router.post("")
 async def create_world(req: CreateWorldRequest):
@@ -38,7 +61,29 @@ async def create_world(req: CreateWorldRequest):
         if len(list_worlds()) >= MAX_WORLDS:
             raise HTTPException(429, f"Maximum {MAX_WORLDS} worlds reached. Delete old worlds first.")
         world = await generate_world(req.seed, req.num_regions, req.num_factions, req.num_characters)
-    return {"id": world.id, "name": world.name, "status": world.status}
+        world.visibility = req.visibility
+        save_world(world)
+    return {"id": world.id, "name": world.name, "status": world.status, "visibility": world.visibility}
+
+
+class VisibilityRequest(BaseModel):
+    visibility: Literal["private", "unlisted", "public"]
+
+
+@router.patch("/{world_id}/visibility")
+async def set_visibility(world_id: str, req: VisibilityRequest, x_api_key: str | None = Header(default=None, alias="X-API-Key")):
+    """Admin-only — promote/demote a world's visibility (e.g., to feature a
+    curated demo on the public list)."""
+    if not _is_admin(x_api_key):
+        raise HTTPException(403, "admin auth required")
+    lock = get_lock(world_id)
+    async with lock:
+        world = load_world(world_id)
+        if not world:
+            raise HTTPException(404, "World not found")
+        world.visibility = req.visibility
+        save_world(world)
+    return {"id": world.id, "visibility": world.visibility}
 
 @router.get("/{world_id}")
 async def get_world(world_id: str):

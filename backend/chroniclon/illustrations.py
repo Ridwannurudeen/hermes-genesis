@@ -231,6 +231,90 @@ async def _retrofit_all(skip_existing: bool = True, limit: int | None = None) ->
     return {"rendered": rendered, "skipped": skipped, "failed": failed, "total": len(rows)}
 
 
+def _showcase_score(row: dict) -> float:
+    """Higher = better demo candidate. Tuned to favor articles that already
+    have audio (so adding image makes them a complete multimedia showcase)
+    and Kimi-written canon (Kimi-track proof on the page judges land on).
+    Returns a negative score for already-illustrated articles so they sink
+    to the bottom of the queue."""
+    score = 0.0
+    score += float(row.get("word_count") or 0)
+    if row.get("audio_url"):
+        # Big bump: audio + image is the pair that makes a demo "complete".
+        score += 1200.0
+    writer = (row.get("writer_label") or row.get("writer_provider") or "").lower()
+    if "kimi" in writer:
+        # Kimi-track proof — surface these on judge-facing pages.
+        score += 600.0
+    if row.get("anti_slop_score") is not None:
+        score += float(row.get("anti_slop_score") or 0) * 200.0
+    if row.get("illustration_url"):
+        # Already illustrated — push to the bottom.
+        score -= 10_000.0
+    return score
+
+
+async def _render_showcase(n: int = 3, force: bool = False) -> dict:
+    """Render hero images for the top-N most demo-worthy articles.
+
+    Selection: highest showcase_score, deduped per (era, kind) so the showcase
+    is visually diverse. Used pre-recording so the article-detail pages judges
+    will land on are guaranteed to have hero art — not at the mercy of which
+    canon happens to have been rendered.
+    """
+    from chroniclon import store
+
+    rows = store.list_articles(limit=10_000)
+    if not rows:
+        return {"rendered": 0, "skipped": 0, "failed": 0, "selected": 0, "total": 0}
+
+    ranked = sorted(rows, key=_showcase_score, reverse=True)
+    seen_buckets: set[tuple[str, str]] = set()
+    chosen: list[dict] = []
+    for r in ranked:
+        if not force and r.get("illustration_url"):
+            continue
+        bucket = (str(r.get("era_id") or ""), str(r.get("kind") or ""))
+        if bucket in seen_buckets:
+            continue
+        seen_buckets.add(bucket)
+        chosen.append(r)
+        if len(chosen) >= n:
+            break
+
+    rendered, failed = 0, 0
+    for r in chosen:
+        slug = r["slug"]
+        a = store.load_article_by_slug(slug)
+        if a is None:
+            failed += 1
+            continue
+        era = next((e for e in store.list_eras() if e.era_id == a.era_id), None)
+        art_style = (getattr(era, "art_style", "") or "") if era else ""
+        try:
+            result = await render_article_image(
+                slug=slug,
+                kind=a.kind,
+                title=a.title,
+                era_art_style=art_style,
+                character=None,
+            )
+            a.illustration_url = result["url"]
+            store.save_article(a)
+            rendered += 1
+            logger.info(f"showcase rendered: {slug} ({a.title[:60]})")
+        except Exception as ex:  # noqa: BLE001
+            logger.warning(f"showcase render failed for {slug}: {ex}")
+            failed += 1
+    return {
+        "rendered": rendered,
+        "skipped": 0,
+        "failed": failed,
+        "selected": len(chosen),
+        "total": len(rows),
+    }
+
+
 def main() -> None:
     """CLI entry: render a single article's image, or batch-retrofit all."""
     import argparse
@@ -245,9 +329,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Render a wiki article hero image.")
     parser.add_argument("--slug", help="article slug (single-render mode)")
     parser.add_argument("--all", action="store_true", help="batch-render every article missing an image")
+    parser.add_argument("--showcase", type=int, default=0, metavar="N",
+                        help="render the N most demo-worthy articles (era/kind diverse)")
     parser.add_argument("--limit", type=int, default=None, help="cap how many to process in --all mode")
     parser.add_argument("--force", action="store_true", help="re-render even if illustration_url already exists")
     args = parser.parse_args()
+
+    if args.showcase > 0:
+        result = asyncio.run(_render_showcase(n=args.showcase, force=args.force))
+        print(f"\nDONE (showcase): rendered={result['rendered']} failed={result['failed']} selected={result['selected']} (total={result['total']})")
+        return
 
     if args.all:
         result = asyncio.run(_retrofit_all(skip_existing=not args.force, limit=args.limit))

@@ -3,14 +3,16 @@
 Mounted at /api/chronicle/* by main.py.
 """
 import asyncio
+import hmac
 import json
 import re
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+import config
 from config import CHRONICLON_DIR
 from chroniclon import store
 from chroniclon import control_stream
@@ -19,6 +21,16 @@ from chroniclon.regen import stream_regen
 
 
 router = APIRouter(prefix="/api/chronicle", tags=["chronicle"])
+
+
+def require_admin(x_api_key: str | None = Header(default=None)) -> None:
+    """Admin-only gate. When GENESIS_API_KEY is unset, treat as dev mode and allow.
+    Reads config.API_KEY at call time so tests can rebind it cleanly."""
+    api_key = config.API_KEY
+    if not api_key:
+        return
+    if not x_api_key or not hmac.compare_digest(x_api_key, api_key):
+        raise HTTPException(status_code=403, detail="admin auth required")
 
 
 # --------------------------------------------------------------------------- #
@@ -163,8 +175,22 @@ class SubmissionRequest(BaseModel):
 
 @router.post("/submit")
 async def submit(req: SubmissionRequest) -> dict:
+    """Audience canonization loop.
+
+    Pipeline:
+      1. Save the raw submission as pending.
+      2. Hermes moderates: safety + canon-consistency + in-world tone.
+         Rejected → submission marked `rejected`, reason returned.
+      3. Hermes synthesizes a structured Event from the seed.
+      4. canonize_event runs the full Kimi-write + Hermes-critic pipeline.
+      5. Submission is updated with the canonized article slug; the
+         article carries `contributor=<handle>` so the wiki credits them.
+    """
     import uuid
     from chroniclon.models import CanonSubmission
+    from chroniclon import era as era_mod
+    from chroniclon.canon_agent import moderate_and_synthesize_submission, canonize_event
+    from store import list_worlds, load_world
 
     handle = (req.contributor_handle or "anonymous").strip()[:64]
     seed = (req.seed_text or "").strip()
@@ -179,12 +205,338 @@ async def submit(req: SubmissionRequest) -> dict:
         seed_text=seed,
     )
     store.save_submission(sub)
-    return {"submission_id": sub.submission_id, "status": "pending"}
+
+    # Pick the most recent ready world to attach this submission to.
+    candidates = [w for w in list_worlds() if w.get("status") == "ready"]
+    if not candidates:
+        sub.moderation = "rejected"
+        sub.moderation_reason = "no active world"
+        store.save_submission(sub)
+        return {
+            "submission_id": sub.submission_id,
+            "status": "rejected",
+            "reason": sub.moderation_reason,
+        }
+    target_world_summary = candidates[0]
+    world = load_world(target_world_summary["id"])
+    if not world:
+        sub.moderation = "rejected"
+        sub.moderation_reason = "world load failed"
+        store.save_submission(sub)
+        return {
+            "submission_id": sub.submission_id,
+            "status": "rejected",
+            "reason": sub.moderation_reason,
+        }
+
+    era = era_mod.current_era()
+    if era is None:
+        sub.moderation = "rejected"
+        sub.moderation_reason = "no active era"
+        store.save_submission(sub)
+        return {
+            "submission_id": sub.submission_id,
+            "status": "rejected",
+            "reason": sub.moderation_reason,
+        }
+
+    moderation = await moderate_and_synthesize_submission(
+        seed_text=seed,
+        world_name=world.name,
+        world_seed=world.seed,
+        era_name=era.name,
+        era_summary=era.summary or "",
+        in_world_year=era.start_year + max(0, world.current_day // 5),
+    )
+    if not moderation.get("accept"):
+        sub.moderation = "rejected"
+        sub.moderation_reason = moderation.get("reasoning", "rejected")
+        store.save_submission(sub)
+        return {
+            "submission_id": sub.submission_id,
+            "status": "rejected",
+            "reason": sub.moderation_reason,
+        }
+
+    sub.moderation = "approved"
+    sub.moderation_reason = moderation.get("reasoning", "")
+    store.save_submission(sub)
+
+    syn = moderation["event"]
+    synthesized_event = {
+        "id": f"evt_aud_{uuid.uuid4().hex[:8]}",
+        "day": world.current_day,
+        "type": syn["type"],
+        "title": syn["title"],
+        "narrative": syn["narrative"],
+        "actors": [],
+        "factions_involved": [],
+        "regions_affected": [],
+        "agent_triggered": False,
+        "user_triggered": True,
+        "caused_by": "",
+        "prophecy_id": "",
+    }
+
+    in_world_year = era.start_year + max(0, world.current_day // 5)
+    article = await canonize_event(
+        world_name=world.name,
+        seed=world.seed,
+        era_id=era.era_id,
+        era_name=era.name,
+        era_art_style=getattr(era, "art_style", "") or "",
+        in_world_year=in_world_year,
+        event=synthesized_event,
+        linguistic_notes=era_mod.linguistic_notes_for_era(era),
+        contributor=handle,
+        world_id=world.id,
+    )
+
+    if article is None:
+        sub.moderation_reason = (sub.moderation_reason + " | hermes declined to canonize").strip(" |")
+        store.save_submission(sub)
+        return {
+            "submission_id": sub.submission_id,
+            "status": "approved_but_skipped",
+            "reason": "Hermes accepted the seed but declined to canonize it as an article.",
+        }
+
+    sub.canonized_article_id = article.article_id
+    store.save_submission(sub)
+    return {
+        "submission_id": sub.submission_id,
+        "status": "canonized",
+        "article": {
+            "slug": article.slug,
+            "title": article.title,
+            "kind": article.kind,
+            "voice": article.voice,
+            "word_count": article.word_count,
+        },
+        "contributor": handle,
+    }
 
 
-@router.get("/submissions")
+@router.get("/submissions", dependencies=[Depends(require_admin)])
 async def list_submissions(status: str | None = None) -> dict:
+    """Pending moderation queue. Admin-only — content here may include
+    user-submitted PII before being canonized or rejected."""
     return {"items": [s.model_dump() for s in store.list_submissions(status)]}
+
+
+@router.get("/autopsy/{slug}")
+async def article_autopsy(slug: str) -> dict:
+    """Civilization Autopsy: trace an article back to the simulation event,
+    then walk the causal chain (ancestors via `caused_by`, descendants via
+    overlapping actors/factions) and surface every signal that shaped the
+    moment.
+
+    Used to render a 'why this happened' panel on the article-detail page —
+    proves the simulation is causal, not just generative.
+    """
+    article = store.load_article_by_slug(slug)
+    if not article:
+        raise HTTPException(404, f"article not found: {slug}")
+    if not article.source_event_id or not article.source_world_id:
+        return {"linked": False, "article_slug": slug}
+
+    # Lazy-import to avoid circular dep with worlds store at module load.
+    from store import load_world
+    world = load_world(article.source_world_id)
+    if not world:
+        return {"linked": False, "article_slug": slug, "reason": "world not found"}
+
+    by_id = {e.id: e for e in world.events}
+    src = by_id.get(article.source_event_id)
+    if not src:
+        return {"linked": False, "article_slug": slug, "reason": "event not found"}
+
+    # 1) Ancestor chain: walk caused_by backward (cap depth to avoid loops).
+    ancestors: list[dict] = []
+    cursor = src.caused_by
+    seen: set[str] = {src.id}
+    while cursor and cursor not in seen and len(ancestors) < 6:
+        anc = by_id.get(cursor)
+        if not anc:
+            break
+        ancestors.append({
+            "id": anc.id, "day": anc.day, "type": anc.type, "title": anc.title,
+            "narrative": anc.narrative[:200] if anc.narrative else "",
+        })
+        seen.add(anc.id)
+        cursor = anc.caused_by
+
+    # 2) Descendants: events caused-by ours, plus same-actor follow-ups.
+    direct_descendants = [
+        {"id": e.id, "day": e.day, "type": e.type, "title": e.title,
+         "narrative": e.narrative[:200] if e.narrative else ""}
+        for e in world.events
+        if e.caused_by == src.id and e.id != src.id
+    ][:8]
+
+    src_actors = set(src.actors or [])
+    src_factions = set(src.factions_involved or [])
+    follow_ups = []
+    for e in world.events:
+        if e.id == src.id or e.day <= src.day:
+            continue
+        if any(a in src_actors for a in (e.actors or [])) or any(f in src_factions for f in (e.factions_involved or [])):
+            follow_ups.append({
+                "id": e.id, "day": e.day, "type": e.type, "title": e.title,
+                "shared_actors": [a for a in (e.actors or []) if a in src_actors][:3],
+                "shared_factions": [f for f in (e.factions_involved or []) if f in src_factions][:3],
+            })
+            if len(follow_ups) >= 8:
+                break
+
+    # 3) Faction context: name lookups for the IDs in the source event.
+    faction_lookup = {f.id: {"name": f.name, "color": f.color, "ideology": f.ideology} for f in world.factions}
+    char_lookup = {c.id: {"name": c.name, "alive": c.alive, "role": c.role} for c in world.characters}
+
+    # 4) Outcome digest: surface only non-empty outcome buckets.
+    outcome = src.outcome.model_dump() if src.outcome else {}
+    outcome_summary = {
+        "territory_changes": {
+            faction_lookup.get(fid, {}).get("name", fid) or fid: fid_to
+            for fid, fid_to in (outcome.get("territory_changes") or {}).items()
+        },
+        "casualties": outcome.get("casualties") or {},
+        "morale_changes": outcome.get("morale_changes") or {},
+        "character_effects": (outcome.get("character_effects") or [])[:5],
+    }
+
+    # 5) Related articles by overlapping actors (other canon written from same lineage).
+    related_articles: list[dict] = []
+    if src_actors or src_factions:
+        for r in store.list_articles(limit=2000):
+            if r["slug"] == slug:
+                continue
+            other = store.load_article_by_slug(r["slug"])
+            if not other or not other.source_event_id:
+                continue
+            other_ev = by_id.get(other.source_event_id)
+            if not other_ev:
+                continue
+            if (set(other_ev.actors or []) & src_actors) or (set(other_ev.factions_involved or []) & src_factions):
+                related_articles.append({
+                    "slug": other.slug,
+                    "title": other.title,
+                    "in_world_year": other.in_world_year,
+                    "kind": other.kind,
+                })
+                if len(related_articles) >= 6:
+                    break
+
+    return {
+        "linked": True,
+        "article_slug": slug,
+        "world_id": world.id,
+        "world_name": world.name,
+        "source_event": {
+            "id": src.id,
+            "day": src.day,
+            "type": src.type,
+            "title": src.title,
+            "narrative": src.narrative,
+            "actors": [{"id": a, **char_lookup.get(a, {})} for a in (src.actors or [])],
+            "factions": [{"id": f, **faction_lookup.get(f, {})} for f in (src.factions_involved or [])],
+            "regions_affected": src.regions_affected or [],
+            "agent_triggered": bool(src.agent_triggered),
+            "user_triggered": bool(src.user_triggered),
+            "prophecy_id": src.prophecy_id or None,
+        },
+        "ancestors": ancestors,
+        "direct_descendants": direct_descendants,
+        "follow_ups": follow_ups,
+        "outcome": outcome_summary,
+        "related_articles": related_articles,
+    }
+
+
+@router.get("/eras")
+async def list_eras_endpoint() -> dict:
+    """All eras the canon has lived through. Used by the era ceremony picker."""
+    return {"items": [e.model_dump() for e in store.list_eras()]}
+
+
+@router.get("/era-transition/{era_id}")
+async def era_transition(era_id: str) -> dict:
+    """Cinematic payload for the transition INTO `era_id`. Composes:
+      - closing era (the previous one): name, summary, dominant factions
+      - new era: name, art style, premise (= summary)
+      - linguistic delta: rules added in the new era vs parent
+      - sample lexicon for the new tongue
+      - dominant factions of the new era
+
+    Returned as a single blob the frontend can render as a full-screen
+    ceremony without further API calls.
+    """
+    eras = store.list_eras()
+    new_era = next((e for e in eras if e.era_id == era_id), None)
+    if not new_era:
+        raise HTTPException(404, f"era not found: {era_id}")
+
+    # Closing era is the one immediately preceding by ordinal.
+    closing = next((e for e in eras if e.ordinal == new_era.ordinal - 1), None)
+
+    # Linguistic data — the era's tongue and the parent's, for delta rendering.
+    lings = store.list_linguistic_eras()
+    new_ling = next((le for le in lings if le.era_id == new_era.linguistic_era), None) if new_era.linguistic_era else None
+    parent_ling = None
+    if new_ling and new_ling.parent_era:
+        parent_ling = next((le for le in lings if le.era_id == new_ling.parent_era), None)
+
+    # Lexicon delta: words present in both, drifted spelling.
+    lex_delta: list[dict] = []
+    if new_ling and parent_ling:
+        for en, new_word in new_ling.sample_lexicon.items():
+            old_word = parent_ling.sample_lexicon.get(en)
+            if old_word and old_word != new_word:
+                lex_delta.append({"en": en, "old": old_word, "new": new_word})
+            elif not old_word and new_word:
+                lex_delta.append({"en": en, "old": "", "new": new_word})
+        lex_delta = lex_delta[:8]
+
+    return {
+        "closing": {
+            "era_id": closing.era_id if closing else None,
+            "name": closing.name if closing else None,
+            "summary": closing.summary if closing else "",
+            "dominant_factions": closing.dominant_factions if closing else [],
+            "art_style": closing.art_style if closing else "",
+        } if closing else None,
+        "new": {
+            "era_id": new_era.era_id,
+            "name": new_era.name,
+            "premise": new_era.summary,
+            "art_style": new_era.art_style,
+            "dominant_factions": new_era.dominant_factions,
+            "start_year": new_era.start_year,
+        },
+        "language": {
+            "phonology_notes": new_ling.phonology_notes if new_ling else "",
+            "phonological_rules": [r.model_dump() for r in (new_ling.phonological_rules if new_ling else [])],
+            "morphology": new_ling.morphology.model_dump() if new_ling else {},
+            "lex_delta": lex_delta,
+            "sample_text": new_ling.sample_text if new_ling else "",
+            "inscriptions": [i.model_dump() for i in (new_ling.inscriptions if new_ling else [])],
+        },
+    }
+
+
+@router.get("/contributors")
+async def list_contributors() -> dict:
+    """Public list of canonized contributors and their article counts.
+    Pending submissions are NOT exposed here (see /submissions, admin-only)."""
+    counts: dict[str, int] = {}
+    for s in store.list_submissions():
+        if not s.canonized_article_id:
+            continue
+        if not s.contributor_handle:
+            continue
+        counts[s.contributor_handle] = counts.get(s.contributor_handle, 0) + 1
+    items = [{"handle": h, "canonized_count": n} for h, n in sorted(counts.items(), key=lambda kv: -kv[1])]
+    return {"items": items, "total": len(items)}
 
 
 # --------------------------------------------------------------------------- #

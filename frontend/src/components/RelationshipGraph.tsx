@@ -20,12 +20,27 @@ const REL_COLORS: Record<string, string> = {
   protege: '#9ca3af',
 };
 
-const LEGEND_ENTRIES: { label: string; color: string }[] = [
-  { label: 'Enemy / Rival', color: '#ef4444' },
-  { label: 'Ally / Friend', color: '#22c55e' },
-  { label: 'Love / Family', color: '#ec4899' },
-  { label: 'Mentor / Protege', color: '#9ca3af' },
+/* Each toggle covers a *category* — the keys list the underlying relation types
+ * it groups. Clicking a toggle hides every link whose type is in that group. */
+type RelCategory = {
+  id: string;
+  label: string;
+  color: string;
+  types: string[];
+};
+
+const REL_CATEGORIES: RelCategory[] = [
+  { id: 'hostile', label: 'Enemy / Rival', color: '#ef4444', types: ['enemy', 'rival'] },
+  { id: 'ally', label: 'Ally / Friend', color: '#22c55e', types: ['ally', 'friend'] },
+  { id: 'love', label: 'Love / Family', color: '#ec4899', types: ['love', 'family'] },
+  { id: 'mentor', label: 'Mentor / Protege', color: '#9ca3af', types: ['mentor', 'protege'] },
 ];
+
+const TYPE_TO_CATEGORY: Record<string, string> = (() => {
+  const m: Record<string, string> = {};
+  for (const c of REL_CATEGORIES) for (const t of c.types) m[t] = c.id;
+  return m;
+})();
 
 /* ── D3 simulation types ────────────────────────────────────── */
 interface SimNode extends d3.SimulationNodeDatum {
@@ -54,8 +69,21 @@ export default function RelationshipGraph({
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const simRef = useRef<d3.Simulation<SimNode, SimLink> | null>(null);
+  const prevLinkKeysRef = useRef<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [factionFilter, setFactionFilter] = useState<string>('all');
+  const [activeCats, setActiveCats] = useState<Set<string>>(
+    () => new Set(REL_CATEGORIES.map((c) => c.id)),
+  );
+
+  const toggleCategory = useCallback((id: string) => {
+    setActiveCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   /* faction id → colour lookup */
   const factionColorMap = useMemo(() => {
@@ -105,8 +133,9 @@ export default function RelationshipGraph({
       character: c,
     }));
 
-    /* build links – deduplicate bidirectional */
+    /* build links – deduplicate bidirectional + apply category toggles */
     const seen = new Set<string>();
+    const allLinkKeys = new Set<string>();
     const links: SimLink[] = [];
 
     aliveChars.forEach((c) => {
@@ -115,6 +144,11 @@ export default function RelationshipGraph({
         const key = linkKey(c.id, rel.target_id);
         if (seen.has(key)) return;
         seen.add(key);
+        const t = (rel.type || '').toLowerCase();
+        const catId = TYPE_TO_CATEGORY[t];
+        // Track every edge for diffing pulse animation, even if hidden.
+        allLinkKeys.add(key);
+        if (catId && !activeCats.has(catId)) return;
         links.push({
           source: c.id,
           target: rel.target_id,
@@ -123,6 +157,11 @@ export default function RelationshipGraph({
         });
       });
     });
+
+    /* Detect newly-arrived edges since last render (for pulse animation). */
+    const newKeys = new Set<string>();
+    for (const k of allLinkKeys) if (!prevLinkKeysRef.current.has(k)) newKeys.add(k);
+    prevLinkKeysRef.current = allLinkKeys;
 
     if (nodes.length === 0) return;
 
@@ -158,6 +197,21 @@ export default function RelationshipGraph({
       .attr('stroke-width', (d) => d.intensity * 3)
       .attr('stroke-dasharray', (d) => (d.intensity < 0.5 ? '4 3' : 'none'))
       .attr('stroke-opacity', 0.6);
+
+    /* Pulse newly-arrived edges so the live demo *feels* alive. */
+    linkSelection
+      .filter((d) => {
+        const src = typeof d.source === 'object' ? (d.source as SimNode).id : String(d.source);
+        const tgt = typeof d.target === 'object' ? (d.target as SimNode).id : String(d.target);
+        return newKeys.has(linkKey(src, tgt));
+      })
+      .attr('stroke-opacity', 1)
+      .attr('stroke-width', (d) => d.intensity * 6 + 1)
+      .transition()
+      .duration(2200)
+      .ease(d3.easeCubicOut)
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', (d) => d.intensity * 3);
 
     /* draw nodes */
     const nodeSelection = nodeGroup
@@ -281,7 +335,49 @@ export default function RelationshipGraph({
       sim.stop();
       simRef.current = null;
     };
-  }, [aliveChars, factionColorMap, handleNodeClick]);
+  }, [aliveChars, factionColorMap, handleNodeClick, activeCats]);
+
+  /* Analytics: degree centrality + most-hostile faction. Computed off the
+   * full alive-character set, not the toggled-link view. */
+  const analytics = useMemo(() => {
+    const aliveIds = new Set(aliveChars.map((c) => c.id));
+    const degree: Record<string, number> = {};
+    // Faction → count of (enemy or rival) edges incident to its members.
+    const hostileByFaction: Record<string, number> = {};
+    const seen = new Set<string>();
+    for (const c of aliveChars) {
+      degree[c.id] = degree[c.id] || 0;
+      for (const rel of c.relationships) {
+        if (!aliveIds.has(rel.target_id)) continue;
+        const k = linkKey(c.id, rel.target_id);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        degree[c.id] = (degree[c.id] || 0) + 1;
+        degree[rel.target_id] = (degree[rel.target_id] || 0) + 1;
+        const t = (rel.type || '').toLowerCase();
+        if (t === 'enemy' || t === 'rival') {
+          hostileByFaction[c.faction_id] = (hostileByFaction[c.faction_id] || 0) + 1;
+          // Also credit the target's faction
+          const tgt = aliveChars.find((x) => x.id === rel.target_id);
+          if (tgt) {
+            hostileByFaction[tgt.faction_id] = (hostileByFaction[tgt.faction_id] || 0) + 1;
+          }
+        }
+      }
+    }
+    const topCharacters = aliveChars
+      .map((c) => ({ char: c, degree: degree[c.id] || 0 }))
+      .sort((a, b) => b.degree - a.degree)
+      .slice(0, 3);
+    const dangerousFactionEntry = Object.entries(hostileByFaction).sort((a, b) => b[1] - a[1])[0];
+    const dangerousFaction = dangerousFactionEntry
+      ? {
+          faction: factions.find((f) => f.id === dangerousFactionEntry[0]),
+          hostileEdges: dangerousFactionEntry[1],
+        }
+      : null;
+    return { topCharacters, dangerousFaction };
+  }, [aliveChars, factions]);
 
   /* ── empty state ──────────────────────────────────────────── */
   if (aliveChars.length === 0) {
@@ -356,23 +452,79 @@ export default function RelationshipGraph({
           style={{ height: 600 }}
         />
 
-        {/* Legend */}
+        {/* Relation-type toggles (replaces static legend) */}
         <div className="absolute bottom-4 left-4 glass rounded-lg px-4 py-3">
           <p className="text-xs text-dim uppercase tracking-wider mb-2 font-medium">
-            Relationships
+            Filter by relation
           </p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-            {LEGEND_ENTRIES.map((entry) => (
-              <div key={entry.label} className="flex items-center gap-2">
-                <div
-                  className="w-6 h-0.5 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-xs text-sub">{entry.label}</span>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {REL_CATEGORIES.map((cat) => {
+              const active = activeCats.has(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => toggleCategory(cat.id)}
+                  className="text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1.5"
+                  style={{
+                    borderColor: active ? cat.color : 'rgba(148, 163, 184, 0.2)',
+                    backgroundColor: active ? `${cat.color}22` : 'transparent',
+                    color: active ? cat.color : '#64748b',
+                  }}
+                  aria-pressed={active}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: cat.color, opacity: active ? 1 : 0.4 }}
+                  />
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Centrality + danger callouts */}
+        {(analytics.topCharacters.length > 0 || analytics.dangerousFaction) && (
+          <div className="absolute top-4 right-4 glass rounded-lg px-4 py-3 max-w-xs">
+            {analytics.topCharacters[0] && analytics.topCharacters[0].degree > 0 && (
+              <div className="mb-2">
+                <p className="text-[10px] text-dim uppercase tracking-widest mb-1">Most central</p>
+                <div className="text-sm text-sub">
+                  <span className="text-amber-300 font-medium">
+                    {analytics.topCharacters[0].char.name}
+                  </span>{' '}
+                  <span className="text-dim">· {analytics.topCharacters[0].degree} ties</span>
+                </div>
+                {analytics.topCharacters.slice(1).map((t) =>
+                  t.degree > 0 ? (
+                    <div key={t.char.id} className="text-xs text-dim mt-0.5">
+                      {t.char.name} <span className="text-faint">· {t.degree}</span>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+            )}
+            {analytics.dangerousFaction?.faction && (
+              <div>
+                <p className="text-[10px] text-dim uppercase tracking-widest mb-1">
+                  Most dangerous faction
+                </p>
+                <div className="text-sm">
+                  <span
+                    className="font-medium"
+                    style={{ color: analytics.dangerousFaction.faction.color }}
+                  >
+                    {analytics.dangerousFaction.faction.name}
+                  </span>{' '}
+                  <span className="text-dim">
+                    · {analytics.dangerousFaction.hostileEdges} hostile ties
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

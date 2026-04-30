@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { chronicle } from '../api';
 
 type Props = {
@@ -6,20 +7,28 @@ type Props = {
   onClose: () => void;
 };
 
+type ContributeResult = {
+  status: 'canonized' | 'rejected' | 'approved_but_skipped' | string;
+  reason?: string;
+  article?: { slug: string; title: string; kind: string; voice: string; word_count: number };
+  contributor?: string;
+};
+
 const STORAGE_HANDLE = 'chroniclon.contributor_handle';
 
 export default function ContributeModal({ open, onClose }: Props) {
+  const nav = useNavigate();
   const [handle, setHandle] = useState('');
   const [seed, setSeed] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const [result, setResult] = useState<ContributeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setHandle(localStorage.getItem(STORAGE_HANDLE) || '');
       setSeed('');
-      setSubmittedId(null);
+      setResult(null);
       setError(null);
     }
   }, [open]);
@@ -41,7 +50,12 @@ export default function ContributeModal({ open, onClose }: Props) {
     try {
       const res = await chronicle.submit(handle.trim() || 'anonymous', s);
       localStorage.setItem(STORAGE_HANDLE, handle.trim());
-      setSubmittedId(res.submission_id);
+      setResult({
+        status: res.status,
+        reason: res.reason,
+        article: res.article,
+        contributor: res.contributor,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'submission failed');
     } finally {
@@ -73,20 +87,68 @@ export default function ContributeModal({ open, onClose }: Props) {
           </button>
         </div>
 
-        {submittedId ? (
+        {result ? (
           <div className="px-6 py-8 text-center">
-            <div className="text-emerald-300 font-serif text-lg">Submitted to the canon agent.</div>
-            <div className="text-slate-500 text-sm mt-2">
-              The agent will weigh it against existing canon. If it survives moderation, it
-              becomes a wiki article — credited to <span className="text-slate-300">@{handle.trim() || 'anonymous'}</span>.
-            </div>
-            <div className="text-[11px] text-slate-600 mt-4 font-mono">{submittedId}</div>
-            <button
-              onClick={onClose}
-              className="mt-6 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm"
-            >
-              done
-            </button>
+            {result.status === 'canonized' && result.article ? (
+              <>
+                <div className="text-emerald-300 font-serif text-xl">
+                  ✦ canonized
+                </div>
+                <div className="text-slate-300 mt-2">
+                  Hermes accepted, Kimi wrote{' '}
+                  <span className="font-serif italic">"{result.article.title}"</span>
+                </div>
+                <div className="text-slate-500 text-sm mt-1">
+                  {result.article.word_count.toLocaleString()} words · {result.article.voice}{' '}
+                  · credited to{' '}
+                  <span className="text-emerald-300">@{result.contributor || handle.trim() || 'anonymous'}</span>
+                </div>
+                <div className="flex items-center justify-center gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      if (result.article) nav(`/chronicle/${result.article.slug}`);
+                    }}
+                    className="px-4 py-2 rounded bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm"
+                  >
+                    read it →
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm"
+                  >
+                    done
+                  </button>
+                </div>
+              </>
+            ) : result.status === 'rejected' ? (
+              <>
+                <div className="text-rose-300 font-serif text-xl">declined by the canon</div>
+                <div className="text-slate-400 text-sm mt-3 italic">
+                  {result.reason || 'The canon-keeper found this seed inconsistent with the world.'}
+                </div>
+                <button
+                  onClick={() => setResult(null)}
+                  className="mt-6 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm"
+                >
+                  try again
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-amber-300 font-serif text-xl">approved but unwritten</div>
+                <div className="text-slate-400 text-sm mt-3">
+                  {result.reason ||
+                    'Hermes accepted the seed but declined to canonize it as an article right now.'}
+                </div>
+                <button
+                  onClick={onClose}
+                  className="mt-6 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm"
+                >
+                  done
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="px-6 py-5 space-y-4">
