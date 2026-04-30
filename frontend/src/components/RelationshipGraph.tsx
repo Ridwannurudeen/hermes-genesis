@@ -411,7 +411,7 @@ export default function RelationshipGraph({
                 .attr('opacity', (d) => d.name.toLowerCase().includes(q) ? 1 : 0.12);
             }}
             placeholder="Search characters..."
-            className="w-full glass-input rounded-lg pl-3 pr-3 py-2 text-sm text-input placeholder-faint focus:outline-none transition-all"
+            className="w-full bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg pl-3 pr-3 py-2 text-sm text-input placeholder-faint focus:outline-none transition-all"
           />
         </div>
 
@@ -432,7 +432,7 @@ export default function RelationshipGraph({
             d3.select(svgRef.current).selectAll<SVGTextElement, SimNode>('.labels text')
               .attr('opacity', (d) => d.factionId === fid ? 1 : 0.1);
           }}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
         >
           <option value="all">All Factions</option>
           {factions.map((f) => (
@@ -453,7 +453,7 @@ export default function RelationshipGraph({
         />
 
         {/* Relation-type toggles (replaces static legend) */}
-        <div className="absolute bottom-4 left-4 glass rounded-lg px-4 py-3">
+        <div className="absolute bottom-4 left-4 bg-surface border border-subtle rounded-lg px-4 py-3">
           <p className="text-xs text-dim uppercase tracking-wider mb-2 font-medium">
             Filter by relation
           </p>
@@ -486,7 +486,7 @@ export default function RelationshipGraph({
 
         {/* Centrality + danger callouts */}
         {(analytics.topCharacters.length > 0 || analytics.dangerousFaction) && (
-          <div className="absolute top-4 right-4 glass rounded-lg px-4 py-3 max-w-xs">
+          <div className="absolute top-4 right-4 bg-surface border border-subtle rounded-lg px-4 py-3 max-w-xs">
             {analytics.topCharacters[0] && analytics.topCharacters[0].degree > 0 && (
               <div className="mb-2">
                 <p className="text-[10px] text-dim uppercase tracking-widest mb-1">Most central</p>

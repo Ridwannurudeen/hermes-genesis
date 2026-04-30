@@ -69,8 +69,8 @@ export default function Contributors() {
                 </span>
                 <span
                   className={`font-mono text-body ${
-                    i === 0 ? 'text-gilt-500' : 'text-heading'
-                  }`}
+ i === 0 ? 'text-gilt-500' : 'text-heading'
+ }`}
                 >
                   @{row.handle}
                 </span>

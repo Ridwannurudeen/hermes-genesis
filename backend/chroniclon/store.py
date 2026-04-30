@@ -155,6 +155,62 @@ def list_articles(
     return rows[offset : offset + limit]
 
 
+def search_articles(query: str, limit: int = 20) -> list[dict]:
+    """Substring match on title (priority) + body_md. Lightweight scan over
+    the JSON store — fine for ~thousands of articles. For larger corpora,
+    swap in SQLite FTS or a real index."""
+    q = query.strip().lower()
+    if not q:
+        return []
+    d = _base_dir() / _ARTICLES
+    if not d.exists():
+        return []
+    # (-title_len, filename) is the sort key — the JSON filename is the only
+    # truly unique tiebreaker (slugs collide in the live store), so Python
+    # never falls back to comparing dict bodies (which raises TypeError).
+    # Also dedupe by slug so the same article doesn't show up twice in results.
+    title_hits: list[tuple[int, str, dict]] = []
+    body_hits: list[tuple[int, str, dict]] = []
+    for f in d.glob("*.json"):
+        if f.name.startswith("."):
+            continue
+        try:
+            a = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        title = (a.get("title") or "").lower()
+        body = (a.get("body_md") or "").lower()
+        row = {
+            "slug": a["slug"],
+            "title": a["title"],
+            "kind": a["kind"],
+            "in_world_year": a.get("in_world_year"),
+            "voice": a.get("voice", "scholarly"),
+            "snippet": "",
+        }
+        if q in title:
+            row["snippet"] = (a.get("body_md") or "")[:160].replace("\n", " ")
+            title_hits.append((-len(title), f.name, row))
+        elif q in body:
+            idx = body.find(q)
+            start = max(0, idx - 60)
+            end = min(len(body), idx + len(q) + 100)
+            row["snippet"] = ("…" if start > 0 else "") + (a.get("body_md") or "")[start:end].replace("\n", " ")
+            body_hits.append((-len(title), f.name, row))
+    title_hits.sort()
+    body_hits.sort()
+    seen_slugs: set[str] = set()
+    out: list[dict] = []
+    for _, _, r in title_hits + body_hits:
+        if r["slug"] in seen_slugs:
+            continue
+        seen_slugs.add(r["slug"])
+        out.append(r)
+        if len(out) >= limit:
+            break
+    return out
+
+
 def article_count(era_id: str | None = None) -> int:
     d = _base_dir() / _ARTICLES
     if not d.exists():

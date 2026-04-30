@@ -291,15 +291,15 @@ export default function CharacterChatModal({
                   <div
                     key={i}
                     className={`flex ${
-                      msg.role === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
+ msg.role === 'user' ? 'justify-end' : 'justify-start'
+ }`}
                   >
                     <div
                       className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
-                        msg.role === 'user'
-                          ? 'bg-genesis-900/40 border border-genesis-800/30 text-heading'
-                          : 'bg-white/[0.04] border border-subtle text-sub'
-                      }`}
+ msg.role === 'user'
+ ? 'bg-genesis-900/40 border border-genesis-800/30 text-heading'
+ : 'bg-white/[0.04] border border-subtle text-sub'
+ }`}
                     >
                       {msg.role === 'character' && (
                         <p
@@ -344,7 +344,7 @@ export default function CharacterChatModal({
                 onKeyDown={handleKeyDown}
                 placeholder={`Say something to ${character.name}...`}
                 disabled={loading || initialLoading}
-                className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none disabled:opacity-50 transition-all"
+                className="flex-1 bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-xl px-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none disabled:opacity-50 transition-all"
               />
               <button
                 onClick={handleSend}

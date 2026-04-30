@@ -25,8 +25,8 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
           <div className="flex items-center gap-2 mb-1">
             <span
               className={`font-semibold truncate ${
-                character.alive ? 'text-heading' : 'text-dim line-through'
-              }`}
+ character.alive ? 'text-heading' : 'text-dim line-through'
+ }`}
             >
               {character.name}
             </span>

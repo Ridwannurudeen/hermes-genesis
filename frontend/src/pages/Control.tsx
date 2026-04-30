@@ -539,8 +539,8 @@ function PipelineCard({ p }: { p: Pipeline }) {
             <div
               key={key}
               className={`grid grid-cols-[20px_1fr_auto] gap-3 items-baseline font-ui text-body-sm ${
-                s.state === 'pending' && p.status !== 'running' ? 'opacity-40' : ''
-              }`}
+ s.state === 'pending' && p.status !== 'running' ? 'opacity-40' : ''
+ }`}
             >
               <span className={`w-5 text-center font-mono ${stateColor(s.state)}`}>
                 {stateGlyph(s.state)}

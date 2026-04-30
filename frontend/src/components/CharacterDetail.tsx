@@ -88,10 +88,10 @@ export default function CharacterDetail({
             <div className="flex items-center gap-3 mb-1">
               <h2
                 className={`text-2xl font-bold ${
-                  character.alive
-                    ? 'text-heading'
-                    : 'text-dim line-through'
-                }`}
+ character.alive
+ ? 'text-heading'
+ : 'text-dim line-through'
+ }`}
               >
                 {character.name}
               </h2>

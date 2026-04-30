@@ -46,63 +46,71 @@ export default {
       full: '9999px',
     },
 
-    extend: {
-      colors: {
-        // Editorial-AI palette — additive, rides alongside Tailwind defaults
-        // during incremental page migration. Phase 4 will strip defaults.
-        // Paper-and-vellum (light mode page) — warm off-white, never #FFF.
-        paper: {
-          50:  '#FDFBF6',
-          100: '#F7F2E8',
-          200: '#ECE3CF',
-          300: '#D4C5A0',
-          400: '#B8A578',
-        },
-        // Ink (light mode text) — warm-black, never #000.
-        ink: {
-          300: '#A8946F',
-          400: '#8C7B5A',
-          500: '#6B5A3D',
-          600: '#4F4128',
-          700: '#3F3220',
-          800: '#2A2014',
-          900: '#1A1208',
-        },
-        // Night (dark mode page) — warm-black with hue.
-        night: {
-          700: '#2A231C',
-          800: '#1E1812',
-          900: '#14100B',
-          950: '#0E0A06',
-        },
-        // Vellum (dark mode text) — pale warm scale.
-        vellum: {
-          50:  '#FBF5E8',
-          100: '#E8D9BC',
-          200: '#CDB890',
-          300: '#B8A085',
-          400: '#8A7860',
-          500: '#5C4F3D',
-        },
-        // Earned single accent — the canon stamp. Active states, signature
-        // stats, "this is canon" indicators only. Never decorative.
-        gilt: {
-          400: '#D4A85F',
-          500: '#B8893A',
-          600: '#8B6624',
-        },
-        // Single semantic alert — destructive / rejection only.
-        crimson: {
-          400: '#D45A5A',
-          500: '#B83A3A',
-          600: '#8E2A2A',
-        },
-        // Living-canon — for "✓ canonized" badges only. Sparingly.
-        moss: {
-          400: '#6B8E5A',
-          500: '#4F7240',
-        },
+    // Strict editorial palette — overrides Tailwind defaults so unmigrated
+    // utility names (slate-*, gray-*, blue-*, …) fail visibly instead of
+    // silently re-introducing the SaaS-y look. Keep `transparent`,
+    // `current`, and `inherit` so opacity utilities still resolve.
+    colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
+      inherit: 'inherit',
+      black: '#000',
+      white: '#FFF',
+      // Paper-and-vellum (light mode page) — warm off-white, never #FFF.
+      paper: {
+        50:  '#FDFBF6',
+        100: '#F7F2E8',
+        200: '#ECE3CF',
+        300: '#D4C5A0',
+        400: '#B8A578',
       },
+      // Ink (light mode text) — warm-black, never #000.
+      ink: {
+        300: '#A8946F',
+        400: '#8C7B5A',
+        500: '#6B5A3D',
+        600: '#4F4128',
+        700: '#3F3220',
+        800: '#2A2014',
+        900: '#1A1208',
+      },
+      // Night (dark mode page) — warm-black with hue.
+      night: {
+        700: '#2A231C',
+        800: '#1E1812',
+        900: '#14100B',
+        950: '#0E0A06',
+      },
+      // Vellum (dark mode text) — pale warm scale.
+      vellum: {
+        50:  '#FBF5E8',
+        100: '#E8D9BC',
+        200: '#CDB890',
+        300: '#B8A085',
+        400: '#8A7860',
+        500: '#5C4F3D',
+      },
+      // Earned single accent — the canon stamp. Active states, signature
+      // stats, "this is canon" indicators only. Never decorative.
+      gilt: {
+        400: '#D4A85F',
+        500: '#B8893A',
+        600: '#8B6624',
+      },
+      // Single semantic alert — destructive / rejection only.
+      crimson: {
+        400: '#D45A5A',
+        500: '#B83A3A',
+        600: '#8E2A2A',
+      },
+      // Living-canon — for "✓ canonized" badges only. Sparingly.
+      moss: {
+        400: '#6B8E5A',
+        500: '#4F7240',
+      },
+    },
+
+    extend: {
 
       fontFamily: {
         // Three-face system: editorial display + serif body for prose +

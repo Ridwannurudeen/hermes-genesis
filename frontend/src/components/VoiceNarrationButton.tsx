@@ -30,18 +30,18 @@ export default function VoiceNarrationButton({
         onClick={onToggle}
         disabled={disabled}
         className={`flex items-center gap-2 px-3 py-2.5 font-medium text-sm rounded-lg transition-all ${
-          active
-            ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
-            : 'bg-white/[0.04] border border-subtle text-sub hover:text-heading hover:border-white/[0.15]'
-        } disabled:opacity-40 disabled:cursor-not-allowed`}
+ active
+ ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
+ : 'bg-white/[0.04] border border-subtle text-sub hover:text-heading hover:border-white/[0.15]'
+ } disabled:opacity-40 disabled:cursor-not-allowed`}
       >
         {active ? (
           <>
             <span className="relative flex h-2.5 w-2.5">
               <span
                 className={`absolute inline-flex h-full w-full rounded-full bg-genesis-400 ${
-                  narrationState === 'speaking' ? 'animate-ping opacity-75' : 'opacity-40'
-                }`}
+ narrationState === 'speaking' ? 'animate-ping opacity-75' : 'opacity-40'
+ }`}
               />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-genesis-500" />
             </span>

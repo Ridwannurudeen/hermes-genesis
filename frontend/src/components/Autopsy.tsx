@@ -87,7 +87,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
             <div className="text-[11px] uppercase tracking-[0.3em] text-gilt-500/70">
               civilization autopsy
             </div>
-            <div className="font-serif text-xl text-heading mt-0.5">why this happened</div>
+            <div className="font-display text-xl text-heading mt-0.5">why this happened</div>
           </div>
           <button onClick={onClose} className="text-faint hover:text-heading text-sm">
             close
@@ -118,7 +118,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                 <div className="text-[11px] uppercase tracking-widest text-faint mb-1">
                   source event · day {data.source_event.day} · {data.source_event.type}
                 </div>
-                <div className="font-serif text-lg text-heading">{data.source_event.title}</div>
+                <div className="font-display text-lg text-heading">{data.source_event.title}</div>
                 {data.source_event.narrative && (
                   <div className="text-sm text-dim italic mt-1 leading-relaxed">
                     {data.source_event.narrative}
@@ -194,7 +194,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                         <span className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-gilt-500" />
                         <div className="text-sm text-sub">
                           <span className="text-faint text-xs">day {a.day} · {a.type}</span>
-                          <div className="font-serif text-heading">{a.title}</div>
+                          <div className="font-display text-heading">{a.title}</div>
                           {a.narrative && <div className="text-xs text-faint mt-0.5">{a.narrative}</div>}
                         </div>
                       </li>
@@ -248,7 +248,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                         {data.direct_descendants.map((d) => (
                           <li key={d.id} className="text-sub">
                             <span className="text-faint text-xs">day {d.day} · {d.type}</span>
-                            <div className="font-serif text-heading">{d.title}</div>
+                            <div className="font-display text-heading">{d.title}</div>
                           </li>
                         ))}
                       </ul>
@@ -261,7 +261,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                         {data.follow_ups.map((f) => (
                           <li key={f.id} className="text-sub">
                             <span className="text-faint text-xs">day {f.day} · {f.type}</span>
-                            <div className="font-serif text-heading">{f.title}</div>
+                            <div className="font-display text-heading">{f.title}</div>
                           </li>
                         ))}
                       </ul>

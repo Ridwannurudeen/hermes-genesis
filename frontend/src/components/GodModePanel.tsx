@@ -110,7 +110,7 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
       </AnimatePresence>
 
       {/* Main panel */}
-      <div className="glass border-t border-gilt-500/30 rounded-lg p-4">
+      <div className="bg-surface border border-subtle border-t border-gilt-500/30 rounded-lg p-4">
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
             <input
@@ -121,20 +121,20 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
               onKeyDown={handleKeyDown}
               placeholder="Command your world..."
               disabled={loading}
-              className="w-full glass-input rounded-lg px-4 py-2.5 text-input placeholder-dim text-sm
-                focus:outline-none focus:ring-2 focus:ring-gilt-500/40 focus:border-gilt-500/50
-                disabled:opacity-50 disabled:cursor-not-allowed
-                transition-all duration-200"
+              className="w-full bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-4 py-2.5 text-input placeholder-dim text-sm
+ focus:outline-none focus:ring-2 focus:ring-gilt-500/40 focus:border-gilt-500/50
+ disabled:opacity-50 disabled:cursor-not-allowed
+ transition-all duration-200"
             />
           </div>
           <button
             onClick={handleSubmit}
             disabled={loading || !command.trim()}
             className="flex items-center justify-center w-10 h-10 rounded-lg
-              bg-gilt-500/20 border border-gilt-500/30 text-gilt-400
-              hover:bg-gilt-500/30 hover:text-gilt-600 dark:hover:text-gilt-400
-              disabled:opacity-40 disabled:cursor-not-allowed
-              transition-all duration-200"
+ bg-gilt-500/20 border border-gilt-500/30 text-gilt-400
+ hover:bg-gilt-500/30 hover:text-gilt-600 dark:hover:text-gilt-400
+ disabled:opacity-40 disabled:cursor-not-allowed
+ transition-all duration-200"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -154,8 +154,8 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
                 onClick={() => setCommand(cmd)}
                 disabled={loading}
                 className="text-xs px-2 py-0.5 rounded-full bg-white/[0.04] border border-subtle text-sub
-                  hover:text-gilt-600 dark:hover:text-gilt-400 hover:border-gilt-500/30 transition-colors
-                  disabled:opacity-50 disabled:cursor-not-allowed truncate max-w-[200px]"
+ hover:text-gilt-600 dark:hover:text-gilt-400 hover:border-gilt-500/30 transition-colors
+ disabled:opacity-50 disabled:cursor-not-allowed truncate max-w-[200px]"
               >
                 {cmd}
               </button>

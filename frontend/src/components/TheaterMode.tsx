@@ -951,10 +951,10 @@ export default function TheaterMode({
               onClick={() => setAutoPlay((p) => !p)}
               disabled={events.length === 0}
               className={`p-2 rounded-lg border transition-colors ${
-                autoPlay
-                  ? 'bg-genesis-600/20 border-genesis-500/40 text-genesis-400'
-                  : 'bg-ink-900 border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600'
-              } disabled:opacity-30 disabled:cursor-not-allowed`}
+ autoPlay
+ ? 'bg-genesis-600/20 border-genesis-500/40 text-genesis-400'
+ : 'bg-ink-900 border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600'
+ } disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               {autoPlay ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </button>

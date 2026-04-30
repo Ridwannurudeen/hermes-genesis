@@ -435,6 +435,14 @@ export const chronicle = {
 
   getArticle: (slug: string) => fetchJson<Article>(`/api/chronicle/articles/${slug}`),
 
+  search: (q: string, limit: number = 20) => {
+    const qs = new URLSearchParams({ q, limit: String(limit) });
+    return fetchJson<{
+      items: { slug: string; title: string; kind: ArticleKind; in_world_year: number; voice: string; snippet: string }[];
+      query: string;
+    }>(`/api/chronicle/search?${qs.toString()}`);
+  },
+
   listEras: () => fetchJson<{ items: EraSummary[] }>('/api/chronicle/eras'),
 
   lexicon: () =>

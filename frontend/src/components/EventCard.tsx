@@ -45,10 +45,10 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
       className={`relative rounded-xl p-4 transition-all ${
-        event.type === 'death' && event.obituary
-          ? 'bg-crimson-600/30 border border-crimson-600/40 hover:border-crimson-600/50'
-          : 'bg-white/[0.03] border border-subtle hover:border-white/[0.12] hover:bg-white/[0.05]'
-      } ${hasCausedBy ? 'border-l-2 border-l-gilt-500/50' : ''}`}
+ event.type === 'death' && event.obituary
+ ? 'bg-crimson-600/30 border border-crimson-600/40 hover:border-crimson-600/50'
+ : 'bg-white/[0.03] border border-subtle hover:border-white/[0.12] hover:bg-white/[0.05]'
+ } ${hasCausedBy ? 'border-l-2 border-l-gilt-500/50' : ''}`}
     >
       {/* Agent Intervention Badge - top right */}
       {isAgentTriggered && (

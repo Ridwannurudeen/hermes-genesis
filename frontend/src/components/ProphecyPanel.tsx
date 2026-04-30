@@ -52,14 +52,14 @@ export default function ProphecyPanel({ prophecies }: Props) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                   className={`p-3 rounded-lg border ${
-                    p.fulfilled
-                      ? 'border-gilt-500/50 bg-gilt-600/20'
-                      : 'border-subtle bg-white/[0.03]'
-                  }`}
+ p.fulfilled
+ ? 'border-gilt-500/50 bg-gilt-600/20'
+ : 'border-subtle bg-white/[0.03]'
+ }`}
                 >
                   <p className={`text-sm italic leading-relaxed ${
-                    p.fulfilled ? 'text-gilt-400' : 'text-sub'
-                  }`}>
+ p.fulfilled ? 'text-gilt-400' : 'text-sub'
+ }`}>
                     "{p.text}"
                   </p>
                   {p.fulfilled && (

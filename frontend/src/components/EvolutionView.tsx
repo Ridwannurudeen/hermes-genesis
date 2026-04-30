@@ -89,10 +89,10 @@ export default function EvolutionView({ data }: Props) {
               key={trait}
               onClick={() => toggleTrait(trait)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                hidden
-                  ? 'bg-white/[0.03] text-faint border border-subtle'
-                  : 'border text-heading'
-              }`}
+ hidden
+ ? 'bg-white/[0.03] text-faint border border-subtle'
+ : 'border text-heading'
+ }`}
               style={
                 !hidden
                   ? {
@@ -239,12 +239,12 @@ export default function EvolutionView({ data }: Props) {
                 </p>
                 <p
                   className={`text-xs font-mono ${
-                    diff > 0
-                      ? 'text-moss-400'
-                      : diff < 0
-                      ? 'text-crimson-400'
-                      : 'text-dim'
-                  }`}
+ diff > 0
+ ? 'text-moss-400'
+ : diff < 0
+ ? 'text-crimson-400'
+ : 'text-dim'
+ }`}
                 >
                   {diff > 0 ? '+' : ''}
                   {diff.toFixed(3)}

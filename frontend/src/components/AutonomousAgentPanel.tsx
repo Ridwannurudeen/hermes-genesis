@@ -163,10 +163,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
   return (
     <div
       className={`bg-white/[0.02] backdrop-blur-sm rounded-xl overflow-hidden transition-all duration-500 ${
-        running
-          ? 'border-2 border-genesis-500/40 shadow-lg shadow-genesis-500/10'
-          : 'border border-subtle'
-      }`}
+ running
+ ? 'border-2 border-genesis-500/40 shadow-lg shadow-genesis-500/10'
+ : 'border border-subtle'
+ }`}
     >
       {/* Header */}
       <div className="p-4 border-b border-subtle">
@@ -176,15 +176,15 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
             <div className="relative">
               <div
                 className={`p-2.5 rounded-xl transition-all duration-500 ${
-                  running
-                    ? 'bg-genesis-500/10 border border-genesis-500/30'
-                    : 'bg-white/[0.04] border border-subtle'
-                }`}
+ running
+ ? 'bg-genesis-500/10 border border-genesis-500/30'
+ : 'bg-white/[0.04] border border-subtle'
+ }`}
               >
                 <Brain
                   className={`w-6 h-6 ${
-                    running ? 'text-genesis-400' : 'text-dim'
-                  }`}
+ running ? 'text-genesis-400' : 'text-dim'
+ }`}
                 />
               </div>
               {running && (
@@ -228,10 +228,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     key={opt.value}
                     onClick={() => setInterval_(opt.value)}
                     className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                      interval === opt.value
-                        ? 'bg-genesis-500/15 text-genesis-400 border border-genesis-500/30'
-                        : 'text-dim hover:text-sub border border-subtle hover:border-white/[0.15]'
-                    }`}
+ interval === opt.value
+ ? 'bg-genesis-500/15 text-genesis-400 border border-genesis-500/30'
+ : 'text-dim hover:text-sub border border-subtle hover:border-white/[0.15]'
+ }`}
                   >
                     {opt.label}
                   </button>
@@ -244,10 +244,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
               onClick={handleToggle}
               disabled={loading}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                running
-                  ? 'bg-crimson-500/10 border border-crimson-500/30 text-crimson-400 hover:bg-crimson-500/20'
-                  : 'bg-genesis-500/10 border border-genesis-500/30 text-genesis-400 hover:bg-genesis-500/20 hover:shadow-lg hover:shadow-genesis-500/10'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+ running
+ ? 'bg-crimson-500/10 border border-crimson-500/30 text-crimson-400 hover:bg-crimson-500/20'
+ : 'bg-genesis-500/10 border border-genesis-500/30 text-genesis-400 hover:bg-genesis-500/20 hover:shadow-lg hover:shadow-genesis-500/10'
+ } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -307,16 +307,16 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   initial={i === 0 ? { opacity: 0, y: -10 } : false}
                   animate={{ opacity: 1, y: 0 }}
                   className={`p-4 text-sm transition-colors hover:bg-hover ${
-                    log.action === 'intervene'
-                      ? 'border-l-2 border-l-crimson-500/60'
-                      : log.action === 'focus'
-                      ? 'border-l-2 border-l-ink-500/50'
-                      : log.urgency === 'high'
-                      ? 'border-l-2 border-l-gilt-500/40'
-                      : log.urgency === 'low'
-                      ? 'border-l-2 border-l-moss-500/30'
-                      : ''
-                  }`}
+ log.action === 'intervene'
+ ? 'border-l-2 border-l-crimson-500/60'
+ : log.action === 'focus'
+ ? 'border-l-2 border-l-ink-500/50'
+ : log.urgency === 'high'
+ ? 'border-l-2 border-l-gilt-500/40'
+ : log.urgency === 'low'
+ ? 'border-l-2 border-l-moss-500/30'
+ : ''
+ }`}
                 >
                   {/* Header row */}
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -339,8 +339,8 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     {log.urgency && (
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold uppercase tracking-wider ${
-                          URGENCY_COLORS[log.urgency] || URGENCY_COLORS.medium
-                        }`}
+ URGENCY_COLORS[log.urgency] || URGENCY_COLORS.medium
+ }`}
                       >
                         {log.urgency}
                       </span>
@@ -433,10 +433,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                       )}
                       {log.action && (
                         <span className={`px-2 py-0.5 rounded border font-medium ${
-                          log.action === 'intervene' ? 'bg-crimson-500/10 text-crimson-400 border-crimson-500/30' :
-                          log.action === 'focus' ? 'bg-ink-500/10 text-vellum-400 border-ink-500/30' :
-                          'bg-genesis-800/60 text-sub border-ink-700/50'
-                        }`}>
+ log.action === 'intervene' ? 'bg-crimson-500/10 text-crimson-400 border-crimson-500/30' :
+ log.action === 'focus' ? 'bg-ink-500/10 text-vellum-400 border-ink-500/30' :
+ 'bg-genesis-800/60 text-sub border-ink-700/50'
+ }`}>
                           {log.action === 'intervene' ? 'Intervened' : log.action === 'focus' ? 'Focused' : 'Simulated'}
                         </span>
                       )}

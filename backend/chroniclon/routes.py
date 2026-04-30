@@ -126,6 +126,82 @@ async def list_articles(
     return {"items": store.list_articles(era_id=era_id, kind=kind, limit=limit, offset=offset)}
 
 
+@router.get("/search")
+async def search(
+    q: str = Query(..., min_length=1, max_length=120),
+    limit: int = Query(default=20, ge=1, le=50),
+) -> dict:
+    return {"items": store.search_articles(q, limit=limit), "query": q}
+
+
+def _wrap_lines(text: str, max_chars: int, max_lines: int = 4) -> list[str]:
+    """Cheap word-wrap for the SVG title. Doesn't measure glyph widths —
+    falls back to char-count which is close enough for a 1200×630 card."""
+    words = text.split()
+    lines: list[str] = []
+    cur = ""
+    for w in words:
+        candidate = f"{cur} {w}".strip() if cur else w
+        if len(candidate) <= max_chars:
+            cur = candidate
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+            if len(lines) >= max_lines - 1:
+                break
+    if cur:
+        if len(lines) < max_lines:
+            lines.append(cur)
+    if len(lines) >= max_lines and len(text) > sum(len(l) + 1 for l in lines):
+        lines[-1] = lines[-1].rstrip(" .,;:") + "…"
+    return lines
+
+
+@router.get("/og/{slug}.svg")
+async def og_card(slug: str) -> Response:
+    """Per-article OG card as inline SVG. 1200×630, editorial palette.
+    SVG (rather than PNG) avoids bundling Pillow + serif font binaries; all
+    modern social platforms (X, Discord, Slack, iMessage) render SVG og:image."""
+    a = store.load_article_by_slug(slug)
+    if not a:
+        raise HTTPException(404, f"article not found: {slug}")
+    title = html.escape(a.title or "untitled")
+    eyebrow = f"{a.kind} · year {a.in_world_year}".upper()
+    title_lines = _wrap_lines(title, max_chars=22, max_lines=4)
+    line_height = 90
+    title_block_h = line_height * len(title_lines)
+    title_y_start = 320 - (title_block_h // 2) + 64
+    title_lines_xml = "\n".join(
+        f'      <text x="80" y="{title_y_start + i * line_height}" font-family="Georgia, \'Source Serif 4 Display\', serif" font-size="80" font-weight="600" fill="#1A1208">{html.escape(line)}</text>'
+        for i, line in enumerate(title_lines)
+    )
+    eyebrow_xml = f'<text x="80" y="120" font-family="\'JetBrains Mono\', ui-monospace, monospace" font-size="22" letter-spacing="3" fill="#8B6624">{html.escape(eyebrow)}</text>'
+
+    svg = f"""<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#FDFBF6"/>
+  <!-- Paper grain via fine dot pattern -->
+  <defs>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="0.4" fill="#1A1208" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grain)"/>
+  <!-- Gilt rule -->
+  <line x1="80" y1="155" x2="240" y2="155" stroke="#B8893A" stroke-width="2"/>
+  {eyebrow_xml}
+{title_lines_xml}
+  <!-- Footer wordmark -->
+  <line x1="80" y1="540" x2="1120" y2="540" stroke="#1A1208" stroke-width="0.5" opacity="0.18"/>
+  <text x="80" y="580" font-family="Georgia, 'Source Serif 4 Display', serif" font-size="32" font-weight="600" fill="#1A1208">Chroniclon</text>
+  <text x="80" y="608" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="2" fill="#6B5A3D">A WIKIPEDIA FOR A WORLD THAT DOESN'T EXIST</text>
+  <text x="1120" y="608" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="2" fill="#8B6624" text-anchor="end">HERMESGENESIS.WORLD</text>
+</svg>
+"""
+    return Response(content=svg, media_type="image/svg+xml; charset=utf-8")
+
+
 @router.get("/articles/{slug}")
 async def get_article(slug: str) -> WikiArticle:
     a = store.load_article_by_slug(slug)

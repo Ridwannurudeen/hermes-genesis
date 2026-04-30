@@ -77,7 +77,7 @@ export default function ContributeModal({ open, onClose }: Props) {
       >
         <div className="px-6 py-4 border-b border-subtle flex items-baseline justify-between">
           <div>
-            <div className="font-serif text-xl text-heading">Contribute to the canon</div>
+            <div className="font-display text-xl text-heading">Contribute to the canon</div>
             <div className="text-xs text-faint mt-0.5">
               Write an event. The canon agent decides if it joins history.
             </div>
@@ -91,12 +91,12 @@ export default function ContributeModal({ open, onClose }: Props) {
           <div className="px-6 py-8 text-center">
             {result.status === 'canonized' && result.article ? (
               <>
-                <div className="text-moss-500 font-serif text-xl">
+                <div className="text-moss-500 font-display text-xl">
                   ✦ canonized
                 </div>
                 <div className="text-sub mt-2">
                   Hermes accepted, Kimi wrote{' '}
-                  <span className="font-serif italic">"{result.article.title}"</span>
+                  <span className="font-body italic">"{result.article.title}"</span>
                 </div>
                 <div className="text-faint text-sm mt-1">
                   {result.article.word_count.toLocaleString()} words · {result.article.voice}{' '}
@@ -123,7 +123,7 @@ export default function ContributeModal({ open, onClose }: Props) {
               </>
             ) : result.status === 'rejected' ? (
               <>
-                <div className="text-crimson-500 font-serif text-xl">declined by the canon</div>
+                <div className="text-crimson-500 font-display text-xl">declined by the canon</div>
                 <div className="text-dim text-sm mt-3 italic">
                   {result.reason || 'The canon-keeper found this seed inconsistent with the world.'}
                 </div>
@@ -136,7 +136,7 @@ export default function ContributeModal({ open, onClose }: Props) {
               </>
             ) : (
               <>
-                <div className="text-gilt-500 font-serif text-xl">approved but unwritten</div>
+                <div className="text-gilt-500 font-display text-xl">approved but unwritten</div>
                 <div className="text-dim text-sm mt-3">
                   {result.reason ||
                     'Hermes accepted the seed but declined to canonize it as an article right now.'}
@@ -168,7 +168,7 @@ export default function ContributeModal({ open, onClose }: Props) {
                 onChange={(e) => setSeed(e.target.value)}
                 rows={5}
                 placeholder='e.g. "A meteor lands in the eastern desert and the lunar correspondence ceases for forty days."'
-                className="mt-1 w-full bg-page border border-subtle rounded px-3 py-2 text-sm text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500 resize-none font-serif leading-relaxed"
+                className="mt-1 w-full bg-page border border-subtle rounded px-3 py-2 text-sm text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500 resize-none font-body leading-relaxed"
               />
               <div className={`text-[11px] mt-1 ${overLimit ? 'text-crimson-500' : 'text-faint/70'}`}>
                 {remaining} characters remaining

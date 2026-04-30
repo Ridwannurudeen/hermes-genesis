@@ -82,11 +82,11 @@ function ArticleCounter({ stats }: { stats: ChronicleStats | null }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-baseline gap-3">
+      <div className="flex items-baseline gap-3 flex-wrap">
         <span
-          className={`font-mono text-display-xl text-heading tabular-nums leading-none transition-colors ${
-            flash ? 'animate-numberFlash' : ''
-          }`}
+          className={`font-mono text-display sm:text-display-xl text-heading tabular-nums leading-none transition-colors ${
+ flash ? 'animate-numberFlash' : ''
+ }`}
           aria-live="polite"
           aria-atomic="true"
         >
@@ -94,7 +94,7 @@ function ArticleCounter({ stats }: { stats: ChronicleStats | null }) {
         </span>
         <span className="eyebrow text-faint pb-2">articles canonized</span>
       </div>
-      <div className="flex items-baseline gap-6 font-mono text-micro text-dim tabular-nums">
+      <div className="flex items-baseline gap-x-4 gap-y-1 flex-wrap font-mono text-micro text-dim tabular-nums">
         <span>
           <span className="text-heading">{fmtN(stats?.total_words)}</span> words
         </span>
@@ -158,13 +158,14 @@ function LatestCanon({ articles }: { articles: ArticleSummary[] }) {
         <button
           key={a.slug}
           onClick={() => navigate(`/chronicle/${a.slug}`)}
-          className="w-full text-left grid grid-cols-[auto_1fr_auto] gap-6 items-baseline px-1 py-4 hover:bg-hover transition-colors group"
+          className="w-full text-left grid grid-cols-[1fr_auto] sm:grid-cols-[auto_1fr_auto] gap-x-6 gap-y-1 items-baseline px-1 py-4 hover:bg-hover transition-colors group"
         >
-          <span className="eyebrow text-faint w-20">{a.kind}</span>
-          <span className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors">
+          <span className="eyebrow text-faint w-20 hidden sm:inline">{a.kind}</span>
+          <span className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors col-span-1 sm:col-auto">
+            <span className="eyebrow text-faint mr-2 sm:hidden">{a.kind}</span>
             {a.title}
           </span>
-          <span className="font-mono text-micro text-dim tabular-nums">
+          <span className="font-mono text-micro text-dim tabular-nums col-span-2 sm:col-auto">
             year {a.in_world_year} · {a.word_count.toLocaleString()} words
           </span>
         </button>
@@ -196,7 +197,7 @@ function WorldsList({
       {worlds.map((w) => (
         <div
           key={w.id}
-          className="grid grid-cols-[1fr_auto_auto] gap-5 items-baseline py-4 group"
+          className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_auto] gap-x-5 gap-y-1 items-baseline py-4 group"
         >
           <button
             onClick={() => navigate(`/world/${w.id}`)}
@@ -209,7 +210,7 @@ function WorldsList({
               "{w.seed}"
             </span>
           </button>
-          <span className="font-mono text-micro text-dim tabular-nums">
+          <span className="font-mono text-micro text-dim tabular-nums col-span-2 sm:col-auto">
             day {w.current_day} · {ago(w.created_at)}
           </span>
           <button
@@ -325,9 +326,9 @@ export default function Landing() {
       <Masthead />
       <WireTicker />
 
-      <main className="max-w-6xl mx-auto px-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* ── Hero ─────────────────────────────────────────────────── */}
-        <section className="pt-20 pb-24 grid lg:grid-cols-[1.4fr_1fr] gap-16 items-end">
+        <section className="pt-12 sm:pt-20 pb-16 sm:pb-24 grid lg:grid-cols-[1.4fr_1fr] gap-10 lg:gap-16 items-end">
           <div>
             <div className="eyebrow text-gilt-500 mb-6 flex items-center gap-2">
               <span className="live-dot" />
@@ -365,7 +366,7 @@ export default function Landing() {
           </div>
 
           {/* Signature moment — live counter */}
-          <div className="border-l border-subtle pl-10">
+          <div className="lg:border-l border-subtle lg:pl-10 pt-8 lg:pt-0 border-t lg:border-t-0">
             <ArticleCounter stats={stats} />
           </div>
         </section>

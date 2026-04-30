@@ -158,12 +158,12 @@ export default function Demo() {
                 <li
                   key={p}
                   className={`bg-page px-4 py-3 transition-colors ${
-                    active
-                      ? 'bg-gilt-500/10'
-                      : reached
-                      ? 'bg-moss-500/5'
-                      : ''
-                  }`}
+ active
+ ? 'bg-gilt-500/10'
+ : reached
+ ? 'bg-moss-500/5'
+ : ''
+ }`}
                 >
                   <div className="eyebrow text-faint mb-1.5 flex items-center gap-1.5">
                     {reached && !active && (
@@ -174,8 +174,8 @@ export default function Demo() {
                   </div>
                   <div
                     className={`font-ui text-body-sm leading-tight ${
-                      active ? 'text-heading' : reached ? 'text-sub' : 'text-faint'
-                    }`}
+ active ? 'text-heading' : reached ? 'text-sub' : 'text-faint'
+ }`}
                   >
                     {PHASE_LABELS[p]}
                   </div>
@@ -270,10 +270,10 @@ export default function Demo() {
                     {a.writer_label && (
                       <span
                         className={`font-mono text-eyebrow uppercase tracking-eyebrow px-1.5 py-0.5 rounded border ${
-                          /kimi/i.test(a.writer_label)
-                            ? 'border-gilt-500/40 text-gilt-500'
-                            : 'border-vellum-400/40 text-vellum-300'
-                        }`}
+ /kimi/i.test(a.writer_label)
+ ? 'border-gilt-500/40 text-gilt-500'
+ : 'border-vellum-400/40 text-vellum-300'
+ }`}
                       >
                         {a.writer_label}
                       </span>

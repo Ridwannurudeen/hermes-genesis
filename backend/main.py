@@ -1,10 +1,11 @@
+import html
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 import config
 from config import HOST, PORT, CORS_ORIGINS
 from auth import request_is_admin
@@ -143,7 +144,7 @@ async def sitemap_xml(request: Request) -> Response:
 
     base = str(request.base_url).rstrip("/")
     static_paths = [
-        "/", "/chronicle", "/about", "/contributors",
+        "/", "/chronicle", "/glossary", "/about", "/contributors",
         "/demo", "/try-it", "/control", "/judge",
     ]
     article_rows = chronicle_store.list_articles(limit=10_000)
@@ -187,14 +188,75 @@ if os.path.isdir(STATIC_DIR):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         return response
 
+    # Cache index.html in memory; bust on file mtime so dev rebuilds are picked up.
+    _INDEX_HTML_PATH = os.path.join(STATIC_DIR, "index.html")
+    _index_cache: dict = {"mtime": 0.0, "body": ""}
+
+    def _read_index_html() -> str:
+        try:
+            mtime = os.path.getmtime(_INDEX_HTML_PATH)
+        except OSError:
+            return ""
+        if _index_cache["mtime"] != mtime:
+            try:
+                with open(_INDEX_HTML_PATH, "r", encoding="utf-8") as f:
+                    _index_cache["body"] = f.read()
+                _index_cache["mtime"] = mtime
+            except OSError:
+                return ""
+        return _index_cache["body"]
+
+    def _article_meta_tags(slug: str, base_url: str) -> str | None:
+        """Build OG/Twitter meta tags for a Chroniclon article. Returns None
+        if the slug doesn't resolve so the catch-all falls back to the SPA's
+        default head."""
+        from chroniclon import store
+        a = store.load_article_by_slug(slug)
+        if not a:
+            return None
+        title = html.escape(a.title or "untitled")
+        # Description: first ~200 chars of body_md, stripped of markdown chrome.
+        body = a.body_md or ""
+        for ch in ("**", "##", "#", "[[", "]]", ">"):
+            body = body.replace(ch, "")
+        body = " ".join(body.split())
+        desc = html.escape(body[:200].rstrip() + ("…" if len(body) > 200 else ""))
+        og_image = f"{base_url}/api/chronicle/og/{slug}.svg"
+        page_url = f"{base_url}/chronicle/{slug}"
+        return (
+            f'<meta property="og:type" content="article">\n'
+            f'    <meta property="og:title" content="{title} — Chroniclon">\n'
+            f'    <meta property="og:description" content="{desc}">\n'
+            f'    <meta property="og:url" content="{page_url}">\n'
+            f'    <meta property="og:image" content="{og_image}">\n'
+            f'    <meta property="og:site_name" content="Chroniclon">\n'
+            f'    <meta name="twitter:card" content="summary_large_image">\n'
+            f'    <meta name="twitter:title" content="{title} — Chroniclon">\n'
+            f'    <meta name="twitter:description" content="{desc}">\n'
+            f'    <meta name="twitter:image" content="{og_image}">'
+        )
+
     @app.get("/{path:path}")
-    async def serve_frontend(path: str):
+    async def serve_frontend(path: str, request: Request):
         file_path = _resolve_static_file(path)
         # Prevent path traversal — resolved path must stay inside STATIC_DIR
         if not file_path:
             return FileResponse(os.path.join(STATIC_DIR, "index.html"))
         if os.path.isfile(file_path):
             return FileResponse(file_path)
+
+        # SPA fallback: for /chronicle/{slug} paths, inject per-article OG tags
+        # so social-media crawlers (X, Discord, Slack) get a real preview.
+        # Other paths get the unmodified index.html.
+        if path.startswith("chronicle/") and path.count("/") == 1:
+            slug = path.split("/", 1)[1]
+            if slug and "?" not in slug:
+                index = _read_index_html()
+                if index:
+                    base_url = str(request.base_url).rstrip("/")
+                    meta = _article_meta_tags(slug, base_url)
+                    if meta and "</head>" in index:
+                        return HTMLResponse(content=index.replace("</head>", f"    {meta}\n  </head>", 1))
         return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 if __name__ == "__main__":

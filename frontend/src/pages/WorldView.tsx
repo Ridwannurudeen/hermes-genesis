@@ -383,22 +383,22 @@ export default function WorldView() {
               <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
               <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} aria-label={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-                  ambientEnabled ? 'text-moss-500 bg-moss-500/10 border border-moss-500/30' : 'text-sub hover:text-moss-500 hover:bg-hover'
-                }`}>
+ ambientEnabled ? 'text-moss-500 bg-moss-500/10 border border-moss-500/30' : 'text-sub hover:text-moss-500 hover:bg-hover'
+ }`}>
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
               </button>
               <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent" aria-label="World Master Agent"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-sub hover:text-genesis-400 hover:bg-hover'
-                }`}>
+ showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-sub hover:text-genesis-400 hover:bg-hover'
+ }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>
               </button>
               <button onClick={() => setGodMode((p) => !p)} title="God Mode" aria-label="God Mode"
                 className={`p-2 rounded-lg transition-all ${
-                  godMode ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
-                }`}>
+ godMode ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
+ }`}>
                 <Zap className="w-5 h-5" />
               </button>
               <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
@@ -459,10 +459,10 @@ export default function WorldView() {
                   key={vm.key}
                   onClick={() => setViewMode(vm.key)}
                   className={`group flex items-center gap-2.5 px-5 py-3 text-sm font-medium rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
-                      : 'text-dim hover:text-heading hover:bg-white/[0.04] border border-transparent'
-                  }`}
+ isActive
+ ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
+ : 'text-dim hover:text-heading hover:bg-white/[0.04] border border-transparent'
+ }`}
                 >
                   <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-faint group-hover:text-sub'}`} />
                   <div className="text-left">
@@ -487,10 +487,10 @@ export default function WorldView() {
               <button
                 onClick={() => setAnalyticsOpen((p) => !p)}
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${
-                  analyticsOpen
-                    ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
-                    : 'text-dim hover:text-heading border border-subtle hover:border-subtle hover:bg-white/[0.04]'
-                }`}
+ analyticsOpen
+ ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
+ : 'text-dim hover:text-heading border border-subtle hover:border-subtle hover:bg-white/[0.04]'
+ }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
                 Analytics

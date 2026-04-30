@@ -220,8 +220,8 @@ export default function Judge() {
               <div
                 key={label}
                 className={`bg-page p-4 min-h-[120px] transition-colors ${
-                  active ? 'bg-gilt-500/8' : ''
-                }`}
+ active ? 'bg-gilt-500/8' : ''
+ }`}
               >
                 <Icon className={`w-5 h-5 ${active ? 'text-gilt-500' : 'text-faint'}`} />
                 <div className="mt-3 font-ui text-body-sm text-heading leading-tight">{label}</div>

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Autopsy from '../components/Autopsy';
 import ContributeModal from '../components/ContributeModal';
 import EraCeremony from '../components/EraCeremony';
 import LanguageTree from '../components/LanguageTree';
 import Masthead from '../components/Masthead';
+import Provenance from '../components/Provenance';
 import {
   chronicle,
   type Article,
@@ -48,10 +49,10 @@ function StatsBanner({ stats }: { stats: ChronicleStats | null }) {
     { label: 'contributors', value: stats ? fmt(stats.contributor_count) : '—' },
   ];
   return (
-    <div className="grid grid-cols-5 gap-px bg-ink-800/40 border border-ink-700/60 rounded-md overflow-hidden">
+    <div className="grid grid-cols-3 sm:grid-cols-5 gap-px bg-ink-800/40 border border-ink-700/60 rounded-md overflow-hidden">
       {cells.map((c) => (
-        <div key={c.label} className="bg-ink-900/60 px-4 py-3 text-center">
-          <div className="text-2xl font-semibold tracking-tight text-vellum-100">{c.value}</div>
+        <div key={c.label} className="bg-ink-900/60 px-3 sm:px-4 py-3 text-center">
+          <div className="text-xl sm:text-2xl font-semibold tracking-tight text-vellum-100 tabular-nums">{c.value}</div>
           <div className="text-[11px] uppercase tracking-widest text-ink-500 mt-0.5">{c.label}</div>
         </div>
       ))}
@@ -76,8 +77,8 @@ function EraNav({
       <button
         onClick={() => onSelect(null)}
         className={`block w-full text-left px-3 py-2 rounded ${
-          active === null ? 'bg-ink-700/50 text-vellum-100' : 'text-vellum-400 hover:bg-ink-800/40'
-        }`}
+ active === null ? 'bg-ink-700/50 text-vellum-100' : 'text-vellum-400 hover:bg-ink-800/40'
+ }`}
       >
         All eras
       </button>
@@ -85,14 +86,14 @@ function EraNav({
         <div
           key={e.era_id}
           className={`group relative mt-0.5 rounded ${
-            active === e.era_id ? 'bg-ink-700/50' : 'hover:bg-ink-800/40'
-          }`}
+ active === e.era_id ? 'bg-ink-700/50' : 'hover:bg-ink-800/40'
+ }`}
         >
           <button
             onClick={() => onSelect(e.era_id)}
             className={`block w-full text-left px-3 py-2 ${
-              active === e.era_id ? 'text-vellum-100' : 'text-vellum-400'
-            }`}
+ active === e.era_id ? 'text-vellum-100' : 'text-vellum-400'
+ }`}
           >
             <div className="font-medium pr-8">{e.name}</div>
             <div className="text-[11px] text-ink-500">
@@ -191,13 +192,42 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
   );
 }
 
+function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/\[\[([a-z0-9\-]+)\]\]/g, '$1')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+}
+
+type Heading = { id: string; level: 2 | 3; text: string };
+
+function extractHeadings(md: string): Heading[] {
+  const headings: Heading[] = [];
+  const seen = new Map<string, number>();
+  for (const block of md.split(/\n{2,}/)) {
+    const m = /^(#{1,3})\s+(.*)$/.exec(block.trim());
+    if (!m) continue;
+    const level = m[1].length;
+    if (level > 3) continue;
+    const text = m[2].replace(/\[\[([a-z0-9\-]+)\]\]/g, (_, s) => s.replace(/-/g, ' '));
+    let id = slugifyHeading(m[2]);
+    const n = seen.get(id) ?? 0;
+    seen.set(id, n + 1);
+    if (n > 0) id = `${id}-${n}`;
+    headings.push({ id, level: level === 1 ? 2 : (level as 2 | 3), text });
+  }
+  return headings;
+}
+
 function renderBody(md: string, onLink: (slug: string) => void): JSX.Element[] {
   // Editorial prose register — paragraphs default to .editorial-prose styles
-  // via the wrapping container. The first paragraph gets .drop-cap. Headers
-  // and blockquotes also styled via the prose container; we only emit
-  // semantic elements here.
+  // via the wrapping container. The first paragraph gets .drop-cap. Headings
+  // get stable slug IDs so the right-rail TOC can deep-link + scroll-spy.
   const blocks = md.split(/\n{2,}/);
   let firstParagraphSeen = false;
+  const seen = new Map<string, number>();
   return blocks.map((block, i) => {
     const trimmed = block.trim();
     if (!trimmed) return <div key={i} />;
@@ -205,9 +235,12 @@ function renderBody(md: string, onLink: (slug: string) => void): JSX.Element[] {
     if (headerMatch) {
       const level = headerMatch[1].length;
       const text = headerMatch[2];
-      if (level === 1) return <h2 key={i}>{renderInline(text, onLink)}</h2>;
-      if (level === 2) return <h2 key={i}>{renderInline(text, onLink)}</h2>;
-      return <h3 key={i}>{renderInline(text, onLink)}</h3>;
+      let id = slugifyHeading(text);
+      const n = seen.get(id) ?? 0;
+      seen.set(id, n + 1);
+      if (n > 0) id = `${id}-${n}`;
+      if (level <= 2) return <h2 id={id} key={i}>{renderInline(text, onLink)}</h2>;
+      return <h3 id={id} key={i}>{renderInline(text, onLink)}</h3>;
     }
     if (trimmed.startsWith('> ')) {
       return (
@@ -224,6 +257,64 @@ function renderBody(md: string, onLink: (slug: string) => void): JSX.Element[] {
       </p>
     );
   });
+}
+
+function ArticleTOC({ headings }: { headings: Heading[] }) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    if (headings.length === 0) return;
+    const visible = new Set<string>();
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        }
+        // Pick the first visible heading in document order.
+        for (const h of headings) {
+          if (visible.has(h.id)) {
+            setActiveId(h.id);
+            return;
+          }
+        }
+      },
+      { rootMargin: '-80px 0px -65% 0px', threshold: [0, 1] },
+    );
+    for (const h of headings) {
+      const el = document.getElementById(h.id);
+      if (el) observerRef.current.observe(el);
+    }
+    return () => observerRef.current?.disconnect();
+  }, [headings]);
+
+  if (headings.length < 2) return null;
+
+  return (
+    <nav aria-label="Article contents">
+      <div className="eyebrow text-faint mb-3">contents</div>
+      <ul className="space-y-2 text-body-sm font-ui">
+        {headings.map((h) => {
+          const isActive = activeId === h.id;
+          return (
+            <li key={h.id} className={h.level === 3 ? 'pl-3' : ''}>
+              <a
+                href={`#${h.id}`}
+                className={`block leading-snug border-l-2 pl-3 -ml-px transition-colors ${
+                  isActive
+                    ? 'border-gilt-500 text-heading'
+                    : 'border-transparent text-faint hover:text-sub hover:border-subtle'
+                }`}
+              >
+                {h.text}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
 }
 
 function renderInline(text: string, onLink: (slug: string) => void): (string | JSX.Element)[] {
@@ -276,6 +367,9 @@ export default function Chronicle() {
   const [article, setArticle] = useState<Article | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const PAGE_SIZE = 50;
   const [contributeOpen, setContributeOpen] = useState(false);
   const [ceremonyEra, setCeremonyEra] = useState<string | null>(null);
   const [autopsySlug, setAutopsySlug] = useState<string | null>(null);
@@ -311,11 +405,35 @@ export default function Chronicle() {
   useEffect(() => {
     setLoading(true);
     chronicle
-      .listArticles({ era_id: activeEra || undefined, limit: 200 })
-      .then((r) => setArticles(r.items))
-      .catch(() => setArticles([]))
+      .listArticles({ era_id: activeEra || undefined, limit: PAGE_SIZE, offset: 0 })
+      .then((r) => {
+        setArticles(r.items);
+        setHasMore(r.items.length === PAGE_SIZE);
+      })
+      .catch(() => {
+        setArticles([]);
+        setHasMore(false);
+      })
       .finally(() => setLoading(false));
   }, [activeEra]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const r = await chronicle.listArticles({
+        era_id: activeEra || undefined,
+        limit: PAGE_SIZE,
+        offset: articles.length,
+      });
+      setArticles((prev) => [...prev, ...r.items]);
+      setHasMore(r.items.length === PAGE_SIZE);
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!slug) {
@@ -331,6 +449,11 @@ export default function Chronicle() {
     return articles.filter((a) => a.title.toLowerCase().includes(q) || a.kind.includes(q));
   }, [articles, search]);
 
+  const articleHeadings = useMemo(
+    () => (article ? extractHeadings(article.body_md) : []),
+    [article],
+  );
+
   return (
     <div className="min-h-screen bg-night-950 text-vellum-200">
       <ContributeModal open={contributeOpen} onClose={() => setContributeOpen(false)} />
@@ -344,7 +467,7 @@ export default function Chronicle() {
       )}
       <Masthead />
       <div className="border-b border-subtle bg-page/85 backdrop-blur sticky top-14 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-baseline gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-baseline gap-3 sm:gap-6 flex-wrap">
           <span className="eyebrow text-faint">archive</span>
           <h1 className="font-display text-h2 text-heading tracking-[-0.02em]">
             Chroniclon
@@ -352,12 +475,12 @@ export default function Chronicle() {
           <div className="eyebrow text-faint hidden md:block">
             a wikipedia for a world that doesn't exist
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3 w-full sm:w-auto">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="search articles…"
-              className="bg-surface border border-subtle rounded-md px-3 py-1.5 text-body text-input placeholder:text-faint focus:outline-none focus:border-gilt-500 w-64 font-ui"
+              className="bg-surface border border-subtle rounded-md px-3 py-1.5 text-body text-input placeholder:text-faint focus:outline-none focus:border-gilt-500 flex-1 sm:flex-none sm:w-64 font-ui"
             />
             <button
               onClick={() => setContributeOpen(true)}
@@ -392,16 +515,16 @@ export default function Chronicle() {
             <button
               onClick={() => setView('articles')}
               className={`font-mono text-eyebrow uppercase tracking-eyebrow px-3 py-1.5 rounded transition-colors ${
-                view === 'articles' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
-              }`}
+ view === 'articles' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
+ }`}
             >
               articles
             </button>
             <button
               onClick={() => setView('languages')}
               className={`font-mono text-eyebrow uppercase tracking-eyebrow px-3 py-1.5 rounded transition-colors ${
-                view === 'languages' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
-              }`}
+ view === 'languages' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
+ }`}
             >
               languages
             </button>
@@ -409,6 +532,7 @@ export default function Chronicle() {
           {view === 'languages' ? (
             <LanguageTree data={linguistic} />
           ) : article ? (
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_220px] gap-10">
             <article>
               <button
                 onClick={() => nav('/chronicle')}
@@ -541,6 +665,11 @@ export default function Chronicle() {
                 </section>
               )}
             </article>
+            <aside className="hidden lg:block sticky top-32 self-start space-y-10">
+              <ArticleTOC headings={articleHeadings} />
+              <Provenance slug={article.slug} onOpenAutopsy={() => setAutopsySlug(article.slug)} />
+            </aside>
+            </div>
           ) : (
             <section>
               <div className="eyebrow text-faint mb-4 flex items-baseline gap-3">
@@ -558,11 +687,26 @@ export default function Chronicle() {
                   No articles yet. The autonomous run hasn't reached this era.
                 </div>
               ) : (
-                <div className="border border-subtle rounded overflow-hidden">
-                  {filtered.map((a) => (
-                    <ArticleListRow key={a.article_id} a={a} onOpen={(s) => nav(`/chronicle/${s}`)} />
-                  ))}
-                </div>
+                <>
+                  <div className="border border-subtle rounded overflow-hidden">
+                    {filtered.map((a) => (
+                      <ArticleListRow key={a.article_id} a={a} onOpen={(s) => nav(`/chronicle/${s}`)} />
+                    ))}
+                  </div>
+                  {/* Load more — hidden during search since search filters in-memory */}
+                  {!search.trim() && hasMore && (
+                    <div className="mt-8 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint hover:text-heading transition-colors disabled:opacity-50"
+                      >
+                        {loadingMore ? 'loading…' : 'load more articles'}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
           )}

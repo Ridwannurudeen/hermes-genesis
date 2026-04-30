@@ -23,8 +23,6 @@
   --text-input: #3d2c12;
   --genesis-title: #3d2c12;
   --genesis-body: #6f5228;
-  --glass-bg: rgba(240, 232, 216, 0.88);
-  --glass-input-bg: rgba(224, 210, 184, 0.9);
   --scrollbar-track: #faf6f0;
   --scrollbar-thumb: #c9b896;
   --scrollbar-thumb-hover: #b8976a;
@@ -49,8 +47,6 @@
   --text-input: #FBF5E8;     /* vellum-50 */
   --genesis-title: #FBF5E8;
   --genesis-body: #CDB890;
-  --glass-bg: rgba(20, 16, 11, 0.88);
-  --glass-input-bg: rgba(30, 24, 18, 0.9);
   --scrollbar-track: #0E0A06;
   --scrollbar-thumb: #2A2014;     /* ink-800 */
   --scrollbar-thumb-hover: #3F3220;/* ink-700 */
@@ -192,8 +188,9 @@ header, main, footer, [data-atmosphere-fg] {
 }
 
 .editorial-prose p { margin-bottom: 1.05em; }
-.editorial-prose h2 { font-family: 'Source Serif 4 Display', Georgia, serif; font-size: 26px; line-height: 1.22; letter-spacing: -0.015em; margin: 1.6em 0 0.6em; color: var(--text-heading); }
-.editorial-prose h3 { font-family: 'Source Serif 4 Display', Georgia, serif; font-size: 21px; line-height: 1.28; letter-spacing: -0.01em; margin: 1.4em 0 0.5em; color: var(--text-heading); }
+/* scroll-margin-top so anchor jumps clear the sticky Masthead + sticky Chroniclon header. */
+.editorial-prose h2 { font-family: 'Source Serif 4 Display', Georgia, serif; font-size: 26px; line-height: 1.22; letter-spacing: -0.015em; margin: 1.6em 0 0.6em; color: var(--text-heading); scroll-margin-top: 8rem; }
+.editorial-prose h3 { font-family: 'Source Serif 4 Display', Georgia, serif; font-size: 21px; line-height: 1.28; letter-spacing: -0.01em; margin: 1.4em 0 0.5em; color: var(--text-heading); scroll-margin-top: 8rem; }
 .editorial-prose blockquote {
   font-style: italic;
   border-left: none;
@@ -316,58 +313,6 @@ header, main, footer, [data-atmosphere-fg] {
 }
 @media (prefers-reduced-motion: reduce) {
   .skeleton { animation: none; background: var(--bg-surface); }
-}
-
-/* ── Legacy decorative utilities — REDEFINED to editorial tokens ────────
- * Kept as class names so existing JSX in CharacterList/EventTimeline/
- * CharacterChatModal/WorldView keeps rendering, but the visuals are now
- * the editorial system: paper/vellum surfaces with hairline borders, no
- * decorative auras. The class names are misnomers now — Phase 4 cleanup
- * (stripping them in JSX) is a follow-up; keeping them here is faster
- * than touching ~10 components.
- */
-.text-shimmer {
-  /* No more gradient text. Display heading in heading color. */
-  color: var(--text-heading);
-}
-
-.btn-glow,
-.btn-glow:hover,
-.btn-glow:disabled {
-  /* No more aura. The button's own border + bg-gilt does the work. */
-  box-shadow: none;
-}
-
-.card-glow {
-  position: relative;
-  transition: border-color 0.2s ease;
-}
-.card-glow:hover {
-  border-color: rgba(184, 137, 58, 0.4);
-}
-
-.glass {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-}
-
-.glass-input {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  transition: border-color 0.2s ease;
-}
-.glass-input:focus {
-  border-color: rgba(184, 137, 58, 0.6);
-}
-
-.icon-aura,
-.group:hover .icon-aura {
-  /* No more aura. Icons stand on their own. */
-  filter: none;
-}
-
-.border-ornate {
-  border-image: linear-gradient(90deg, transparent, rgba(184, 137, 58, 0.3), transparent) 1;
 }
 
 /* ── Scrollbar styling ── */

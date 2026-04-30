@@ -89,7 +89,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
   return (
     <div>
       {/* ── Search + Filters Bar ──────────────────────────── */}
-      <div className="glass rounded-xl p-4 mb-6">
+      <div className="bg-surface border border-subtle rounded-xl p-4 mb-6">
         {/* Search input */}
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dim" />
@@ -98,7 +98,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events by title or narrative..."
-            className="glass-input w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none transition-all"
           />
         </div>
 
@@ -112,7 +112,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="glass-input rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
           >
             <option value="all">All Types</option>
             {eventTypes.map((t) => (
@@ -125,7 +125,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={factionFilter}
             onChange={(e) => setFactionFilter(e.target.value)}
-            className="glass-input rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
           >
             <option value="all">All Factions</option>
             {factions.map((f) => (
@@ -138,7 +138,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={charFilter}
             onChange={(e) => setCharFilter(e.target.value)}
-            className="glass-input rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
           >
             <option value="all">All Characters</option>
             {eventActors.map((c) => (
@@ -177,10 +177,10 @@ export default function EventTimeline({ events, factions, characters }: Props) {
               key={type}
               onClick={() => setTypeFilter(typeFilter === type ? 'all' : type)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                typeFilter === type
-                  ? 'bg-genesis-600/15 border-genesis-500/30 text-genesis-400'
-                  : 'bg-white/[0.03] border-subtle text-sub hover:border-white/[0.15] hover:bg-hover'
-              }`}
+ typeFilter === type
+ ? 'bg-genesis-600/15 border-genesis-500/30 text-genesis-400'
+ : 'bg-white/[0.03] border-subtle text-sub hover:border-white/[0.15] hover:bg-hover'
+ }`}
             >
               <span>{EVENT_TYPE_ICONS[type] || ''}</span>
               <span>{type.replace(/_/g, ' ')}</span>
@@ -205,7 +205,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
                     {day}
                   </span>
                 </div>
-                <div className="glass px-3 py-1 rounded-lg">
+                <div className="bg-surface border border-subtle px-3 py-1 rounded-lg">
                   <p className="text-sm font-semibold text-sub">
                     Day {day}
                   </p>

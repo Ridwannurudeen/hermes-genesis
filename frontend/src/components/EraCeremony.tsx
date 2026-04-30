@@ -114,7 +114,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
         )}
 
         {!error && !data && (
-          <div className="text-dim text-center font-serif italic animate-pulse">
+          <div className="text-dim text-center font-body italic animate-pulse">
             unfurling the seal…
           </div>
         )}
@@ -124,7 +124,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
             <div className="text-[11px] uppercase tracking-[0.4em] text-faint mb-3">
               an era closes
             </div>
-            <div className="font-serif text-4xl text-heading mb-4">{data.closing.name}</div>
+            <div className="font-display text-4xl text-heading mb-4">{data.closing.name}</div>
             {data.closing.summary && (
               <div className="text-dim italic max-w-xl mx-auto leading-relaxed">
                 {data.closing.summary}
@@ -138,8 +138,8 @@ export default function EraCeremony({ eraId, onClose }: Props) {
             {/* Banner */}
             <div
               className={`relative overflow-hidden rounded-xl border border-gilt-500/40 px-8 py-12 bg-gradient-to-br ${bannerGradient(
-                data.new.art_style,
-              )}`}
+ data.new.art_style,
+ )}`}
             >
               <div className="absolute inset-0 opacity-20" aria-hidden>
                 <svg viewBox="0 0 600 200" className="w-full h-full">
@@ -156,7 +156,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
                 <div className="text-[11px] uppercase tracking-[0.4em] text-gilt-500/70 mb-2">
                   a new era begins · year {data.new.start_year}
                 </div>
-                <div className="font-serif text-5xl text-vellum-50 drop-shadow">{data.new.name}</div>
+                <div className="font-display text-5xl text-vellum-50 drop-shadow">{data.new.name}</div>
                 {data.new.art_style && (
                   <div className="text-xs text-gilt-400/60 italic mt-3 max-w-xl mx-auto">
                     {data.new.art_style}
@@ -166,7 +166,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
             </div>
 
             {data.new.premise && (
-              <div className="text-sub italic font-serif leading-relaxed text-center max-w-2xl mx-auto">
+              <div className="text-sub italic font-body leading-relaxed text-center max-w-2xl mx-auto">
                 {data.new.premise}
               </div>
             )}
@@ -225,7 +225,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
                 <div className="text-[11px] uppercase tracking-widest text-faint mb-1">
                   sample of the new tongue
                 </div>
-                <div className="text-sub italic font-serif leading-relaxed">
+                <div className="text-sub italic font-body leading-relaxed">
                   “{data.language.sample_text}”
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
                 <div className="space-y-3">
                   {data.language.inscriptions.map((ins, i) => (
                     <div key={i} className="border-l-2 border-gilt-500/40 pl-3">
-                      <div className="text-sm text-gilt-400 font-serif italic">
+                      <div className="text-sm text-gilt-400 font-body italic">
                         “{ins.in_world_text}”
                       </div>
                       <div className="text-xs text-dim mt-0.5">{ins.translation}</div>

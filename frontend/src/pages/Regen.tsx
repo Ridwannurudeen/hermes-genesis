@@ -164,7 +164,7 @@ export default function Regen() {
               rows={3}
               maxLength={600}
               placeholder="One sentence. Strange is good."
-              className="w-full bg-surface border border-subtle rounded-md px-4 py-3 text-base text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500/50 font-serif resize-none"
+              className="w-full bg-surface border border-subtle rounded-md px-4 py-3 text-base text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500/50 font-body resize-none"
             />
             <div className="flex flex-wrap gap-2 mt-3">
               {PROMPTS.map((p) => (
@@ -228,7 +228,7 @@ export default function Regen() {
                 <div className="text-[11px] uppercase tracking-widest text-faint">
                   {done ? 'complete' : 'in progress'}
                 </div>
-                <div className="font-serif text-2xl text-heading mt-0.5">{worldName || 'unnamed civilization'}</div>
+                <div className="font-display text-2xl text-heading mt-0.5">{worldName || 'unnamed civilization'}</div>
                 {eraName && <div className="text-sm text-gilt-500 mt-0.5">era: {eraName}</div>}
               </div>
               <div className="flex items-center gap-3">
@@ -261,10 +261,10 @@ export default function Regen() {
               {(running || done) && (
                 <span
                   className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
-                    provider === 'kimi'
-                      ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
-                      : 'border-gilt-500/60 text-gilt-400 bg-gilt-600/30'
-                  }`}
+ provider === 'kimi'
+ ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
+ : 'border-gilt-500/60 text-gilt-400 bg-gilt-600/30'
+ }`}
                 >
                   writer · {provider === 'kimi' ? 'Kimi-K2.6' : 'Hermes-4-70B'}
                 </span>
@@ -317,14 +317,14 @@ export default function Regen() {
                       className="w-full text-left px-4 py-3 border-b border-subtle hover:bg-hover transition-colors"
                     >
                       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                        <div className="font-serif text-base text-heading">{a.title}</div>
+                        <div className="font-display text-base text-heading">{a.title}</div>
                         {a.writer_label && (
                           <span
                             className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
-                              /kimi/i.test(a.writer_label)
-                                ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
-                                : 'border-gilt-500/60 text-gilt-400 bg-gilt-600/30'
-                            }`}
+ /kimi/i.test(a.writer_label)
+ ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
+ : 'border-gilt-500/60 text-gilt-400 bg-gilt-600/30'
+ }`}
                           >
                             {a.writer_label}
                           </span>

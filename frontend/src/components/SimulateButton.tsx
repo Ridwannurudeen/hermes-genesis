@@ -72,8 +72,8 @@ export default function SimulateButton({ onSimulate, loading }: Props) {
         >
           <ChevronDown
             className={`w-4 h-4 transition-transform ${
-              open ? 'rotate-180' : ''
-            }`}
+ open ? 'rotate-180' : ''
+ }`}
           />
         </button>
       </div>
@@ -93,10 +93,10 @@ export default function SimulateButton({ onSimulate, loading }: Props) {
                 key={opt.days}
                 onClick={() => handleOption(idx)}
                 className={`w-full px-4 py-2.5 text-sm text-left transition-colors flex items-center gap-2 ${
-                  idx === selected
-                    ? 'bg-genesis-900/50 text-genesis-400'
-                    : 'text-sub hover:bg-hover'
-                }`}
+ idx === selected
+ ? 'bg-genesis-900/50 text-genesis-400'
+ : 'text-sub hover:bg-hover'
+ }`}
               >
                 <Play className="w-3 h-3" />
                 {opt.label}

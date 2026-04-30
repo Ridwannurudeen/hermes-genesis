@@ -218,7 +218,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
         <div className="col-span-12 lg:col-span-4 bg-night-950/60 border border-ink-800/60 rounded-md p-4 min-h-[260px]">
           {selected ? (
             <div>
-              <div className="font-serif text-lg text-vellum-100">{selected.era_name}</div>
+              <div className="font-display text-lg text-vellum-100">{selected.era_name}</div>
               <div className="text-[11px] text-ink-500 mb-3">year {selected.in_world_year}</div>
               {selected.phonology_notes && (
                 <div className="text-sm text-vellum-300 italic mb-3 leading-relaxed">
@@ -274,7 +274,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
               {selected.sample_text && (
                 <div className="mb-3">
                   <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-1">Sample</div>
-                  <div className="text-sm text-vellum-300 italic leading-relaxed font-serif">
+                  <div className="text-sm text-vellum-300 italic leading-relaxed font-body">
                     “{selected.sample_text}”
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
                   <div className="space-y-3">
                     {selected.inscriptions!.map((ins, i) => (
                       <div key={i} className="border-l-2 border-gilt-600/60 pl-2">
-                        <div className="text-sm text-gilt-400 font-serif italic">
+                        <div className="text-sm text-gilt-400 font-body italic">
                           “{ins.in_world_text}”
                         </div>
                         <div className="text-xs text-vellum-400 mt-0.5">{ins.translation}</div>
