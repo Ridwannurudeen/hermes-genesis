@@ -31,7 +31,7 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
               {character.name}
             </span>
             {!character.alive && (
-              <Skull className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+              <Skull className="w-3.5 h-3.5 text-crimson-500 flex-shrink-0" />
             )}
           </div>
           <div className="flex items-center gap-2">

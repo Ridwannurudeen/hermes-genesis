@@ -240,9 +240,9 @@ export default function EvolutionView({ data }: Props) {
                 <p
                   className={`text-xs font-mono ${
                     diff > 0
-                      ? 'text-green-400'
+                      ? 'text-moss-400'
                       : diff < 0
-                      ? 'text-red-400'
+                      ? 'text-crimson-400'
                       : 'text-dim'
                   }`}
                 >

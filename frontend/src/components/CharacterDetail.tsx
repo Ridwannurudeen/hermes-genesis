@@ -32,11 +32,11 @@ function RelationshipBadge({
 }) {
   const bgColor =
     type === 'enemy' || type === 'rival'
-      ? 'bg-red-900/30 border-red-800/40 text-red-400'
+      ? 'bg-crimson-600/30 border-crimson-600/40 text-crimson-400'
       : type === 'ally' || type === 'friend'
-      ? 'bg-green-900/30 border-green-800/40 text-green-400'
+      ? 'bg-moss-500/30 border-moss-500/40 text-moss-400'
       : type === 'love' || type === 'family'
-      ? 'bg-pink-900/30 border-pink-800/40 text-pink-400'
+      ? 'bg-crimson-600/30 border-crimson-600/40 text-crimson-400'
       : 'bg-white/[0.06] border-subtle text-sub';
 
   return (
@@ -95,7 +95,7 @@ export default function CharacterDetail({
               >
                 {character.name}
               </h2>
-              {!character.alive && <Skull className="w-5 h-5 text-red-500" />}
+              {!character.alive && <Skull className="w-5 h-5 text-crimson-500" />}
             </div>
             <div className="flex items-center gap-3 text-sm">
               <span className="px-2.5 py-0.5 bg-white/[0.06] text-sub rounded capitalize">
@@ -187,7 +187,7 @@ export default function CharacterDetail({
           {character.goals.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
-                <Target className="w-4 h-4 text-amber-400" />
+                <Target className="w-4 h-4 text-gilt-400" />
                 Goals
               </h3>
               <ul className="space-y-1.5">
@@ -196,7 +196,7 @@ export default function CharacterDetail({
                     key={i}
                     className="flex items-start gap-2 text-sm text-sub"
                   >
-                    <span className="text-amber-500 mt-0.5">-</span>
+                    <span className="text-gilt-500 mt-0.5">-</span>
                     {goal}
                   </li>
                 ))}
@@ -208,7 +208,7 @@ export default function CharacterDetail({
           {character.relationships.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-sub mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-400" />
+                <Users className="w-4 h-4 text-vellum-400" />
                 Relationships
               </h3>
               <div className="space-y-2">

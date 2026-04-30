@@ -46,9 +46,9 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
       transition={{ duration: 0.3 }}
       className={`relative rounded-xl p-4 transition-all ${
         event.type === 'death' && event.obituary
-          ? 'bg-red-950/30 border border-red-900/40 hover:border-red-800/50'
+          ? 'bg-crimson-600/30 border border-crimson-600/40 hover:border-crimson-600/50'
           : 'bg-white/[0.03] border border-subtle hover:border-white/[0.12] hover:bg-white/[0.05]'
-      } ${hasCausedBy ? 'border-l-2 border-l-amber-500/50' : ''}`}
+      } ${hasCausedBy ? 'border-l-2 border-l-gilt-500/50' : ''}`}
     >
       {/* Agent Intervention Badge - top right */}
       {isAgentTriggered && (
@@ -64,7 +64,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
       {isProphecyFulfilled && (
         <div className={`absolute ${isAgentTriggered ? 'top-8' : 'top-2'} right-2 z-10`}>
           <span
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gilt-500/20 text-gilt-400 border border-gilt-500/40"
             style={{ boxShadow: '0 0 12px rgba(245, 158, 11, 0.25), 0 0 4px rgba(245, 158, 11, 0.15)' }}
           >
             {'\uD83D\uDD2E'} Prophecy Fulfilled
@@ -79,8 +79,8 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
           {/* Caused-By Link */}
           {hasCausedBy && (
             <div className="flex items-center gap-1 mb-1">
-              <Link2 className="w-3 h-3 text-amber-400/60 flex-shrink-0" />
-              <span className="text-[11px] text-amber-400/60 italic truncate">
+              <Link2 className="w-3 h-3 text-gilt-400/60 flex-shrink-0" />
+              <span className="text-[11px] text-gilt-400/60 italic truncate">
                 Triggered by: {parentEvent ? parentEvent.title : event.caused_by}
               </span>
             </div>
@@ -104,10 +104,10 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
 
           {/* Memorial obituary */}
           {event.type === 'death' && event.obituary && (
-            <div className="mt-3 p-3 bg-red-950/20 border border-red-900/30 rounded-lg">
+            <div className="mt-3 p-3 bg-crimson-600/20 border border-crimson-600/30 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Flame className="w-3.5 h-3.5 text-red-400" />
-                <span className="text-xs font-semibold text-red-400 uppercase tracking-wider">
+                <Flame className="w-3.5 h-3.5 text-crimson-400" />
+                <span className="text-xs font-semibold text-crimson-400 uppercase tracking-wider">
                   In Memoriam
                 </span>
               </div>
@@ -214,7 +214,7 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                           <div className="mt-1 space-y-0.5">
                             {Object.entries(event.outcome.casualties).map(
                               ([fid, count]) => (
-                                <p key={fid} className="text-red-400">
+                                <p key={fid} className="text-crimson-400">
                                   {factionMap[fid]?.name || fid}: {count}
                                 </p>
                               )
@@ -238,8 +238,8 @@ export default function EventCard({ event, factions, characters, eventMap }: Pro
                                 key={fid}
                                 className={
                                   change > 0
-                                    ? 'text-green-400'
-                                    : 'text-red-400'
+                                    ? 'text-moss-400'
+                                    : 'text-crimson-400'
                                 }
                               >
                                 {factionMap[fid]?.name || fid}:{' '}

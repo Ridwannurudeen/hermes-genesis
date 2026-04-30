@@ -23,7 +23,7 @@ export default function ProphecyPanel({ prophecies }: Props) {
         <Eye className="w-4 h-4" />
         <span className="text-sm">Prophecies</span>
         {fulfilledCount > 0 && (
-          <span className="bg-amber-500 text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
+          <span className="bg-gilt-500 text-black text-xs font-bold px-1.5 py-0.5 rounded-full">
             {fulfilledCount}
           </span>
         )}
@@ -53,17 +53,17 @@ export default function ProphecyPanel({ prophecies }: Props) {
                   transition={{ delay: i * 0.1 }}
                   className={`p-3 rounded-lg border ${
                     p.fulfilled
-                      ? 'border-amber-500/50 bg-amber-950/20'
+                      ? 'border-gilt-500/50 bg-gilt-600/20'
                       : 'border-subtle bg-white/[0.03]'
                   }`}
                 >
                   <p className={`text-sm italic leading-relaxed ${
-                    p.fulfilled ? 'text-amber-300' : 'text-sub'
+                    p.fulfilled ? 'text-gilt-400' : 'text-sub'
                   }`}>
                     "{p.text}"
                   </p>
                   {p.fulfilled && (
-                    <div className="flex items-center gap-1 mt-2 text-xs text-amber-500">
+                    <div className="flex items-center gap-1 mt-2 text-xs text-gilt-500">
                       <Check className="w-3 h-3" />
                       Fulfilled on Day {p.fulfilled_day}
                     </div>

@@ -116,7 +116,7 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
 
             {error && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-crimson-400 text-sm">{error}</p>
                 <button
                   onClick={onClose}
                   className="text-sm text-sub hover:text-heading transition-colors"
@@ -142,7 +142,7 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-moss-400" />
                     Copied
                   </>
                 ) : (

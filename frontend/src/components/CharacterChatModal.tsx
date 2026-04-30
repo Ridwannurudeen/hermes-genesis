@@ -22,7 +22,7 @@ function TypingIndicator() {
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="w-1.5 h-1.5 bg-gray-400 rounded-full"
+          className="w-1.5 h-1.5 bg-vellum-400 rounded-full"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
             duration: 1,
@@ -45,18 +45,18 @@ const TRAIT_LABELS: Record<string, [string, string]> = {
 };
 
 const TRAIT_COLORS: Record<string, string> = {
-  courage: 'bg-red-500',
-  cunning: 'bg-amber-500',
-  loyalty: 'bg-blue-500',
-  ambition: 'bg-purple-500',
-  empathy: 'bg-emerald-500',
-  resilience: 'bg-cyan-500',
+  courage: 'bg-crimson-500',
+  cunning: 'bg-gilt-500',
+  loyalty: 'bg-ink-500',
+  ambition: 'bg-gilt-500',
+  empathy: 'bg-moss-500',
+  resilience: 'bg-ink-500',
 };
 
 function GenomeBar({ trait, value }: { trait: string; value: number }) {
   const [high, low] = TRAIT_LABELS[trait] || ['High', 'Low'];
   const label = value > 0.6 ? high : value < 0.4 ? low : trait.charAt(0).toUpperCase() + trait.slice(1);
-  const color = TRAIT_COLORS[trait] || 'bg-gray-500';
+  const color = TRAIT_COLORS[trait] || 'bg-ink-500';
 
   return (
     <div className="flex items-center gap-2">

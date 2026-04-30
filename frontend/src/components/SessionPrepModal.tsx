@@ -90,14 +90,14 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
         elements.push(
           <div
             key={`ra-${elements.length}`}
-            className="bg-amber-950/20 border-l-4 border-amber-600 pl-5 pr-4 py-4 my-3 rounded-r-lg"
+            className="bg-gilt-600/20 border-l-4 border-gilt-500 pl-5 pr-4 py-4 my-3 rounded-r-lg"
           >
             {readAloudLines.map((rl, j) => {
               if (rl.trim() === '') {
                 return <div key={j} className="h-2" />;
               }
               return (
-                <p key={j} className="text-amber-200/90 italic leading-relaxed">
+                <p key={j} className="text-gilt-400/90 italic leading-relaxed">
                   {renderInlineFormatting(rl)}
                 </p>
               );
@@ -117,7 +117,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
         const headerText = line.slice(3);
         inReadAloud = isReadAloudSection(headerText);
         elements.push(
-          <h2 key={i} className="text-xl font-bold text-amber-400 mt-8 mb-3 first:mt-0 border-b border-amber-900/40 pb-2">
+          <h2 key={i} className="text-xl font-bold text-gilt-400 mt-8 mb-3 first:mt-0 border-b border-gilt-600/40 pb-2">
             {headerText}
           </h2>
         );
@@ -129,7 +129,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
         flushReadAloud();
         inReadAloud = false;
         elements.push(
-          <h3 key={i} className="text-lg font-semibold text-amber-500 mt-5 mb-1">
+          <h3 key={i} className="text-lg font-semibold text-gilt-500 mt-5 mb-1">
             {line.slice(4)}
           </h3>
         );
@@ -141,7 +141,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
         flushReadAloud();
         inReadAloud = false;
         elements.push(
-          <h1 key={i} className="text-2xl font-bold text-amber-300 mt-8 mb-3 first:mt-0 border-b border-amber-900/40 pb-2">
+          <h1 key={i} className="text-2xl font-bold text-gilt-400 mt-8 mb-3 first:mt-0 border-b border-gilt-600/40 pb-2">
             {line.slice(2)}
           </h1>
         );
@@ -155,7 +155,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
           flushReadAloud();
           inReadAloud = false;
           elements.push(
-            <p key={i} className="text-lg font-semibold text-amber-400 mt-5 mb-1">
+            <p key={i} className="text-lg font-semibold text-gilt-400 mt-5 mb-1">
               {line.trim().replace(/\*\*/g, '')}
             </p>
           );
@@ -168,7 +168,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
       // Bold lines
       if (/^\*\*[^*]+\*\*$/.test(line.trim())) {
         elements.push(
-          <p key={i} className="text-lg font-semibold text-amber-400 mt-5 mb-1">
+          <p key={i} className="text-lg font-semibold text-gilt-400 mt-5 mb-1">
             {line.trim().replace(/\*\*/g, '')}
           </p>
         );
@@ -177,7 +177,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
 
       // Horizontal rule
       if (/^---+$/.test(line.trim())) {
-        elements.push(<hr key={i} className="border-amber-900/30 my-4" />);
+        elements.push(<hr key={i} className="border-gilt-600/30 my-4" />);
         continue;
       }
 
@@ -186,7 +186,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
         const indent = line.length - line.trimStart().length;
         elements.push(
           <p key={i} className="text-sub leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
-            <span className="text-amber-600 mr-2">&bull;</span>
+            <span className="text-gilt-500 mr-2">&bull;</span>
             {renderInlineFormatting(line.trimStart().slice(2))}
           </p>
         );
@@ -199,7 +199,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
         const indent = line.length - line.trimStart().length;
         elements.push(
           <p key={i} className="text-sub leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
-            <span className="text-amber-600 mr-2 font-medium">{numberedMatch[1]}.</span>
+            <span className="text-gilt-500 mr-2 font-medium">{numberedMatch[1]}.</span>
             {renderInlineFormatting(numberedMatch[2])}
           </p>
         );
@@ -209,7 +209,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
       // GM notes in [brackets]
       if (line.trim().startsWith('[') && line.trim().endsWith(']')) {
         elements.push(
-          <p key={i} className="text-dim italic text-sm leading-relaxed pl-4 border-l-2 border-gray-700 my-1">
+          <p key={i} className="text-dim italic text-sm leading-relaxed pl-4 border-l-2 border-ink-700 my-1">
             {line.trim()}
           </p>
         );
@@ -225,8 +225,8 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
       // Quoted read-aloud text (lines starting with > or wrapped in quotes)
       if (line.trimStart().startsWith('>')) {
         elements.push(
-          <div key={i} className="bg-amber-950/20 border-l-4 border-amber-600 pl-4 py-1 my-1 rounded-r">
-            <p className="text-amber-200/90 italic leading-relaxed">
+          <div key={i} className="bg-gilt-600/20 border-l-4 border-gilt-500 pl-4 py-1 my-1 rounded-r">
+            <p className="text-gilt-400/90 italic leading-relaxed">
               {renderInlineFormatting(line.trimStart().slice(1).trim())}
             </p>
           </div>
@@ -272,20 +272,20 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-page border border-amber-800/30 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-900/10"
+          className="bg-page border border-gilt-600/30 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl shadow-gilt-600/10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-amber-950/10 to-[var(--bg-page)]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gilt-600/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-gilt-600/10 to-[var(--bg-page)]">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-900/20 border border-amber-800/30">
-                <Sparkles className="w-5 h-5 text-amber-400" />
+              <div className="p-2 rounded-lg bg-gilt-600/20 border border-gilt-600/30">
+                <Sparkles className="w-5 h-5 text-gilt-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-amber-200">
+                <h2 className="text-xl font-bold text-gilt-400">
                   Session Prep &mdash; {worldName}
                 </h2>
                 {!loading && plan && (
-                  <p className="text-sm text-amber-700">Day {currentDay} &middot; Tonight's 3-hour session</p>
+                  <p className="text-sm text-gilt-600">Day {currentDay} &middot; Tonight's 3-hour session</p>
                 )}
               </div>
             </div>
@@ -302,16 +302,16 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
             {loading && (
               <div className="flex flex-col items-center justify-center py-24 gap-5">
                 <div className="relative">
-                  <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+                  <Loader2 className="w-10 h-10 text-gilt-500 animate-spin" />
                 </div>
-                <p className="text-amber-600 text-sm font-medium">The Game Master is preparing tonight's session...</p>
+                <p className="text-gilt-500 text-sm font-medium">The Game Master is preparing tonight's session...</p>
                 <p className="text-faint text-xs">Crafting encounters, NPCs, and plot twists</p>
               </div>
             )}
 
             {error && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-crimson-400 text-sm">{error}</p>
                 <button
                   onClick={onClose}
                   className="text-sm text-sub hover:text-heading transition-colors"
@@ -330,14 +330,14 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
 
           {/* Footer */}
           {plan && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-amber-900/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-amber-950/10 to-[var(--bg-page)]">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gilt-600/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-gilt-600/10 to-[var(--bg-page)]">
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gilt-400 bg-gilt-600/20 hover:bg-gilt-600/30 border border-gilt-600/30 rounded-lg transition-colors"
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-moss-400" />
                     Copied
                   </>
                 ) : (
@@ -349,7 +349,7 @@ export default function SessionPrepModal({ worldId, worldName, onClose }: Props)
               </button>
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gilt-400 bg-gilt-600/20 hover:bg-gilt-600/30 border border-gilt-600/30 rounded-lg transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Download .md

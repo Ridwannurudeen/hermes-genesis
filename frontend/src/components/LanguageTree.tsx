@@ -205,34 +205,34 @@ export default function LanguageTree({ data, height = 520 }: Props) {
     <div ref={ref} className="w-full">
       <div className="flex items-baseline justify-between mb-3">
         <div>
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">Linguistic family tree</div>
-          <div className="text-xs text-slate-600 mt-0.5">
+          <div className="text-[11px] uppercase tracking-widest text-ink-500">Linguistic family tree</div>
+          <div className="text-xs text-ink-600 mt-0.5">
             {data.length} era{data.length === 1 ? '' : 's'} · click any node for lexicon
           </div>
         </div>
       </div>
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 lg:col-span-8 bg-slate-950/60 border border-slate-800/60 rounded-md overflow-hidden">
+        <div className="col-span-12 lg:col-span-8 bg-night-950/60 border border-ink-800/60 rounded-md overflow-hidden">
           <svg ref={svgRef} width={width} height={height} />
         </div>
-        <div className="col-span-12 lg:col-span-4 bg-slate-950/60 border border-slate-800/60 rounded-md p-4 min-h-[260px]">
+        <div className="col-span-12 lg:col-span-4 bg-night-950/60 border border-ink-800/60 rounded-md p-4 min-h-[260px]">
           {selected ? (
             <div>
-              <div className="font-serif text-lg text-slate-100">{selected.era_name}</div>
-              <div className="text-[11px] text-slate-500 mb-3">year {selected.in_world_year}</div>
+              <div className="font-serif text-lg text-vellum-100">{selected.era_name}</div>
+              <div className="text-[11px] text-ink-500 mb-3">year {selected.in_world_year}</div>
               {selected.phonology_notes && (
-                <div className="text-sm text-slate-300 italic mb-3 leading-relaxed">
+                <div className="text-sm text-vellum-300 italic mb-3 leading-relaxed">
                   {selected.phonology_notes}
                 </div>
               )}
               {lexEntries.length > 0 && (
                 <div className="mb-3">
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Lexicon</div>
+                  <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-1">Lexicon</div>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm font-mono">
                     {lexEntries.map(([en, lo]) => (
                       <div key={en} className="flex items-baseline justify-between">
-                        <span className="text-slate-500">{en}</span>
-                        <span className="text-amber-300">{lo}</span>
+                        <span className="text-ink-500">{en}</span>
+                        <span className="text-gilt-400">{lo}</span>
                       </div>
                     ))}
                   </div>
@@ -240,15 +240,15 @@ export default function LanguageTree({ data, height = 520 }: Props) {
               )}
               {(selected.phonological_rules?.length ?? 0) > 0 && (
                 <div className="mb-3">
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Sound shifts</div>
+                  <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-1">Sound shifts</div>
                   <div className="space-y-1 text-sm font-mono">
                     {selected.phonological_rules!.map((r, i) => (
                       <div key={i} className="flex items-baseline gap-2">
-                        <span className="text-slate-400">{r.from_sound}</span>
-                        <span className="text-amber-300">→</span>
-                        <span className="text-amber-200">{r.to_sound}</span>
+                        <span className="text-vellum-400">{r.from_sound}</span>
+                        <span className="text-gilt-400">→</span>
+                        <span className="text-gilt-400">{r.to_sound}</span>
                         {r.context && (
-                          <span className="text-slate-600 text-xs italic ml-auto">{r.context}</span>
+                          <span className="text-ink-600 text-xs italic ml-auto">{r.context}</span>
                         )}
                       </div>
                     ))}
@@ -257,40 +257,40 @@ export default function LanguageTree({ data, height = 520 }: Props) {
               )}
               {morphEntries.length > 0 && (
                 <div className="mb-3">
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Morphology</div>
+                  <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-1">Morphology</div>
                   <div className="text-sm space-y-1">
                     {morphEntries.map(([k, v]) => (
                       <div key={k} className="flex items-baseline gap-2">
-                        <span className="text-slate-500 w-20 flex-shrink-0">{k}</span>
-                        <span className="text-slate-300">{v}</span>
+                        <span className="text-ink-500 w-20 flex-shrink-0">{k}</span>
+                        <span className="text-vellum-300">{v}</span>
                       </div>
                     ))}
                     {selected.morphology?.notes && (
-                      <div className="text-xs text-slate-500 italic mt-1">{selected.morphology.notes}</div>
+                      <div className="text-xs text-ink-500 italic mt-1">{selected.morphology.notes}</div>
                     )}
                   </div>
                 </div>
               )}
               {selected.sample_text && (
                 <div className="mb-3">
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Sample</div>
-                  <div className="text-sm text-slate-300 italic leading-relaxed font-serif">
+                  <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-1">Sample</div>
+                  <div className="text-sm text-vellum-300 italic leading-relaxed font-serif">
                     “{selected.sample_text}”
                   </div>
                 </div>
               )}
               {(selected.inscriptions?.length ?? 0) > 0 && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Inscriptions</div>
+                  <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-1">Inscriptions</div>
                   <div className="space-y-3">
                     {selected.inscriptions!.map((ins, i) => (
-                      <div key={i} className="border-l-2 border-amber-900/60 pl-2">
-                        <div className="text-sm text-amber-200 font-serif italic">
+                      <div key={i} className="border-l-2 border-gilt-600/60 pl-2">
+                        <div className="text-sm text-gilt-400 font-serif italic">
                           “{ins.in_world_text}”
                         </div>
-                        <div className="text-xs text-slate-400 mt-0.5">{ins.translation}</div>
+                        <div className="text-xs text-vellum-400 mt-0.5">{ins.translation}</div>
                         {ins.context && (
-                          <div className="text-[10px] uppercase tracking-widest text-slate-600 mt-0.5">
+                          <div className="text-[10px] uppercase tracking-widest text-ink-600 mt-0.5">
                             {ins.context}
                           </div>
                         )}
@@ -301,7 +301,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
               )}
             </div>
           ) : (
-            <div className="text-slate-500 text-sm">
+            <div className="text-ink-500 text-sm">
               Click an era node to inspect its lexicon, sound shifts, morphology, and in-world inscriptions.
             </div>
           )}

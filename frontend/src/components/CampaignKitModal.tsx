@@ -92,7 +92,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       // H1
       if (line.startsWith('# ')) {
         return (
-          <h1 key={i} className="text-2xl font-bold text-amber-300 mt-8 mb-3 first:mt-0 border-b border-amber-900/40 pb-2">
+          <h1 key={i} className="text-2xl font-bold text-gilt-400 mt-8 mb-3 first:mt-0 border-b border-gilt-600/40 pb-2">
             {line.slice(2)}
           </h1>
         );
@@ -100,7 +100,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       // H2
       if (line.startsWith('## ')) {
         return (
-          <h2 key={i} className="text-xl font-bold text-amber-400 mt-6 mb-2">
+          <h2 key={i} className="text-xl font-bold text-gilt-400 mt-6 mb-2">
             {line.slice(3)}
           </h2>
         );
@@ -108,7 +108,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       // H3
       if (line.startsWith('### ')) {
         return (
-          <h3 key={i} className="text-lg font-semibold text-amber-500 mt-4 mb-1">
+          <h3 key={i} className="text-lg font-semibold text-gilt-500 mt-4 mb-1">
             {line.slice(4)}
           </h3>
         );
@@ -116,21 +116,21 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
       // Bold lines (often section headers from LLM output like **Section Name**)
       if (/^\*\*[^*]+\*\*$/.test(line.trim())) {
         return (
-          <p key={i} className="text-lg font-semibold text-amber-400 mt-5 mb-1">
+          <p key={i} className="text-lg font-semibold text-gilt-400 mt-5 mb-1">
             {line.trim().replace(/\*\*/g, '')}
           </p>
         );
       }
       // Horizontal rule
       if (/^---+$/.test(line.trim())) {
-        return <hr key={i} className="border-amber-900/30 my-4" />;
+        return <hr key={i} className="border-gilt-600/30 my-4" />;
       }
       // Bullet points
       if (line.trimStart().startsWith('- ') || line.trimStart().startsWith('* ')) {
         const indent = line.length - line.trimStart().length;
         return (
           <p key={i} className="text-sub leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
-            <span className="text-amber-600 mr-2">&bull;</span>
+            <span className="text-gilt-500 mr-2">&bull;</span>
             {renderInlineFormatting(line.trimStart().slice(2))}
           </p>
         );
@@ -141,7 +141,7 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
         const indent = line.length - line.trimStart().length;
         return (
           <p key={i} className="text-sub leading-relaxed" style={{ paddingLeft: `${indent * 4 + 16}px` }}>
-            <span className="text-amber-600 mr-2 font-medium">{numberedMatch[1]}.</span>
+            <span className="text-gilt-500 mr-2 font-medium">{numberedMatch[1]}.</span>
             {renderInlineFormatting(numberedMatch[2])}
           </p>
         );
@@ -186,20 +186,20 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
           exit={{ opacity: 0, y: 30, scale: 0.97 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-page border border-amber-900/30 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-900/10"
+          className="bg-page border border-gilt-600/30 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl shadow-gilt-600/10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-900/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-amber-950/10 to-[var(--bg-page)]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gilt-600/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-gilt-600/10 to-[var(--bg-page)]">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-900/20 border border-amber-800/30">
-                <Scroll className="w-5 h-5 text-amber-400" />
+              <div className="p-2 rounded-lg bg-gilt-600/20 border border-gilt-600/30">
+                <Scroll className="w-5 h-5 text-gilt-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-amber-200">
+                <h2 className="text-xl font-bold text-gilt-400">
                   Campaign Kit &mdash; {worldName}
                 </h2>
                 {!loading && kit && (
-                  <p className="text-sm text-amber-700">Day {currentDay} &middot; Ready-to-play TTRPG content</p>
+                  <p className="text-sm text-gilt-600">Day {currentDay} &middot; Ready-to-play TTRPG content</p>
                 )}
               </div>
             </div>
@@ -216,17 +216,17 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
             {loading && (
               <div className="flex flex-col items-center justify-center py-24 gap-5">
                 <div className="relative">
-                  <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+                  <Loader2 className="w-10 h-10 text-gilt-500 animate-spin" />
                   <span className="absolute -top-1 -right-1 text-lg">&#127922;</span>
                 </div>
-                <p className="text-amber-600 text-sm font-medium">Forging your campaign kit...</p>
+                <p className="text-gilt-500 text-sm font-medium">Forging your campaign kit...</p>
                 <p className="text-faint text-xs">Crafting NPCs, plot hooks, and encounter tables</p>
               </div>
             )}
 
             {error && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-crimson-400 text-sm">{error}</p>
                 <button
                   onClick={onClose}
                   className="text-sm text-sub hover:text-heading transition-colors"
@@ -245,14 +245,14 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
 
           {/* Footer */}
           {kit && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-amber-900/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-amber-950/10 to-[var(--bg-page)]">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gilt-600/20 shrink-0 bg-gradient-to-r from-[var(--bg-page)] via-gilt-600/10 to-[var(--bg-page)]">
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gilt-400 bg-gilt-600/20 hover:bg-gilt-600/30 border border-gilt-600/30 rounded-lg transition-colors"
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-green-400" />
+                    <Check className="w-4 h-4 text-moss-400" />
                     Copied
                   </>
                 ) : (
@@ -264,14 +264,14 @@ export default function CampaignKitModal({ worldId, worldName, onClose }: Props)
               </button>
               <button
                 onClick={handleDownloadMd}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gilt-400 bg-gilt-600/20 hover:bg-gilt-600/30 border border-gilt-600/30 rounded-lg transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Download .md
               </button>
               <button
                 onClick={handleDownloadTxt}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-amber-300 bg-amber-900/20 hover:bg-amber-900/30 border border-amber-800/30 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gilt-400 bg-gilt-600/20 hover:bg-gilt-600/30 border border-gilt-600/30 rounded-lg transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 Download .txt

@@ -164,14 +164,14 @@ export default function Regen() {
               rows={3}
               maxLength={600}
               placeholder="One sentence. Strange is good."
-              className="w-full bg-surface border border-subtle rounded-md px-4 py-3 text-base text-heading placeholder:text-faint/70 focus:outline-none focus:border-amber-600/50 font-serif resize-none"
+              className="w-full bg-surface border border-subtle rounded-md px-4 py-3 text-base text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500/50 font-serif resize-none"
             />
             <div className="flex flex-wrap gap-2 mt-3">
               {PROMPTS.map((p) => (
                 <button
                   key={p}
                   onClick={() => setSeed(p)}
-                  className="text-xs text-faint hover:text-heading italic px-2 py-1 rounded bg-surface/60 hover:bg-slate-800/60"
+                  className="text-xs text-faint hover:text-heading italic px-2 py-1 rounded bg-surface/60 hover:bg-ink-800/60"
                 >
                   “{p.length > 60 ? `${p.slice(0, 60)}…` : p}”
                 </button>
@@ -195,7 +195,7 @@ export default function Regen() {
                   <button
                     type="button"
                     onClick={() => setProvider('kimi')}
-                    className={`px-3 py-1 ${provider === 'kimi' ? 'bg-amber-700/70 text-heading' : 'text-dim hover:text-heading'}`}
+                    className={`px-3 py-1 ${provider === 'kimi' ? 'bg-gilt-600/70 text-heading' : 'text-dim hover:text-heading'}`}
                     title="Moonshot Kimi K2.6 — long-form prose, 256K context"
                   >
                     Kimi K2.6
@@ -203,7 +203,7 @@ export default function Regen() {
                   <button
                     type="button"
                     onClick={() => setProvider('nous')}
-                    className={`px-3 py-1 border-l border-subtle ${provider === 'nous' ? 'bg-amber-700/70 text-heading' : 'text-dim hover:text-heading'}`}
+                    className={`px-3 py-1 border-l border-subtle ${provider === 'nous' ? 'bg-gilt-600/70 text-heading' : 'text-dim hover:text-heading'}`}
                     title="Nous Hermes-4-70B — faster, structured"
                   >
                     Hermes-4
@@ -235,14 +235,14 @@ export default function Regen() {
                 {(running || completion) && (
                   <button
                     onClick={() => nav('/control')}
-                    className="text-gilt-500 hover:text-gilt-400 text-sm border border-gilt-500/40 hover:border-amber-500/60 rounded px-3 py-1.5"
+                    className="text-gilt-500 hover:text-gilt-400 text-sm border border-gilt-500/40 hover:border-gilt-500/60 rounded px-3 py-1.5"
                     title="Live agentic pipeline view"
                   >
                     control room →
                   </button>
                 )}
                 {running ? (
-                  <button onClick={cancel} className="text-faint hover:text-rose-300 text-sm">
+                  <button onClick={cancel} className="text-faint hover:text-crimson-400 text-sm">
                     cancel
                   </button>
                 ) : completion ? (
@@ -263,7 +263,7 @@ export default function Regen() {
                   className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
                     provider === 'kimi'
                       ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
-                      : 'border-gilt-500/60 text-gilt-400 bg-amber-900/30'
+                      : 'border-gilt-500/60 text-gilt-400 bg-gilt-600/30'
                   }`}
                 >
                   writer · {provider === 'kimi' ? 'Kimi-K2.6' : 'Hermes-4-70B'}
@@ -323,7 +323,7 @@ export default function Regen() {
                             className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
                               /kimi/i.test(a.writer_label)
                                 ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
-                                : 'border-gilt-500/60 text-gilt-400 bg-amber-900/30'
+                                : 'border-gilt-500/60 text-gilt-400 bg-gilt-600/30'
                             }`}
                           >
                             {a.writer_label}

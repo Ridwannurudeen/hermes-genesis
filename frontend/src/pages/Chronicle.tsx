@@ -26,11 +26,11 @@ const KIND_LABELS: Record<ArticleKind, string> = {
 };
 
 const VOICE_BADGE: Record<string, string> = {
-  scholarly: 'bg-slate-700/40 text-slate-200',
-  diary: 'bg-amber-700/30 text-amber-200',
-  newspaper: 'bg-blue-700/30 text-blue-200',
-  scripture: 'bg-violet-700/30 text-violet-200',
-  court: 'bg-rose-700/30 text-rose-200',
+  scholarly: 'bg-ink-700/40 text-vellum-200',
+  diary: 'bg-gilt-600/30 text-gilt-400',
+  newspaper: 'bg-ink-700/30 text-vellum-200',
+  scripture: 'bg-gilt-600/30 text-gilt-400',
+  court: 'bg-crimson-500/30 text-crimson-400',
 };
 
 function fmt(n: number) {
@@ -48,11 +48,11 @@ function StatsBanner({ stats }: { stats: ChronicleStats | null }) {
     { label: 'contributors', value: stats ? fmt(stats.contributor_count) : '—' },
   ];
   return (
-    <div className="grid grid-cols-5 gap-px bg-slate-800/40 border border-slate-700/60 rounded-md overflow-hidden">
+    <div className="grid grid-cols-5 gap-px bg-ink-800/40 border border-ink-700/60 rounded-md overflow-hidden">
       {cells.map((c) => (
-        <div key={c.label} className="bg-slate-900/60 px-4 py-3 text-center">
-          <div className="text-2xl font-semibold tracking-tight text-slate-100">{c.value}</div>
-          <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">{c.label}</div>
+        <div key={c.label} className="bg-ink-900/60 px-4 py-3 text-center">
+          <div className="text-2xl font-semibold tracking-tight text-vellum-100">{c.value}</div>
+          <div className="text-[11px] uppercase tracking-widest text-ink-500 mt-0.5">{c.label}</div>
         </div>
       ))}
     </div>
@@ -72,11 +72,11 @@ function EraNav({
 }) {
   return (
     <aside className="text-sm">
-      <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Eras</div>
+      <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-2">Eras</div>
       <button
         onClick={() => onSelect(null)}
         className={`block w-full text-left px-3 py-2 rounded ${
-          active === null ? 'bg-slate-700/50 text-slate-100' : 'text-slate-400 hover:bg-slate-800/40'
+          active === null ? 'bg-ink-700/50 text-vellum-100' : 'text-vellum-400 hover:bg-ink-800/40'
         }`}
       >
         All eras
@@ -85,17 +85,17 @@ function EraNav({
         <div
           key={e.era_id}
           className={`group relative mt-0.5 rounded ${
-            active === e.era_id ? 'bg-slate-700/50' : 'hover:bg-slate-800/40'
+            active === e.era_id ? 'bg-ink-700/50' : 'hover:bg-ink-800/40'
           }`}
         >
           <button
             onClick={() => onSelect(e.era_id)}
             className={`block w-full text-left px-3 py-2 ${
-              active === e.era_id ? 'text-slate-100' : 'text-slate-400'
+              active === e.era_id ? 'text-vellum-100' : 'text-vellum-400'
             }`}
           >
             <div className="font-medium pr-8">{e.name}</div>
-            <div className="text-[11px] text-slate-500">
+            <div className="text-[11px] text-ink-500">
               year {e.start_year}
               {e.end_year ? `–${e.end_year}` : '+'}
             </div>
@@ -108,7 +108,7 @@ function EraNav({
             }}
             title="View the era's transition ceremony"
             aria-label={`View ${e.name} transition ceremony`}
-            className="absolute top-2 right-2 text-amber-500/60 hover:text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity text-base"
+            className="absolute top-2 right-2 text-gilt-500/60 hover:text-gilt-400 opacity-0 group-hover:opacity-100 transition-opacity text-base"
           >
             ✦
           </button>
@@ -216,7 +216,7 @@ function renderInline(text: string, onLink: (slug: string) => void): (string | J
       <button
         key={key++}
         onClick={() => onLink(slug)}
-        className="text-amber-300 hover:text-amber-200 underline underline-offset-2 decoration-dotted"
+        className="text-gilt-400 hover:text-gilt-400 underline underline-offset-2 decoration-dotted"
       >
         {slug.replace(/-/g, ' ')}
       </button>
@@ -233,7 +233,7 @@ function renderInline(text: string, onLink: (slug: string) => void): (string | J
     let bm: RegExpExecArray | null;
     while ((bm = br.exec(p)) !== null) {
       if (bm.index > li) out.push(p.slice(li, bm.index));
-      out.push(<strong key={key++} className="text-slate-100">{bm[1]}</strong>);
+      out.push(<strong key={key++} className="text-vellum-100">{bm[1]}</strong>);
       li = bm.index + bm[0].length;
     }
     if (li < p.length) out.push(p.slice(li));
@@ -308,7 +308,7 @@ export default function Chronicle() {
   }, [articles, search]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
+    <div className="min-h-screen bg-night-950 text-vellum-200">
       <ContributeModal open={contributeOpen} onClose={() => setContributeOpen(false)} />
       {ceremonyEra && <EraCeremony eraId={ceremonyEra} onClose={() => setCeremonyEra(null)} />}
       {autopsySlug && (
@@ -352,10 +352,10 @@ export default function Chronicle() {
         <div className="col-span-12 md:col-span-3">
           <EraNav eras={eras} active={activeEra} onSelect={setActiveEra} onCeremony={setCeremonyEra} />
           <div className="mt-8 text-sm">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Browse by kind</div>
+            <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-2">Browse by kind</div>
             <div className="flex flex-wrap gap-1.5">
               {(Object.keys(KIND_LABELS) as ArticleKind[]).map((k) => (
-                <span key={k} className="text-[11px] px-2 py-0.5 rounded bg-slate-800/60 text-slate-400">
+                <span key={k} className="text-[11px] px-2 py-0.5 rounded bg-ink-800/60 text-vellum-400">
                   {KIND_LABELS[k]}
                 </span>
               ))}

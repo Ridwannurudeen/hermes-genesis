@@ -403,8 +403,8 @@ export default function TheaterMode({
 
   if (aliveChars.length === 0) {
     return (
-      <div className="bg-gray-900 rounded-xl border border-gray-800 flex items-center justify-center h-[650px]">
-        <p className="text-gray-500">No living characters to display</p>
+      <div className="bg-ink-900 rounded-xl border border-ink-800 flex items-center justify-center h-[650px]">
+        <p className="text-ink-500">No living characters to display</p>
       </div>
     );
   }
@@ -917,7 +917,7 @@ export default function TheaterMode({
         {/* Event scrubber / progress bar */}
         {events.length > 0 && (
           <div className="mb-3">
-            <div className="relative h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div className="relative h-1 bg-ink-800 rounded-full overflow-hidden">
               <motion.div
                 className="absolute top-0 left-0 h-full rounded-full"
                 style={{ backgroundColor: scene.accent }}
@@ -934,7 +934,7 @@ export default function TheaterMode({
             <button
               onClick={goFirst}
               disabled={eventIndex === null || eventIndex <= 0}
-              className="p-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1.5 rounded-lg bg-ink-900 border border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="First event"
             >
               <SkipBack className="w-3.5 h-3.5" />
@@ -942,7 +942,7 @@ export default function TheaterMode({
             <button
               onClick={goPrev}
               disabled={eventIndex === null || eventIndex <= 0}
-              className="p-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg bg-ink-900 border border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -953,7 +953,7 @@ export default function TheaterMode({
               className={`p-2 rounded-lg border transition-colors ${
                 autoPlay
                   ? 'bg-genesis-600/20 border-genesis-500/40 text-genesis-400'
-                  : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-white hover:border-gray-600'
+                  : 'bg-ink-900 border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600'
               } disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               {autoPlay ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -962,14 +962,14 @@ export default function TheaterMode({
             <button
               onClick={goNext}
               disabled={eventIndex === null || eventIndex >= events.length - 1}
-              className="p-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg bg-ink-900 border border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
               onClick={goLast}
               disabled={eventIndex === null || eventIndex >= events.length - 1}
-              className="p-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1.5 rounded-lg bg-ink-900 border border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Latest event"
             >
               <SkipForward className="w-3.5 h-3.5" />
@@ -977,10 +977,10 @@ export default function TheaterMode({
           </div>
 
           {/* Event counter */}
-          <div className="text-xs text-gray-500 font-mono">
+          <div className="text-xs text-ink-500 font-mono">
             {eventIndex !== null ? (
               <span>
-                Event <span className="text-gray-300">{eventIndex + 1}</span> / {events.length}
+                Event <span className="text-vellum-300">{eventIndex + 1}</span> / {events.length}
               </span>
             ) : (
               <span>{events.length} events</span>
@@ -998,7 +998,7 @@ export default function TheaterMode({
                     boxShadow: `0 0 4px ${f.color}40`,
                   }}
                 />
-                <span className="text-[10px] text-gray-500">{f.name}</span>
+                <span className="text-[10px] text-ink-500">{f.name}</span>
               </div>
             ))}
           </div>

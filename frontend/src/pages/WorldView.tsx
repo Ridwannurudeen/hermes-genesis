@@ -469,7 +469,7 @@ export default function WorldView() {
                     <div className="flex items-center gap-1.5">
                       {vm.label}
                       {vm.key === 'network' && characters.length > 0 && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-moss-500/15 text-moss-400 border border-moss-500/30">
                           {characters.filter(c => c.alive).length}
                         </span>
                       )}

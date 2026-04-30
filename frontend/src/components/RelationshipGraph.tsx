@@ -491,7 +491,7 @@ export default function RelationshipGraph({
               <div className="mb-2">
                 <p className="text-[10px] text-dim uppercase tracking-widest mb-1">Most central</p>
                 <div className="text-sm text-sub">
-                  <span className="text-amber-300 font-medium">
+                  <span className="text-gilt-400 font-medium">
                     {analytics.topCharacters[0].char.name}
                   </span>{' '}
                   <span className="text-dim">· {analytics.topCharacters[0].degree} ties</span>

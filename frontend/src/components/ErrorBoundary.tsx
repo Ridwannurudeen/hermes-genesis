@@ -29,12 +29,12 @@ export default class ErrorBoundary extends Component<Props, State> {
             <p className="text-sub text-sm leading-relaxed">
               The world engine encountered an unexpected error. Try reloading the page.
             </p>
-            <pre className="text-xs text-red-400/70 bg-surface rounded-lg p-3 text-left overflow-auto max-h-32">
+            <pre className="text-xs text-crimson-400/70 bg-surface rounded-lg p-3 text-left overflow-auto max-h-32">
               {this.state.error?.message}
             </pre>
             <button
               onClick={() => window.location.reload()}
-              className="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-5 py-2.5 bg-moss-500 hover:bg-moss-500 text-white rounded-lg text-sm font-medium transition-colors"
             >
               Reload Page
             </button>

@@ -455,8 +455,8 @@ export default function CinematicMode({
         {mode === 'replay' ? (
           <>
             <span className="relative flex h-3 w-3">
-              <span className={`absolute inline-flex h-full w-full rounded-full ${replayDone ? 'bg-green-500' : 'bg-amber-500 animate-ping'} opacity-75`} />
-              <span className={`relative inline-flex rounded-full h-3 w-3 ${replayDone ? 'bg-green-600' : 'bg-amber-600'}`} />
+              <span className={`absolute inline-flex h-full w-full rounded-full ${replayDone ? 'bg-moss-500' : 'bg-gilt-500 animate-ping'} opacity-75`} />
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${replayDone ? 'bg-moss-500' : 'bg-gilt-500'}`} />
             </span>
             <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
               {replayDone ? 'Replay Complete' : `Replay ${replayProgress}/${replayTotal}`}
@@ -465,8 +465,8 @@ export default function CinematicMode({
         ) : (
           <>
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-crimson-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-crimson-500" />
             </span>
             <span className="text-xs uppercase tracking-widest text-white/50 font-medium">
               Live

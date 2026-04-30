@@ -85,7 +85,7 @@ export default function VoiceNarrationButton({
             <button
               onClick={onStop}
               title="Stop narration"
-              className="p-2 rounded-lg text-red-400 hover:bg-red-500/15 transition-all"
+              className="p-2 rounded-lg text-crimson-400 hover:bg-crimson-500/15 transition-all"
             >
               <Square className="w-3.5 h-3.5" />
             </button>
