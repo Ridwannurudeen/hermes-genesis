@@ -187,15 +187,63 @@ async def run_once(world_id: str, max_events: int | None = None) -> dict:
     return cursor
 
 
-async def run_forever(world_id: str) -> None:
-    """Long-running loop: process new events whenever they appear, sleep otherwise."""
+def _quick_sim_tick(world_id: str, days: int = 1) -> int:
+    """Advance the world by N days using the cheap CPU-only simulation path.
+
+    No LLM narration, no prophecy LLM check — those run for the canon agent
+    (which writes its own prose). The point is to keep the event queue fed so
+    the runner has something to canonize on the next poll. Returns the number
+    of new events generated."""
+    from store import load_world as _load_world, save_world as _save_world
+    from simulation import simulate_tick as _simulate_tick
+
+    world = _load_world(world_id)
+    if world is None:
+        return 0
+    total = 0
+    for _ in range(max(1, days)):
+        events = _simulate_tick(world)
+        total += len(events)
+    _save_world(world)
+    return total
+
+
+async def run_forever(world_id: str, auto_simulate: bool = True) -> None:
+    """Long-running loop: process new events whenever they appear.
+
+    When the queue is empty AND auto_simulate is true, advance the world by
+    one cheap simulation tick so canon keeps growing 24/7 without manual
+    POSTs to /simulate. Configurable via env: AUTO_SIM_TICK_DAYS=1,
+    AUTO_SIM_MIN_EVENTS=2 (skip auto-sim if even one canonized event happened
+    in the last cycle — the runner is busy enough)."""
+    import os
+
+    auto_days = max(1, int(os.getenv("AUTO_SIM_TICK_DAYS", "1")))
     while True:
+        events_seen = 0
         try:
+            cursor_before = _load_cursor(world_id)
+            canon_before = cursor_before.get("events_canonized", 0)
             await run_once(world_id)
+            cursor_after = _load_cursor(world_id)
+            events_seen = (
+                cursor_after.get("events_canonized", 0) - canon_before
+                + cursor_after.get("events_skipped", 0)
+                - cursor_before.get("events_skipped", 0)
+            )
         except SystemExit:
             raise
         except Exception as e:
             logger.exception(f"runner cycle failed: {e}")
+
+        if auto_simulate and events_seen == 0:
+            try:
+                new_n = _quick_sim_tick(world_id, days=auto_days)
+                if new_n > 0:
+                    logger.info(f"{world_id}: auto-sim produced {new_n} new events")
+            except Exception as e:
+                logger.exception(f"auto-sim failed: {e}")
+
         await asyncio.sleep(POLL_INTERVAL_S)
 
 
@@ -221,6 +269,11 @@ def main() -> None:
         default=None,
         help="Cap events processed in this invocation (mostly for --once)",
     )
+    parser.add_argument(
+        "--no-auto-simulate",
+        action="store_true",
+        help="Disable auto-simulate fallback when the event queue is empty.",
+    )
     args = parser.parse_args()
 
     _setup_logging()
@@ -229,7 +282,7 @@ def main() -> None:
         cursor = asyncio.run(run_once(args.world_id, max_events=args.max_events))
         logger.info(f"done in {time.time() - started:.1f}s — cursor={cursor}")
     else:
-        asyncio.run(run_forever(args.world_id))
+        asyncio.run(run_forever(args.world_id, auto_simulate=not args.no_auto_simulate))
 
 
 if __name__ == "__main__":
