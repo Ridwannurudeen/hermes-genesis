@@ -21,7 +21,8 @@ events (a war's beginning, a sovereign's death, a discovery, a treaty) get their
 own dedicated article. People matter — births, deaths, ascendances, exiles.
 Concepts emerge — a new religion, a heretical idea, a school of thought.
 
-Output STRICT JSON ONLY. No prose outside the object."""
+Submit your decision as a tool call. Use the full voice palette (scholarly,
+diary, newspaper, scripture, court) — match the source-of-record."""
 
 
 def canon_decision_prompt(
@@ -196,59 +197,69 @@ Now write the article. Start with `# {title}` and end naturally — do not add
 
 ANTISLOP_SYSTEM = """You are an anti-slop editor. You read a wiki article and
 identify slop: formulaic phrasing, meaningless intensifiers, fourth-wall breaks,
-empty sentences, copy-pasted patterns. You score brutally.
+empty sentences, copy-pasted patterns.
 
-Output STRICT JSON ONLY."""
+Calibration (use the FULL range):
+- 0.0  pure slop. Every sentence formulaic / fourth-wall breaks / empty.
+- 0.3  heavy slop. >5 offenses, openings like "In the year of our world..."
+- 0.5  uneven. A few formulaic passages, but some real prose.
+- 0.7  solid in-world prose with minor cliches. Most articles should land here.
+- 0.85 sharp prose, distinctive voice, no fourth-wall breaks.
+- 1.0  exemplary. No slop at all. Rare.
+
+Score against this rubric, not against an imagined ideal. Most articles in a
+healthy canon land 0.5-0.8. Reserve 0.0-0.3 for genuinely bad output."""
 
 
 def antislop_prompt(article_md: str) -> str:
     return f"""ARTICLE:
 {article_md[:8000]}
 
-Score this article for slop on 0.0 (pure slop) to 1.0 (zero slop). Be harsh.
-List up to 5 specific offenses with quotes. Suggest the single most important fix.
+Score this article on the 0.0-1.0 anti-slop rubric in your system prompt.
+Use the calibration anchors. List up to 5 specific offenses with quotes.
+Suggest the single most important fix.
 
-Return JSON:
-{{
-  "score": 0.0,
-  "offenses": ["quote: 'in the year of our world' — formulaic opening", ...],
-  "top_fix": "specific actionable fix",
-  "fourth_wall_breaks": ["any moments the article references AI/simulation/reader"]
-}}"""
+Submit your decision as a tool call. Score must be a float between 0.0 and 1.0.
+Example for solid in-world prose with two minor cliches: 0.7.
+Example for a fourth-wall break and three formulaic openings: 0.25."""
 
 
 FACTCHECK_SYSTEM = """You are the canon fact-checker. You compare a draft
-article against established canon facts and flag contradictions. You only flag
-HARD contradictions (named characters in wrong place, dates that don't match,
-factions described differently). Stylistic divergence is fine.
+article against established canon facts and flag ONLY hard contradictions
+(named characters in wrong place, dates that don't match, factions described
+incompatibly with prior canon). Stylistic divergence is fine and not a
+contradiction.
 
-Output STRICT JSON ONLY."""
+Calibration:
+- 1.0   no contradictions found. Default for most articles.
+- 0.7   one soft contradiction (might be reconciled with framing).
+- 0.4   one hard contradiction.
+- 0.0   multiple hard contradictions, article rejects canon.
+
+If the article doesn't reference any prior canon facts, score 1.0 (nothing to
+contradict). Don't penalize for not citing — the article is allowed to focus
+on its own subject."""
 
 
 def factcheck_prompt(article_md: str, canon_facts: list[str]) -> str:
-    facts_block = "\n".join(f"- {f}" for f in canon_facts[:50]) or "(no prior facts)"
+    facts_block = "\n".join(f"- {f}" for f in canon_facts[:50]) or "(no prior facts established yet)"
     return f"""ESTABLISHED CANON:
 {facts_block}
 
 DRAFT ARTICLE:
 {article_md[:8000]}
 
-Find HARD contradictions only. Return JSON:
-{{
-  "score": 1.0,
-  "contradictions": [
-    {{"claim": "quote from draft", "conflicts_with": "canon fact", "severity": "hard|soft"}}
-  ],
-  "verdict": "approve|revise|reject"
-}}"""
+Submit your decision as a tool call. Score per the calibration in your system
+prompt. List ONLY hard contradictions, not stylistic differences.
+Verdict: 'approve' (no hard contradictions), 'revise' (one soft conflict),
+'reject' (multiple hard conflicts)."""
 
 
-CROSSLINK_SYSTEM = """You are the wiki cross-linker. You read an article and a
-list of available slugs, and propose where [[slug]] links should be added in
-the article body. You only link the FIRST occurrence of any term, and only if
-the link adds genuine reader value (not every common noun).
-
-Output STRICT JSON ONLY."""
+CROSSLINK_SYSTEM = """You are the wiki cross-linker. You read an article and
+a list of available slugs, and propose where [[slug]] links should be added.
+Link only the FIRST occurrence of any term, and only when the link adds
+genuine reader value (named entities, prior events, distinctive concepts —
+not every common noun)."""
 
 
 def crosslink_prompt(article_md: str, available: list[dict]) -> str:
@@ -259,9 +270,6 @@ def crosslink_prompt(article_md: str, available: list[dict]) -> str:
 AVAILABLE SLUGS:
 {slug_block}
 
-Return JSON:
-{{
-  "links": [
-    {{"slug": "queen-aelis", "anchor_text": "the queen", "reason": "first mention of named ruler"}}
-  ]
-}}"""
+Submit your decision as a tool call. For each link, supply slug,
+anchor_text (the exact phrase in the article to wrap), and a one-line
+reason. Empty list is valid if no cross-link adds value."""
