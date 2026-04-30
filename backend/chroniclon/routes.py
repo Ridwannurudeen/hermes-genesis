@@ -278,6 +278,18 @@ async def submit(req: SubmissionRequest) -> dict:
         "prophecy_id": "",
     }
 
+    # Persist the synthesized event to the world before canonizing so the
+    # Civilization Autopsy view can find it later (audit Wow #2).
+    from models.event import Event
+    from store import save_world, get_lock
+    lock = get_lock(world.id)
+    async with lock:
+        from store import load_world as _load
+        live_world = _load(world.id) or world
+        live_world.events.append(Event(**synthesized_event))
+        save_world(live_world)
+        world = live_world
+
     in_world_year = era.start_year + max(0, world.current_day // 5)
     article = await canonize_event(
         world_name=world.name,
