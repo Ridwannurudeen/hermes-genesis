@@ -122,42 +122,45 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
   return (
     <button
       onClick={() => onOpen(a.slug)}
-      className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors flex gap-3"
+      className="w-full text-left px-4 py-4 border-b border-subtle hover:bg-hover transition-colors flex gap-4 group"
     >
       {a.illustration_url ? (
         <img
           src={a.illustration_url}
           alt=""
           loading="lazy"
-          className="w-20 h-14 rounded shrink-0 object-cover border border-slate-800/80 bg-slate-900"
+          className="w-24 h-16 rounded shrink-0 object-cover border border-subtle bg-elevated"
         />
       ) : (
-        <div className="w-20 h-14 rounded shrink-0 border border-slate-800/80 bg-slate-900/40" />
+        <div className="w-24 h-16 rounded shrink-0 border border-subtle bg-elevated/40" />
       )}
       <div className="flex-1 min-w-0">
+        <div className="eyebrow text-faint mb-1 flex items-center gap-3">
+          <span>{a.kind}</span>
+          <span className="text-faint/60">·</span>
+          <span>{a.voice}</span>
+          {a.contributor ? (
+            <>
+              <span className="text-faint/60">·</span>
+              <span className="text-moss-500 normal-case tracking-normal font-mono">@{a.contributor}</span>
+            </>
+          ) : null}
+        </div>
         <div className="flex items-baseline justify-between gap-3">
-          <div className="font-serif text-lg text-slate-100 leading-tight flex items-center gap-2 truncate">
+          <div className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors leading-tight flex items-center gap-2 truncate">
             <span className="truncate">{a.title}</span>
             {a.audio_url ? (
               <span
                 title="audio narration available"
-                className="inline-flex items-center text-amber-400/90 text-[10px] uppercase tracking-widest border border-amber-700/50 rounded px-1.5 py-0.5 shrink-0"
+                className="inline-flex items-center font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5 shrink-0"
               >
                 audio
               </span>
             ) : null}
           </div>
-          <div className="shrink-0 text-[11px] text-slate-500 font-mono">y. {a.in_world_year}</div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 mt-1">
-          <span className="text-[11px] uppercase tracking-wider text-slate-500">{a.kind}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded ${VOICE_BADGE[a.voice] ?? 'bg-slate-700/40 text-slate-300'}`}>
-            {a.voice}
-          </span>
-          <span className="text-[11px] text-slate-500">{a.word_count.toLocaleString()} words</span>
-          {a.contributor ? (
-            <span className="text-[11px] text-emerald-400">via @{a.contributor}</span>
-          ) : null}
+          <div className="shrink-0 font-mono text-micro text-faint tabular-nums">
+            year {a.in_world_year} · {a.word_count.toLocaleString()} words
+          </div>
         </div>
       </div>
     </button>
@@ -165,8 +168,12 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
 }
 
 function renderBody(md: string, onLink: (slug: string) => void): JSX.Element[] {
-  // Light markdown → React. Handles: # / ## / ### headers, [[slug]] crosslinks, **bold**, blank-line paragraphs.
+  // Editorial prose register — paragraphs default to .editorial-prose styles
+  // via the wrapping container. The first paragraph gets .drop-cap. Headers
+  // and blockquotes also styled via the prose container; we only emit
+  // semantic elements here.
   const blocks = md.split(/\n{2,}/);
+  let firstParagraphSeen = false;
   return blocks.map((block, i) => {
     const trimmed = block.trim();
     if (!trimmed) return <div key={i} />;
@@ -174,23 +181,21 @@ function renderBody(md: string, onLink: (slug: string) => void): JSX.Element[] {
     if (headerMatch) {
       const level = headerMatch[1].length;
       const text = headerMatch[2];
-      const cls =
-        level === 1
-          ? 'text-3xl font-serif text-slate-50 mt-2 mb-4'
-          : level === 2
-          ? 'text-xl font-serif text-slate-100 mt-6 mb-2'
-          : 'text-lg font-serif text-slate-200 mt-4 mb-2';
-      return <h2 key={i} className={cls}>{renderInline(text, onLink)}</h2>;
+      if (level === 1) return <h2 key={i}>{renderInline(text, onLink)}</h2>;
+      if (level === 2) return <h2 key={i}>{renderInline(text, onLink)}</h2>;
+      return <h3 key={i}>{renderInline(text, onLink)}</h3>;
     }
     if (trimmed.startsWith('> ')) {
       return (
-        <blockquote key={i} className="border-l-2 border-amber-700/50 pl-4 py-1 my-3 text-slate-300 italic">
+        <blockquote key={i}>
           {renderInline(trimmed.slice(2), onLink)}
         </blockquote>
       );
     }
+    const isFirst = !firstParagraphSeen;
+    if (isFirst) firstParagraphSeen = true;
     return (
-      <p key={i} className="text-slate-300 leading-relaxed my-3">
+      <p key={i} className={isFirst ? 'drop-cap' : undefined}>
         {renderInline(trimmed, onLink)}
       </p>
     );
@@ -359,82 +364,143 @@ export default function Chronicle() {
         </div>
 
         <main className="col-span-12 md:col-span-9">
-          <div className="mb-4 flex items-center gap-2 text-sm">
+          <div className="mb-6 flex items-center gap-1 text-body">
             <button
               onClick={() => setView('articles')}
-              className={`px-3 py-1.5 rounded ${
-                view === 'articles' ? 'bg-slate-700/50 text-slate-100' : 'text-slate-500 hover:text-slate-300'
+              className={`font-mono text-eyebrow uppercase tracking-eyebrow px-3 py-1.5 rounded transition-colors ${
+                view === 'articles' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
               }`}
             >
-              Articles
+              articles
             </button>
             <button
               onClick={() => setView('languages')}
-              className={`px-3 py-1.5 rounded ${
-                view === 'languages' ? 'bg-slate-700/50 text-slate-100' : 'text-slate-500 hover:text-slate-300'
+              className={`font-mono text-eyebrow uppercase tracking-eyebrow px-3 py-1.5 rounded transition-colors ${
+                view === 'languages' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
               }`}
             >
-              Languages
+              languages
             </button>
           </div>
           {view === 'languages' ? (
             <LanguageTree data={linguistic} />
           ) : article ? (
-            <article className="prose-chronicle">
+            <article>
               <button
                 onClick={() => nav('/chronicle')}
-                className="text-slate-500 text-sm mb-3 hover:text-slate-300"
+                className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint hover:text-heading transition-colors mb-6"
               >
                 ← all articles
               </button>
-              <div className="flex flex-wrap items-center gap-3 mb-2">
-                <span className="text-[11px] uppercase tracking-wider text-slate-500">{article.kind}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded ${VOICE_BADGE[article.voice] ?? ''}`}>
-                  {article.voice}
-                </span>
-                <span className="text-[11px] text-slate-500">year {article.in_world_year}</span>
-                <span className="text-[11px] text-slate-500">{article.word_count.toLocaleString()} words</span>
+
+              {/* Editorial header — eyebrow over headline, meta strip below */}
+              <div className="eyebrow text-faint mb-3 flex items-center gap-3 flex-wrap">
+                <span>{article.kind}</span>
+                <span className="text-faint/60">·</span>
+                <span>{article.voice}</span>
+                <span className="text-faint/60">·</span>
+                <span>year {article.in_world_year}</span>
                 {article.contributor ? (
-                  <span className="text-[11px] text-emerald-400">via @{article.contributor}</span>
+                  <>
+                    <span className="text-faint/60">·</span>
+                    <span className="text-moss-500 normal-case tracking-normal font-mono">via @{article.contributor}</span>
+                  </>
                 ) : null}
+              </div>
+              <h1 className="font-display text-h1 text-heading tracking-[-0.025em] leading-[1.08] mb-4">
+                {article.title}
+              </h1>
+              <div className="flex items-baseline justify-between gap-3 mb-8 pb-4 border-b border-subtle">
+                <span className="font-mono text-micro text-dim tabular-nums">
+                  {article.word_count.toLocaleString()} words
+                  {article.anti_slop_score !== undefined && article.anti_slop_score !== null
+                    ? ` · anti-slop ${article.anti_slop_score.toFixed(2)}`
+                    : ''}
+                  {article.fact_check_score !== undefined && article.fact_check_score !== null
+                    ? ` · fact-check ${article.fact_check_score.toFixed(2)}`
+                    : ''}
+                </span>
                 <button
                   type="button"
                   onClick={() => setAutopsySlug(article.slug)}
                   title="Trace this article back to the simulation event"
-                  className="ml-auto text-[11px] uppercase tracking-widest text-amber-300/80 hover:text-amber-200 border border-amber-700/40 hover:border-amber-500/60 rounded px-2 py-1"
+                  className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
                 >
                   ✦ autopsy
                 </button>
               </div>
+
               {article.illustration_url && (
-                <figure className="mb-6 -mx-2">
+                <figure className="mb-8">
                   <img
                     src={article.illustration_url}
                     alt={article.title}
                     loading="lazy"
-                    className="w-full rounded-md border border-slate-800/60 shadow-lg"
+                    className="w-full rounded border border-subtle"
                   />
-                  <figcaption className="text-[11px] uppercase tracking-widest text-slate-500 mt-2 text-center">
+                  <figcaption className="eyebrow text-faint mt-2 text-center">
                     {article.kind} · era {article.era_id}
                   </figcaption>
                 </figure>
               )}
+
               {article.audio_url && (
-                <div className="mb-6 px-4 py-3 rounded border border-amber-800/40 bg-amber-950/20">
-                  <div className="text-[11px] uppercase tracking-widest text-amber-400/80 mb-2">narration</div>
+                <div className="mb-8 px-4 py-3 border border-subtle rounded bg-surface">
+                  <div className="eyebrow text-gilt-500 mb-2">narration</div>
                   <audio controls preload="none" src={article.audio_url} className="w-full" />
                 </div>
               )}
-              <div className="font-serif">{renderBody(article.body_md, (s) => nav(`/chronicle/${s}`))}</div>
+
+              {/* Body — editorial prose register, drop cap on first paragraph */}
+              <div className="editorial-prose">
+                {renderBody(article.body_md, (s) => nav(`/chronicle/${s}`))}
+              </div>
+
+              {/* Colophon — publication imprint at the bottom of the article */}
+              <section className="mt-16 pt-8 border-t border-subtle">
+                <div className="eyebrow text-faint mb-4">colophon</div>
+                <dl className="grid grid-cols-[120px_1fr] gap-y-2 gap-x-6 font-mono text-micro tabular-nums">
+                  <dt className="text-faint">canon decision</dt>
+                  <dd className="text-heading">Hermes-4-70B</dd>
+                  <dt className="text-faint">writer</dt>
+                  <dd className="text-heading">
+                    {article.word_count > 0 ? 'Kimi-K2.6' : 'Hermes-4-70B'} ·{' '}
+                    {article.word_count.toLocaleString()} words
+                  </dd>
+                  <dt className="text-faint">anti-slop</dt>
+                  <dd className="text-heading">
+                    {article.anti_slop_score !== undefined && article.anti_slop_score !== null
+                      ? article.anti_slop_score.toFixed(2)
+                      : '—'}
+                  </dd>
+                  <dt className="text-faint">fact-check</dt>
+                  <dd className="text-heading">
+                    {article.fact_check_score !== undefined && article.fact_check_score !== null
+                      ? article.fact_check_score.toFixed(2)
+                      : '—'}
+                  </dd>
+                  <dt className="text-faint">cross-links</dt>
+                  <dd className="text-heading">{article.backlinks?.length ?? 0}</dd>
+                  <dt className="text-faint">era</dt>
+                  <dd className="text-heading">{article.era_id}</dd>
+                  {article.contributor && (
+                    <>
+                      <dt className="text-faint">contributor</dt>
+                      <dd className="text-moss-500">@{article.contributor}</dd>
+                    </>
+                  )}
+                </dl>
+              </section>
+
               {article.inbound.length > 0 && (
-                <section className="mt-10 pt-6 border-t border-slate-800">
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Cited by</div>
-                  <div className="flex flex-wrap gap-2">
+                <section className="mt-10 pt-6 border-t border-subtle">
+                  <div className="eyebrow text-faint mb-3">cited by</div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
                     {article.inbound.map((s) => (
                       <button
                         key={s}
                         onClick={() => nav(`/chronicle/${s}`)}
-                        className="text-amber-300 hover:text-amber-200 text-sm underline underline-offset-2"
+                        className="font-display text-body-lg text-sub hover:text-gilt-500 transition-colors underline underline-offset-4 decoration-gilt-500/30 hover:decoration-gilt-500"
                       >
                         {s.replace(/-/g, ' ')}
                       </button>
@@ -445,17 +511,22 @@ export default function Chronicle() {
             </article>
           ) : (
             <section>
-              <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-3">
-                {activeEra ? eras.find((e) => e.era_id === activeEra)?.name : 'All eras'} · {filtered.length} article{filtered.length === 1 ? '' : 's'}
+              <div className="eyebrow text-faint mb-4 flex items-baseline gap-3">
+                <span className="font-display text-h3 text-heading normal-case tracking-[-0.015em] mr-2">
+                  {activeEra ? eras.find((e) => e.era_id === activeEra)?.name : 'All eras'}
+                </span>
+                <span className="tabular-nums">
+                  {filtered.length} article{filtered.length === 1 ? '' : 's'}
+                </span>
               </div>
               {loading ? (
-                <div className="text-slate-500 text-sm">loading the canon…</div>
+                <div className="font-ui text-body text-dim italic">loading the canon…</div>
               ) : filtered.length === 0 ? (
-                <div className="text-slate-500 text-sm py-12 text-center">
+                <div className="font-ui text-body text-dim py-12 text-center italic">
                   No articles yet. The autonomous run hasn't reached this era.
                 </div>
               ) : (
-                <div className="border border-slate-800/60 rounded-md overflow-hidden">
+                <div className="border border-subtle rounded overflow-hidden">
                   {filtered.map((a) => (
                     <ArticleListRow key={a.article_id} a={a} onOpen={(s) => nav(`/chronicle/${s}`)} />
                   ))}
