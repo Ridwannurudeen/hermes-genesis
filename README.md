@@ -57,7 +57,7 @@ The full deploy runbook is at [`deploy/chroniclon.md`](deploy/chroniclon.md).
 
 **Describe a world. Watch it live. Watch it die.**
 
-> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](https://youtu.be/FLgX_k4wtPM)** | **[Hermes Agent Skills](skills/)** | **[MCP Bridge](mcp-bridge/)**
+> **[Try the Live Demo](https://hermesgenesis.world)** | **[Canon Control Room](https://hermesgenesis.world/control)** | **[Hermes Agent Skills](skills/)** | **[MCP Bridge](mcp-bridge/)**
 
 ---
 
@@ -75,18 +75,56 @@ The full deploy runbook is at [`deploy/chroniclon.md`](deploy/chroniclon.md).
 ---
 
 <p align="center">
-  <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
+  <img src="docs/screenshots/control-room.png" alt="Canon Control Room — live agentic pipeline" width="100%">
   <br>
-  <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
+  <em>Canon Control Room — every canonization streams live: Hermes-4-70B decides → Kimi-K2.6 writes → Hermes critics → FLUX hero image → ElevenLabs/OpenAI TTS narration</em>
 </p>
 
-An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
+An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself, **and writes its own encyclopedia**. No scripting. No prompting. The world just... lives.
 
 **Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
 
 ---
 
 ## See It In Action
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/landing.png" alt="Chroniclon Landing">
+      <br>
+      <b>Landing</b> — CHRONICLON hero with model provenance pills (Hermes-4 / Kimi-K2.6 / FLUX / ElevenLabs)
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/article-detail.png" alt="Article Detail">
+      <br>
+      <b>Article detail</b> — era-art-style + character-genome grounded FLUX hero, multi-archetype TTS, [[crosslinked]] court prose
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/chronicle-home.png" alt="Chronicle home">
+      <br>
+      <b>Chronicle home</b> — live stats banner, era nav, illustrated rows across the canon
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/regen.png" alt="Live regen">
+      <br>
+      <b>Live regen</b> — Kimi-K2.6 ↔ Hermes-4 toggle, SSE-streamed canonization on any seed
+    </td>
+  </tr>
+</table>
+
+---
+
+## Demo Video
+
+> [!NOTE]
+> A new ~75-second demo video is being recorded for the Hermes Agent Creative Hackathon submission — opens on the Control Room above, walks through a fresh canonization, and lands on the article detail page. Until then, the live demo at [`hermesgenesis.world`](https://hermesgenesis.world) is the canonical artifact.
+
+---
+
+### Underlying world simulation (built on Hermes Genesis)
 
 <table>
   <tr>
@@ -98,54 +136,19 @@ An autonomous living world engine. Type one sentence — the AI builds a complet
     <td width="50%">
       <img src="docs/screenshots/cinematic-mode.gif" alt="Cinematic Mode">
       <br>
-      <b>Cinematic Mode</b> — Fullscreen immersive replay with AI-generated art and ambient sound
+      <b>Cinematic Mode</b> — Fullscreen replay with AI-generated art and ambient sound
     </td>
   </tr>
   <tr>
     <td width="50%">
       <img src="docs/screenshots/world-gen.gif" alt="World Generation">
       <br>
-      <b>World Generation</b> — One sentence creates regions, factions, characters with DNA, prophecies
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/prophecy.gif" alt="Prophecy Fulfilled">
-      <br>
-      <b>Prophecy System</b> — Ancient prophecies resolve autonomously through simulation events
-    </td>
-  </tr>
-</table>
-
----
-
-## Demo Video
-
-[![Demo Video](https://img.youtube.com/vi/FLgX_k4wtPM/maxresdefault.jpg)](https://youtu.be/FLgX_k4wtPM)
-
----
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/landing.png" alt="Landing Page">
-      <br>
-      <b>Landing Page</b> — One-sentence world creation with live generation status
+      <b>World generation</b> — one sentence creates regions, factions, characters with DNA, prophecies
     </td>
     <td width="50%">
       <img src="docs/screenshots/map-view.png" alt="World Map">
       <br>
-      <b>World Map</b> — SVG regions, faction territories, prophecy tracking
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/network-graph.png" alt="Network Graph">
-      <br>
-      <b>Relationship Graph</b> — D3 force-directed network across 146 characters
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/chronicle-view.png" alt="Chronicle">
-      <br>
-      <b>Chronicle</b> — 941 events across 322 days of autonomous history
+      <b>World map</b> — SVG regions, faction territories, prophecy tracking
     </td>
   </tr>
 </table>
