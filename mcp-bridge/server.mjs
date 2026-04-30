@@ -20,6 +20,10 @@ import {
 const API = process.env.GENESIS_API_URL || "http://localhost:8003";
 const API_KEY = process.env.GENESIS_API_KEY || "";
 
+function seg(value) {
+  return encodeURIComponent(String(value || ""));
+}
+
 async function api(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   // Forward API key on mutating routes when configured. Reads (GET) are public.
@@ -276,20 +280,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
 
       case "genesis_get_world":
-        result = await api("GET", `/api/worlds/${args.world_id}`);
+        result = await api("GET", `/api/worlds/${seg(args.world_id)}`);
         break;
 
       case "genesis_simulate":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/simulate`
+          `/api/worlds/${seg(args.world_id)}/simulate`
         );
         break;
 
       case "genesis_intervene":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/intervene`,
+          `/api/worlds/${seg(args.world_id)}/intervene`,
           { command: args.command }
         );
         break;
@@ -297,22 +301,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "genesis_agent_start":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/agent/start`,
-          { interval: args.interval || 120 }
+          `/api/worlds/${seg(args.world_id)}/agent/start?interval=${seg(args.interval || 120)}`
         );
         break;
 
       case "genesis_agent_stop":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/agent/stop`
+          `/api/worlds/${seg(args.world_id)}/agent/stop`
         );
         break;
 
       case "genesis_agent_status":
         result = await api(
           "GET",
-          `/api/worlds/${args.world_id}/agent/status`
+          `/api/worlds/${seg(args.world_id)}/agent/status`
         );
         break;
 
@@ -321,7 +324,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // body carries only the message.
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/characters/${args.character_id}/chat`,
+          `/api/worlds/${seg(args.world_id)}/characters/${seg(args.character_id)}/chat`,
           { message: args.message }
         );
         break;
@@ -330,14 +333,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // Backend council takes no topic — it debates current world tensions.
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/council`
+          `/api/worlds/${seg(args.world_id)}/council`
         );
         break;
 
       case "genesis_chronicle":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/chronicle`
+          `/api/worlds/${seg(args.world_id)}/chronicle`
         );
         break;
 
@@ -358,7 +361,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "chronicle_get_article":
-        result = await api("GET", `/api/chronicle/articles/${args.slug}`);
+        result = await api("GET", `/api/chronicle/articles/${seg(args.slug)}`);
         break;
 
       case "chronicle_render_audio":
@@ -370,7 +373,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
 
       case "chronicle_control_backlog": {
-        const limit = args.limit !== undefined ? `?limit=${args.limit}` : "";
+        const limit = args.limit !== undefined ? `?limit=${seg(args.limit)}` : "";
         result = await api("GET", `/api/chronicle/control/backlog${limit}`);
         break;
       }

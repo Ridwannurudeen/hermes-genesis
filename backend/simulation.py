@@ -166,12 +166,38 @@ def _maybe_chain_event(
         if len(alive) < 2:
             return None
 
-        # Prefer actors from the parent event's factions
+        # Prefer actors from the parent event's factions. Succession is a
+        # special case: when the triggering conflict was internal, keep the
+        # succession internal so the world state actually transfers leadership.
         parent_factions = set(parent.factions_involved)
         faction_chars = [c for c in alive if c.faction_id in parent_factions]
         other_chars = [c for c in alive if c.faction_id not in parent_factions]
 
-        if len(faction_chars) >= 1 and other_chars:
+        parent_actors = [c for c in alive if c.id in set(parent.actors or [])]
+        if chain_type == "succession" and len(parent_actors) >= 2:
+            same_faction_pair = None
+            for i, candidate_a in enumerate(parent_actors):
+                for candidate_b in parent_actors[i + 1:]:
+                    if candidate_a.faction_id == candidate_b.faction_id:
+                        same_faction_pair = (candidate_a, candidate_b)
+                        break
+                if same_faction_pair:
+                    break
+            actor1, actor2 = same_faction_pair or (parent_actors[0], parent_actors[1])
+        elif chain_type == "succession":
+            same_faction_groups: dict[str, list] = {}
+            for char in faction_chars:
+                same_faction_groups.setdefault(char.faction_id, []).append(char)
+            pair = next((chars[:2] for chars in same_faction_groups.values() if len(chars) >= 2), None)
+            if pair:
+                actor1, actor2 = pair[0], pair[1]
+            elif len(faction_chars) >= 1 and other_chars:
+                actor1 = random.choice(faction_chars)
+                actor2 = random.choice(other_chars)
+            else:
+                picks = random.sample(alive, 2)
+                actor1, actor2 = picks[0], picks[1]
+        elif len(faction_chars) >= 1 and other_chars:
             actor1 = random.choice(faction_chars)
             actor2 = random.choice(other_chars)
         elif len(alive) >= 2:

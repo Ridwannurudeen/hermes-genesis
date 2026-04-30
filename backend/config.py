@@ -14,13 +14,19 @@ KIMI_BASE_URL = os.getenv("KIMI_BASE_URL", "https://api.moonshot.ai/v1")
 KIMI_MODEL = os.getenv("KIMI_MODEL", "kimi-k2.6")
 DATA_DIR = os.getenv("DATA_DIR", "data/worlds")
 CHRONICLON_DIR = os.getenv("CHRONICLON_DIR", "data/chroniclon")
-HOST = os.getenv("HOST", "0.0.0.0")
+HOST = os.getenv("HOST", "127.0.0.1")
 try:
     PORT = int(os.getenv("PORT", "8003"))
 except ValueError:
     PORT = 8003
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 API_KEY = os.getenv("GENESIS_API_KEY", "")
+APP_ENV = os.getenv("APP_ENV", os.getenv("ENV", "development")).lower()
+ADMIN_SESSION_COOKIE = os.getenv("ADMIN_SESSION_COOKIE", "genesis_admin")
+try:
+    ADMIN_SESSION_TTL_SECONDS = int(os.getenv("ADMIN_SESSION_TTL_SECONDS", str(24 * 60 * 60)))
+except ValueError:
+    ADMIN_SESSION_TTL_SECONDS = 24 * 60 * 60
 CORS_ORIGINS = [x.strip() for x in os.getenv("CORS_ORIGINS", "").split(",") if x.strip()]
 try:
     MAX_WORLDS = int(os.getenv("MAX_WORLDS", "100"))

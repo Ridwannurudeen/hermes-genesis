@@ -8,6 +8,8 @@ const Chronicle = lazy(() => import('./pages/Chronicle'));
 const Regen = lazy(() => import('./pages/Regen'));
 const Demo = lazy(() => import('./pages/Demo'));
 const Control = lazy(() => import('./pages/Control'));
+const Admin = lazy(() => import('./pages/Admin'));
+const Judge = lazy(() => import('./pages/Judge'));
 
 function PageLoader() {
   return (
@@ -31,6 +33,8 @@ export default function App() {
             <Route path="/demo" element={<Demo />} />
             <Route path="/try-it" element={<Demo />} />
             <Route path="/control" element={<Control />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/judge" element={<Judge />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

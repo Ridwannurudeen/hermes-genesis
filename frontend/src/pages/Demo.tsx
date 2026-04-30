@@ -45,8 +45,8 @@ export default function Demo() {
     abortRef.current = streamRegen(DEMO_SEED, DEMO_DAYS, 'kimi', (ev: RegenEvent) => {
       if (ev.t === 'progress') {
         setProgress(ev.detail || ev.stage);
-        if (ev.stage === 'simulate') setPhase('simulating');
-        else if (ev.stage === 'canonize') setPhase('canonizing');
+        if (ev.stage === 'simulating') setPhase('simulating');
+        else if (ev.stage === 'canonizing') setPhase('canonizing');
       } else if (ev.t === 'world_ready') {
         setWorldName(ev.name);
         setStats({ regions: ev.regions, factions: ev.factions, characters: ev.characters });

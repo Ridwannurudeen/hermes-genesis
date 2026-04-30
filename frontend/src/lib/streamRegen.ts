@@ -47,6 +47,7 @@ export function streamRegen(
     headers: authHeaders('POST'),
     body: JSON.stringify({ seed, days, provider }),
     signal: ctrl.signal,
+    credentials: 'same-origin',
   })
     .then(async (r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);

@@ -1,4 +1,3 @@
-import hmac
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -8,6 +7,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 import config
 from config import HOST, PORT, CORS_ORIGINS
+from auth import request_is_admin
+from routes.admin import router as admin_router
+from routes.auth import router as auth_router
 from routes.worlds import router as worlds_router
 from routes.simulate import router as simulate_router
 from routes.stream import router as stream_router
@@ -16,6 +18,22 @@ from chroniclon.routes import router as chronicle_router
 from telegram_bot import create_bot
 from llm import close_client
 from rate_limit import rate_limit_middleware
+from usage import usage_middleware
+
+
+def _validate_production_config() -> None:
+    if config.APP_ENV not in {"production", "prod"}:
+        return
+    missing = []
+    if not config.API_KEY:
+        missing.append("GENESIS_API_KEY")
+    if not config.CORS_ORIGINS:
+        missing.append("CORS_ORIGINS")
+    if missing:
+        raise RuntimeError(f"Production config missing required env vars: {', '.join(missing)}")
+
+
+_validate_production_config()
 
 
 @asynccontextmanager
@@ -57,7 +75,7 @@ else:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-API-Key"],
     allow_credentials=True,
 )
@@ -65,15 +83,19 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
 
-# API key gate on mutating routes (POST/DELETE) when GENESIS_API_KEY is set.
+# API key/admin-session gate on mutating routes (POST/PATCH/DELETE) when GENESIS_API_KEY is set.
 # Header-only — query-param keys leak into logs, browser history, proxies.
 # `config.API_KEY` is read at call time (not import time) so tests can rebind it.
 @app.middleware("http")
 async def api_key_middleware(request: Request, call_next):
     api_key = config.API_KEY
-    if api_key and request.method in ("POST", "DELETE") and request.url.path.startswith("/api/"):
-        key = request.headers.get("X-API-Key")
-        if not key or not hmac.compare_digest(key, api_key):
+    if (
+        api_key
+        and request.method in ("POST", "PATCH", "DELETE")
+        and request.url.path.startswith("/api/")
+        and request.url.path not in {"/api/auth/login", "/api/auth/logout"}
+    ):
+        if not request_is_admin(request):
             return JSONResponse(status_code=403, content={"detail": "Invalid or missing API key"})
     return await call_next(request)
 
@@ -81,7 +103,12 @@ async def api_key_middleware(request: Request, call_next):
 # Rate limiting on LLM-calling endpoints
 app.middleware("http")(rate_limit_middleware)
 
+# Usage telemetry for grant/admin operations
+app.middleware("http")(usage_middleware)
 
+
+app.include_router(admin_router)
+app.include_router(auth_router)
 app.include_router(worlds_router)
 app.include_router(simulate_router)
 app.include_router(stream_router)
@@ -94,6 +121,22 @@ async def health():
 
 # Serve frontend static files (in production, after Docker build copies dist/ to static/)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+
+
+def _resolve_static_file(path: str) -> str | None:
+    """Return a resolved static file path only if it stays inside STATIC_DIR."""
+    static_root = os.path.realpath(STATIC_DIR)
+    requested = os.path.realpath(os.path.join(static_root, path))
+    try:
+        inside_static = os.path.commonpath([
+            os.path.normcase(static_root),
+            os.path.normcase(requested),
+        ]) == os.path.normcase(static_root)
+    except ValueError:
+        inside_static = False
+    return requested if inside_static else None
+
+
 if os.path.isdir(STATIC_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
@@ -106,9 +149,9 @@ if os.path.isdir(STATIC_DIR):
 
     @app.get("/{path:path}")
     async def serve_frontend(path: str):
-        file_path = os.path.realpath(os.path.join(STATIC_DIR, path))
+        file_path = _resolve_static_file(path)
         # Prevent path traversal — resolved path must stay inside STATIC_DIR
-        if not file_path.startswith(os.path.realpath(STATIC_DIR)):
+        if not file_path:
             return FileResponse(os.path.join(STATIC_DIR, "index.html"))
         if os.path.isfile(file_path):
             return FileResponse(file_path)

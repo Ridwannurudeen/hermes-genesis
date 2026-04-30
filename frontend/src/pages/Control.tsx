@@ -292,7 +292,10 @@ export default function Control() {
   // Hydrate from backlog so the page is alive before SSE connects.
   useEffect(() => {
     let stop = false;
-    fetch('/api/chronicle/control/backlog?limit=80', { headers: authHeaders('GET') })
+    fetch('/api/chronicle/control/backlog?limit=80', {
+      headers: authHeaders('GET'),
+      credentials: 'same-origin',
+    })
       .then((r) => r.json())
       .then((data: { items: PhaseEvent[] }) => {
         if (stop) return;
@@ -315,6 +318,7 @@ export default function Control() {
           method: 'GET',
           headers: { ...authHeaders('GET'), Accept: 'text/event-stream' },
           signal: controller.signal,
+          credentials: 'same-origin',
         });
         if (!resp.ok || !resp.body) {
           setConnected(false);

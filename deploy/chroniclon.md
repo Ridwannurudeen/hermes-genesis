@@ -56,7 +56,7 @@ git pull origin chroniclon
 
 # Append Kimi config to .env (do NOT overwrite existing keys)
 cat <<'EOF' >> .env
-KIMI_API_KEY=sk-paste-your-moonshot-key-here
+KIMI_API_KEY=REPLACE_WITH_MOONSHOT_API_KEY
 KIMI_BASE_URL=https://api.moonshot.ai/v1
 KIMI_MODEL=kimi-k2.6
 CHRONICLON_DIR=/app/data/chroniclon

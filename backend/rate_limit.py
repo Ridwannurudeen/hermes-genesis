@@ -12,33 +12,41 @@ from fastapi.responses import JSONResponse
 _TRUSTED_PROXY_IPS = {ip.strip() for ip in os.getenv("TRUSTED_PROXY_IPS", "127.0.0.1,::1").split(",") if ip.strip()}
 
 # Endpoints that trigger LLM calls — these are the expensive ones
-LLM_ENDPOINTS = {
-    "/simulate": True,       # POST /{world_id}/simulate
-    "/simulate/stream": True, # POST /{world_id}/simulate/stream
-    "/intervene": True,
-    "/chronicle": True,
-    "/chat": True,            # character chat
-    "/council": True,
-    "/campaign-kit": True,
-    "/session-prep": True,
-    "/agent/start": True,
+LLM_ENDPOINT_LIMITS = {
+    "/worlds": 6,
+    "/worlds/stream": 6,
+    "/regen/stream": 3,
+    "/submit": 6,
+    "/simulate": 12,
+    "/simulate/stream": 12,
+    "/simulate/quick": 20,
+    "/intervene": 12,
+    "/chronicle": 10,
+    "/chat": 20,
+    "/council": 10,
+    "/campaign-kit": 8,
+    "/session-prep": 8,
+    "/agent/start": 6,
+    "/scene-image": 10,
+    "/images/render": 10,
+    "/audio/render": 10,
 }
 
 # Rate limit config
 WINDOW_SECONDS = 60
-MAX_REQUESTS_PER_WINDOW = 30  # 30 LLM-heavy requests per minute per IP
+DEFAULT_MAX_REQUESTS_PER_WINDOW = 30
 
 # Sliding window storage: ip -> list of timestamps
 _request_log: dict[str, list[float]] = defaultdict(list)
 _last_global_cleanup: float = 0.0
 
 
-def _is_llm_endpoint(path: str) -> bool:
-    """Check if a path ends with an LLM-calling endpoint suffix."""
-    for suffix in LLM_ENDPOINTS:
+def _limit_for_path(path: str) -> int | None:
+    """Return the per-window limit for an LLM-calling endpoint, if any."""
+    for suffix, limit in sorted(LLM_ENDPOINT_LIMITS.items(), key=lambda item: len(item[0]), reverse=True):
         if path.endswith(suffix):
-            return True
-    return False
+            return limit
+    return None
 
 
 def _cleanup_old_entries(ip: str, now: float) -> None:
@@ -62,8 +70,9 @@ async def rate_limit_middleware(request: Request, call_next):
     if (
         request.method == "POST"
         and request.url.path.startswith("/api/")
-        and _is_llm_endpoint(request.url.path)
+        and _limit_for_path(request.url.path) is not None
     ):
+        limit = _limit_for_path(request.url.path) or DEFAULT_MAX_REQUESTS_PER_WINDOW
         # Only trust X-Forwarded-For when the request actually came from a proxy
         # we control. Otherwise the header is attacker-controlled and would let
         # any client get a fresh rate-limit bucket per request.
@@ -77,11 +86,11 @@ async def rate_limit_middleware(request: Request, call_next):
         now = time.monotonic()
         _cleanup_old_entries(ip, now)
 
-        if len(_request_log[ip]) >= MAX_REQUESTS_PER_WINDOW:
+        if len(_request_log[ip]) >= limit:
             return JSONResponse(
                 status_code=429,
                 content={
-                    "detail": f"Rate limit exceeded. Max {MAX_REQUESTS_PER_WINDOW} LLM requests per minute.",
+                    "detail": f"Rate limit exceeded. Max {limit} LLM requests per minute.",
                 },
             )
 

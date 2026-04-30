@@ -15,9 +15,12 @@ Usage:
 import sys
 import json
 import re
+import os
+from urllib.parse import quote
 import httpx
 
-GENESIS_API = "http://localhost:8003"
+GENESIS_API = os.getenv("GENESIS_API_URL", "http://localhost:8003").rstrip("/")
+GENESIS_API_KEY = os.getenv("GENESIS_API_KEY", "")
 LLM_API = "https://inference-api.nousresearch.com/v1"
 LLM_KEY = None  # Set via NOUS_API_KEY env var
 MODEL = "Hermes-4-70B"
@@ -133,16 +136,29 @@ def call_llm(messages: list) -> str:
         return resp.json()["choices"][0]["message"]["content"]
 
 
+def seg(value: str) -> str:
+    return quote(str(value or ""), safe="")
+
+
+def genesis_headers() -> dict:
+    if not GENESIS_API_KEY:
+        return {}
+    # Send the key on reads too so private worlds and admin lists work in demos.
+    return {"X-API-Key": GENESIS_API_KEY}
+
+
 def execute_tool(name: str, args: dict) -> dict:
     """Execute a Genesis API tool call."""
     with httpx.Client(timeout=60.0) as client:
         if name == "genesis_list_worlds":
-            r = client.get(f"{GENESIS_API}/api/worlds")
+            r = client.get(f"{GENESIS_API}/api/worlds", headers=genesis_headers())
+            r.raise_for_status()
             worlds = r.json()
             return [{"id": w["id"], "name": w["name"], "day": w.get("current_day")} for w in worlds]
 
         elif name == "genesis_get_world":
-            r = client.get(f"{GENESIS_API}/api/worlds/{args['world_id']}")
+            r = client.get(f"{GENESIS_API}/api/worlds/{seg(args['world_id'])}", headers=genesis_headers())
+            r.raise_for_status()
             w = r.json()
             return {
                 "name": w["name"], "day": w["current_day"],
@@ -155,29 +171,35 @@ def execute_tool(name: str, args: dict) -> dict:
             }
 
         elif name == "genesis_simulate":
-            r = client.post(f"{GENESIS_API}/api/worlds/{args['world_id']}/simulate")
+            r = client.post(f"{GENESIS_API}/api/worlds/{seg(args['world_id'])}/simulate", headers=genesis_headers())
+            r.raise_for_status()
             return r.json()
 
         elif name == "genesis_intervene":
             r = client.post(
-                f"{GENESIS_API}/api/worlds/{args['world_id']}/intervene",
+                f"{GENESIS_API}/api/worlds/{seg(args['world_id'])}/intervene",
+                headers=genesis_headers(),
                 json={"command": args["command"]},
             )
+            r.raise_for_status()
             return r.json()
 
         elif name == "genesis_agent_start":
             r = client.post(
-                f"{GENESIS_API}/api/worlds/{args['world_id']}/agent/start",
-                json={"interval": args.get("interval", 120)},
+                f"{GENESIS_API}/api/worlds/{seg(args['world_id'])}/agent/start?interval={seg(args.get('interval', 120))}",
+                headers=genesis_headers(),
             )
+            r.raise_for_status()
             return r.json()
 
         elif name == "genesis_chat":
             # Backend route is /characters/{char_id}/chat — character_id goes in the URL.
             r = client.post(
-                f"{GENESIS_API}/api/worlds/{args['world_id']}/characters/{args['character_id']}/chat",
+                f"{GENESIS_API}/api/worlds/{seg(args['world_id'])}/characters/{seg(args['character_id'])}/chat",
+                headers=genesis_headers(),
                 json={"message": args["message"]},
             )
+            r.raise_for_status()
             return r.json()
 
         else:

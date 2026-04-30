@@ -57,7 +57,10 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
     if (!slug) return;
     setData(null);
     setError(null);
-    fetch(`/api/chronicle/autopsy/${slug}`, { headers: authHeaders('GET') })
+    fetch(`/api/chronicle/autopsy/${slug}`, {
+      headers: authHeaders('GET'),
+      credentials: 'same-origin',
+    })
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

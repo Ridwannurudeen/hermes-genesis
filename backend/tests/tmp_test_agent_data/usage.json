@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-04-30T15:08:07.139233+00:00",
+  "updated_at": "2026-04-30T15:22:56.935616+00:00",
+  "total_requests": 10,
+  "total_failures": 0,
+  "estimated_model_units": 26,
+  "by_endpoint": {
+    "/worlds": {
+      "requests": 4,
+      "failures": 0,
+      "estimated_model_units": 20,
+      "avg_ms": 11.67,
+      "last_status": 200
+    },
+    "/simulate/quick": {
+      "requests": 2,
+      "failures": 0,
+      "estimated_model_units": 2,
+      "avg_ms": 41.14,
+      "last_status": 200
+    },
+    "/intervene": {
+      "requests": 2,
+      "failures": 0,
+      "estimated_model_units": 4,
+      "avg_ms": 15.69,
+      "last_status": 200
+    },
+    "/api/worlds/e2e_delete_test": {
+      "requests": 2,
+      "failures": 0,
+      "estimated_model_units": 0,
+      "avg_ms": 3.04,
+      "last_status": 200
+    }
+  },
+  "by_day": {
+    "2026-04-30": {
+      "requests": 10,
+      "failures": 0,
+      "estimated_model_units": 26
+    }
+  }
+}

@@ -18,13 +18,14 @@ const BASE = '';
 const API_KEY: string = (import.meta.env.VITE_GENESIS_API_KEY as string | undefined) ?? '';
 
 function withAuth(options?: RequestInit): RequestInit {
-  if (!API_KEY) return options ?? {};
-  const method = (options?.method || 'GET').toUpperCase();
+  const next: RequestInit = { ...(options ?? {}), credentials: 'same-origin' };
+  if (!API_KEY) return next;
+  const method = (next.method || 'GET').toUpperCase();
   // Reads (GET) don't need the key; only mutating routes do.
-  if (method === 'GET') return options ?? {};
-  const headers = new Headers(options?.headers || {});
+  if (method === 'GET') return next;
+  const headers = new Headers(next.headers || {});
   headers.set('X-API-Key', API_KEY);
-  return { ...(options ?? {}), headers };
+  return { ...next, headers };
 }
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -47,6 +48,54 @@ export function authHeaders(method: string = 'POST'): Record<string, string> {
   return h;
 }
 
+export type AuthStatus = {
+  auth_required: boolean;
+  admin: boolean;
+  session_ttl_seconds: number;
+};
+
+export type UsageEndpointRow = {
+  requests: number;
+  failures: number;
+  estimated_model_units: number;
+  avg_ms: number;
+  last_status: number | null;
+};
+
+export type UsageDayRow = {
+  requests: number;
+  failures: number;
+  estimated_model_units: number;
+};
+
+export type UsageSnapshot = {
+  started_at: string;
+  updated_at: string | null;
+  total_requests: number;
+  total_failures: number;
+  estimated_model_units: number;
+  by_endpoint: Record<string, UsageEndpointRow>;
+  by_day: Record<string, UsageDayRow>;
+};
+
+export const auth = {
+  status: () => fetchJson<AuthStatus>('/api/auth/status'),
+
+  login: (apiKey: string) =>
+    fetchJson<{ admin: boolean; session_ttl_seconds: number }>('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey }),
+    }),
+
+  logout: () =>
+    fetchJson<{ admin: boolean }>('/api/auth/logout', {
+      method: 'POST',
+    }),
+
+  usage: () => fetchJson<UsageSnapshot>('/api/admin/usage'),
+};
+
 function streamSSE(url: string, body: Record<string, unknown>, handlers: SSEHandler): () => void {
   const controller = new AbortController();
 
@@ -55,6 +104,7 @@ function streamSSE(url: string, body: Record<string, unknown>, handlers: SSEHand
     headers: authHeaders('POST'),
     body: JSON.stringify(body),
     signal: controller.signal,
+    credentials: 'same-origin',
   })
     .then(async (response) => {
       if (!response.ok) throw new Error(`API error: ${response.status}`);
@@ -150,7 +200,7 @@ export const api = {
   },
 
   exportWorld: async (id: string) => {
-    const res = await fetch(`${BASE}/api/worlds/${id}/export`);
+    const res = await fetch(`${BASE}/api/worlds/${id}/export`, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Export failed');
     const text = await res.text();
     const disposition = res.headers.get('Content-Disposition') || '';

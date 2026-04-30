@@ -62,7 +62,10 @@ export default function EraCeremony({ eraId, onClose }: Props) {
     setData(null);
     setError(null);
     setPhase('closing');
-    fetch(`/api/chronicle/era-transition/${eraId}`, { headers: authHeaders('GET') })
+    fetch(`/api/chronicle/era-transition/${eraId}`, {
+      headers: authHeaders('GET'),
+      credentials: 'same-origin',
+    })
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

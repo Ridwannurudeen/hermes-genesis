@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from filelock import FileLock, Timeout
 
-from config import CHRONICLON_DIR
+import config
 from chroniclon.models import Era, WikiArticle, LinguisticEra, CanonSubmission
 
 
@@ -31,12 +31,16 @@ def _safe(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_\-]", "", name)
 
 
+def _base_dir() -> Path:
+    return Path(os.getenv("CHRONICLON_DIR") or config.CHRONICLON_DIR)
+
+
 def _path(kind: str, key: str) -> Path:
-    return Path(CHRONICLON_DIR) / kind / f"{_safe(key)}.json"
+    return _base_dir() / kind / f"{_safe(key)}.json"
 
 
 def _lock_path(kind: str, key: str) -> Path:
-    return Path(CHRONICLON_DIR) / kind / f".{_safe(key)}.lock"
+    return _base_dir() / kind / f".{_safe(key)}.lock"
 
 
 def _atomic_write(path: Path, data: str, lock: FileLock) -> None:
@@ -98,7 +102,7 @@ def load_article(article_id: str) -> WikiArticle | None:
 
 
 def load_article_by_slug(slug: str) -> WikiArticle | None:
-    d = Path(CHRONICLON_DIR) / _ARTICLES
+    d = _base_dir() / _ARTICLES
     if not d.exists():
         return None
     for f in d.glob("*.json"):
@@ -119,7 +123,7 @@ def list_articles(
     limit: int = 100,
     offset: int = 0,
 ) -> list[dict]:
-    d = Path(CHRONICLON_DIR) / _ARTICLES
+    d = _base_dir() / _ARTICLES
     if not d.exists():
         return []
     rows: list[dict] = []
@@ -152,7 +156,7 @@ def list_articles(
 
 
 def article_count(era_id: str | None = None) -> int:
-    d = Path(CHRONICLON_DIR) / _ARTICLES
+    d = _base_dir() / _ARTICLES
     if not d.exists():
         return 0
     if era_id is None:
@@ -171,7 +175,7 @@ def article_count(era_id: str | None = None) -> int:
 
 
 def total_word_count() -> int:
-    d = Path(CHRONICLON_DIR) / _ARTICLES
+    d = _base_dir() / _ARTICLES
     if not d.exists():
         return 0
     total = 0
@@ -202,7 +206,7 @@ def load_era(era_id: str) -> Era | None:
 
 
 def list_eras() -> list[Era]:
-    d = Path(CHRONICLON_DIR) / _ERAS
+    d = _base_dir() / _ERAS
     if not d.exists():
         return []
     eras: list[Era] = []
@@ -226,7 +230,7 @@ def save_linguistic_era(le: LinguisticEra) -> None:
 
 
 def list_linguistic_eras() -> list[LinguisticEra]:
-    d = Path(CHRONICLON_DIR) / _LEXICON
+    d = _base_dir() / _LEXICON
     if not d.exists():
         return []
     out: list[LinguisticEra] = []
@@ -250,7 +254,7 @@ def save_submission(sub: CanonSubmission) -> None:
 
 
 def list_submissions(status: str | None = None) -> list[CanonSubmission]:
-    d = Path(CHRONICLON_DIR) / _SUBMISSIONS
+    d = _base_dir() / _SUBMISSIONS
     if not d.exists():
         return []
     out: list[CanonSubmission] = []

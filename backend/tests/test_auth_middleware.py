@@ -13,6 +13,7 @@ os.environ.setdefault("TELEGRAM_BOT_TOKEN", "")
 
 import config
 import store
+from auth import create_admin_session, is_admin_session
 
 with patch("telegram_bot.create_bot", return_value=None):
     import main
@@ -25,19 +26,27 @@ _TEST_API_KEY = "test-secret-key-xyz"
 
 
 @pytest.fixture(autouse=True)
-def auth_test_env():
+def auth_test_env(tmp_path):
     """Per-test: pin DATA_DIR + API_KEY to test values, then restore on teardown
     so other test modules see a clean slate."""
+    global TEST_DATA_DIR
     saved_data_dir = store.DATA_DIR
+    saved_config_data_dir = config.DATA_DIR
     saved_api_key = config.API_KEY
+    saved_test_data_dir = TEST_DATA_DIR
+    TEST_DATA_DIR = str(tmp_path / "auth_data")
     store.DATA_DIR = TEST_DATA_DIR
+    config.DATA_DIR = TEST_DATA_DIR
     config.API_KEY = _TEST_API_KEY
     os.makedirs(TEST_DATA_DIR, exist_ok=True)
     yield
+    current_test_data_dir = TEST_DATA_DIR
     store.DATA_DIR = saved_data_dir
+    config.DATA_DIR = saved_config_data_dir
     config.API_KEY = saved_api_key
-    if os.path.exists(TEST_DATA_DIR):
-        shutil.rmtree(TEST_DATA_DIR)
+    TEST_DATA_DIR = saved_test_data_dir
+    if os.path.exists(current_test_data_dir):
+        shutil.rmtree(current_test_data_dir)
 
 
 @pytest.mark.asyncio
@@ -70,6 +79,40 @@ async def test_post_with_header_key_accepted():
         # Auth gate passed: not a 403 from middleware. The request may still 4xx
         # for missing/invalid body, but the middleware did not block it.
         assert r.status_code != 403
+
+
+@pytest.mark.asyncio
+async def test_login_sets_admin_session_cookie_and_allows_mutation():
+    _write_world_file("world_cookie_001", "Cookie Admin", "s", "unlisted")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.post("/api/auth/login", json={"api_key": _TEST_API_KEY})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["admin"] is True
+        set_cookie = r.headers.get("set-cookie", "")
+        assert config.ADMIN_SESSION_COOKIE in set_cookie
+        assert "HttpOnly" in set_cookie
+
+        r = await client.patch(
+            "/api/worlds/world_cookie_001/visibility",
+            json={"visibility": "public"},
+        )
+        assert r.status_code == 200
+        assert r.json()["visibility"] == "public"
+
+
+@pytest.mark.asyncio
+async def test_login_with_wrong_key_rejected():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.post("/api/auth/login", json={"api_key": "wrong-key"})
+        assert r.status_code == 403
+
+
+def test_admin_session_expiry(monkeypatch):
+    monkeypatch.setattr(config, "ADMIN_SESSION_TTL_SECONDS", 60)
+    token = create_admin_session(now=1_000)
+    assert is_admin_session(token, now=1_001) is True
+    assert is_admin_session(token, now=1_061) is False
 
 
 @pytest.mark.asyncio
@@ -209,6 +252,57 @@ async def test_world_detail_accessible_for_unlisted():
 
 
 @pytest.mark.asyncio
+async def test_private_world_detail_requires_admin_key():
+    _write_world_file("world_prv_002", "Private Direct Link", "sensitive seed", "private")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.get("/api/worlds/world_prv_002")
+        assert r.status_code == 404
+
+        r = await client.get(
+            "/api/worlds/world_prv_002",
+            headers={"X-API-Key": _TEST_API_KEY},
+        )
+        assert r.status_code == 200
+        assert r.json()["id"] == "world_prv_002"
+
+
+@pytest.mark.asyncio
+async def test_private_world_detail_accepts_admin_session_cookie():
+    _write_world_file("world_prv_cookie_001", "Private Cookie", "sensitive seed", "private")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.post("/api/auth/login", json={"api_key": _TEST_API_KEY})
+        assert r.status_code == 200
+
+        r = await client.get("/api/worlds/world_prv_cookie_001")
+        assert r.status_code == 200
+        assert r.json()["id"] == "world_prv_cookie_001"
+
+
+@pytest.mark.asyncio
+async def test_private_world_subresources_require_admin_key():
+    _write_world_file("world_prv_003", "Private Subresources", "sensitive seed", "private")
+    paths = [
+        "/api/worlds/world_prv_003/map",
+        "/api/worlds/world_prv_003/factions",
+        "/api/worlds/world_prv_003/characters",
+        "/api/worlds/world_prv_003/events",
+        "/api/worlds/world_prv_003/prophecies",
+        "/api/worlds/world_prv_003/evolution",
+        "/api/worlds/world_prv_003/faction-timeline",
+        "/api/worlds/world_prv_003/export",
+        "/api/worlds/world_prv_003/agent/status",
+        "/api/worlds/world_prv_003/agent/logs",
+    ]
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        for path in paths:
+            r = await client.get(path)
+            assert r.status_code == 404, path
+
+            r = await client.get(path, headers={"X-API-Key": _TEST_API_KEY})
+            assert r.status_code == 200, path
+
+
+@pytest.mark.asyncio
 async def test_set_visibility_requires_admin():
     _write_world_file("world_promote_001", "Promote", "s", "unlisted")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -234,3 +328,53 @@ async def test_set_visibility_admin_promotes_world():
         r = await client.get("/api/worlds")
         ids = {w["id"] for w in r.json()}
         assert "world_promote_002" in ids
+
+
+@pytest.mark.asyncio
+async def test_admin_usage_requires_auth_and_accepts_session():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.get("/api/admin/usage")
+        assert r.status_code == 403
+
+        r = await client.post("/api/auth/login", json={"api_key": _TEST_API_KEY})
+        assert r.status_code == 200
+
+        r = await client.get("/api/admin/usage")
+        assert r.status_code == 200
+        body = r.json()
+        assert "total_requests" in body
+        assert body["total_requests"] >= 1
+
+
+def test_static_file_resolver_accepts_files_inside_static(tmp_path, monkeypatch):
+    static_dir = tmp_path / "static"
+    static_dir.mkdir()
+    asset = static_dir / "app.js"
+    asset.write_text("ok", encoding="utf-8")
+
+    monkeypatch.setattr(main, "STATIC_DIR", str(static_dir))
+
+    assert main._resolve_static_file("app.js") == os.path.realpath(str(asset))
+
+
+def test_static_file_resolver_rejects_prefix_sibling_traversal(tmp_path, monkeypatch):
+    static_dir = tmp_path / "static"
+    sibling_dir = tmp_path / "static_evil"
+    static_dir.mkdir()
+    sibling_dir.mkdir()
+    (sibling_dir / "secret.txt").write_text("secret", encoding="utf-8")
+
+    monkeypatch.setattr(main, "STATIC_DIR", str(static_dir))
+
+    assert main._resolve_static_file("../static_evil/secret.txt") is None
+
+
+def test_static_file_resolver_rejects_absolute_paths(tmp_path, monkeypatch):
+    static_dir = tmp_path / "static"
+    static_dir.mkdir()
+    secret = tmp_path / "secret.txt"
+    secret.write_text("secret", encoding="utf-8")
+
+    monkeypatch.setattr(main, "STATIC_DIR", str(static_dir))
+
+    assert main._resolve_static_file(str(secret)) is None
