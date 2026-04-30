@@ -15,3 +15,6 @@ elevenlabs-sections.txt
 gen-manual-voice-guide.py
 gen-simple-guide.py
 gen-video-guide.py
+
+# Test fixtures created by usage middleware during pytest runs
+backend/tests/tmp_test_*/
