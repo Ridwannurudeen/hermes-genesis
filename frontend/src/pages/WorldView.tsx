@@ -383,7 +383,7 @@ export default function WorldView() {
               <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
               <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} aria-label={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-                  ambientEnabled ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30' : 'text-sub hover:text-emerald-400 hover:bg-hover'
+                  ambientEnabled ? 'text-moss-500 bg-moss-500/10 border border-moss-500/30' : 'text-sub hover:text-moss-500 hover:bg-hover'
                 }`}>
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
@@ -397,27 +397,27 @@ export default function WorldView() {
               </button>
               <button onClick={() => setGodMode((p) => !p)} title="God Mode" aria-label="God Mode"
                 className={`p-2 rounded-lg transition-all ${
-                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-sub hover:text-amber-400 hover:bg-hover'
+                  godMode ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
                 }`}>
                 <Zap className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
                 <Swords className="w-5 h-5" />
               </button>
               <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" aria-label="Generate Chronicle" className="p-2 text-sub hover:text-genesis-400 hover:bg-hover rounded-lg transition-all">
                 <BookOpen className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-rose-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-crimson-500 hover:bg-hover rounded-lg transition-all">
                 <Play className="w-5 h-5" />
               </button>
               <button onClick={() => setShowReplay(true)} title="Replay History" aria-label="Replay History" disabled={events.length === 0}
-                className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                 <History className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" aria-label="Session Prep" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" aria-label="Session Prep" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
                 <Sparkles className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" aria-label="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" aria-label="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
                 <Scroll className="w-5 h-5" />
               </button>
               <button
@@ -436,7 +436,7 @@ export default function WorldView() {
                 }}
                 title="Download World (Markdown)"
                 aria-label="Download World (Markdown)"
-                className="p-2 text-sub hover:text-emerald-400 hover:bg-hover rounded-lg transition-all"
+                className="p-2 text-sub hover:text-moss-500 hover:bg-hover rounded-lg transition-all"
               >
                 <Download className="w-5 h-5" />
               </button>

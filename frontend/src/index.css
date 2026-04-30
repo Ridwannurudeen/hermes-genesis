@@ -278,74 +278,56 @@ header, main, footer, [data-atmosphere-fg] {
   mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
 }
 
-/* ── Static gradient text ── */
+/* ── Legacy decorative utilities — REDEFINED to editorial tokens ────────
+ * Kept as class names so existing JSX in CharacterList/EventTimeline/
+ * CharacterChatModal/WorldView keeps rendering, but the visuals are now
+ * the editorial system: paper/vellum surfaces with hairline borders, no
+ * decorative auras. The class names are misnomers now — Phase 4 cleanup
+ * (stripping them in JSX) is a follow-up; keeping them here is faster
+ * than touching ~10 components.
+ */
 .text-shimmer {
-  background: linear-gradient(90deg, #8a6838 0%, #6f5228 30%, #3d2c12 50%, #6f5228 70%, #8a6838 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.dark .text-shimmer {
-  background: linear-gradient(90deg, #b8976a 0%, #d4b896 30%, #faf6f0 50%, #d4b896 70%, #b8976a 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* No more gradient text. Display heading in heading color. */
+  color: var(--text-heading);
 }
 
-/* ── Generate button glow (static) ── */
-.btn-glow {
-  box-shadow: 0 0 25px rgba(184, 151, 106, 0.2), 0 0 50px rgba(184, 151, 106, 0.08);
-}
-
-.btn-glow:hover {
-  box-shadow: 0 0 35px rgba(184, 151, 106, 0.35), 0 0 70px rgba(184, 151, 106, 0.15);
-}
-
+.btn-glow,
+.btn-glow:hover,
 .btn-glow:disabled {
+  /* No more aura. The button's own border + bg-gilt does the work. */
   box-shadow: none;
 }
 
-/* ── Card border glow on hover ── */
 .card-glow {
   position: relative;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.2s ease;
 }
-
 .card-glow:hover {
-  border-color: rgba(184, 151, 106, 0.35);
-  box-shadow: 0 0 25px rgba(184, 151, 106, 0.1), inset 0 0 25px rgba(184, 151, 106, 0.03);
+  border-color: rgba(184, 137, 58, 0.4);
 }
 
-/* ── Frosted glass (warm dark bg) ── */
 .glass {
-  background: var(--glass-bg);
-  border: 1px solid rgba(184, 151, 106, 0.15);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
 }
 
 .glass-input {
-  background: var(--glass-input-bg);
-  border: 1px solid rgba(184, 151, 106, 0.12);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: border-color 0.2s ease;
 }
-
 .glass-input:focus {
-  border-color: rgba(184, 151, 106, 0.5);
-  box-shadow: 0 0 25px rgba(184, 151, 106, 0.12);
+  border-color: rgba(184, 137, 58, 0.6);
 }
 
-/* ── Icon warm aura ── */
-.icon-aura {
-  filter: drop-shadow(0 0 8px rgba(184, 151, 106, 0.3));
-  transition: filter 0.3s ease;
-}
-
+.icon-aura,
 .group:hover .icon-aura {
-  filter: drop-shadow(0 0 12px rgba(184, 151, 106, 0.5));
+  /* No more aura. Icons stand on their own. */
+  filter: none;
 }
 
-/* ── Decorative gold border for section dividers ── */
 .border-ornate {
-  border-image: linear-gradient(90deg, transparent, rgba(184, 151, 106, 0.3), transparent) 1;
+  border-image: linear-gradient(90deg, transparent, rgba(184, 137, 58, 0.3), transparent) 1;
 }
 
 /* ── Scrollbar styling ── */

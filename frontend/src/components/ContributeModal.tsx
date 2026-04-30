@@ -73,16 +73,16 @@ export default function ContributeModal({ open, onClose }: Props) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl bg-slate-900 border border-slate-700/60 rounded-lg shadow-2xl"
+        className="w-full max-w-xl bg-surface border border-subtle rounded-lg shadow-2xl"
       >
-        <div className="px-6 py-4 border-b border-slate-800 flex items-baseline justify-between">
+        <div className="px-6 py-4 border-b border-subtle flex items-baseline justify-between">
           <div>
-            <div className="font-serif text-xl text-slate-100">Contribute to the canon</div>
-            <div className="text-xs text-slate-500 mt-0.5">
+            <div className="font-serif text-xl text-heading">Contribute to the canon</div>
+            <div className="text-xs text-faint mt-0.5">
               Write an event. The canon agent decides if it joins history.
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 text-sm">
+          <button onClick={onClose} className="text-faint hover:text-heading text-sm">
             close
           </button>
         </div>
@@ -91,17 +91,17 @@ export default function ContributeModal({ open, onClose }: Props) {
           <div className="px-6 py-8 text-center">
             {result.status === 'canonized' && result.article ? (
               <>
-                <div className="text-emerald-300 font-serif text-xl">
+                <div className="text-moss-500 font-serif text-xl">
                   ✦ canonized
                 </div>
-                <div className="text-slate-300 mt-2">
+                <div className="text-sub mt-2">
                   Hermes accepted, Kimi wrote{' '}
                   <span className="font-serif italic">"{result.article.title}"</span>
                 </div>
-                <div className="text-slate-500 text-sm mt-1">
+                <div className="text-faint text-sm mt-1">
                   {result.article.word_count.toLocaleString()} words · {result.article.voice}{' '}
                   · credited to{' '}
-                  <span className="text-emerald-300">@{result.contributor || handle.trim() || 'anonymous'}</span>
+                  <span className="text-moss-500">@{result.contributor || handle.trim() || 'anonymous'}</span>
                 </div>
                 <div className="flex items-center justify-center gap-3 mt-6">
                   <button
@@ -109,13 +109,13 @@ export default function ContributeModal({ open, onClose }: Props) {
                       onClose();
                       if (result.article) nav(`/chronicle/${result.article.slug}`);
                     }}
-                    className="px-4 py-2 rounded bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm"
+                    className="px-4 py-2 rounded bg-gilt-500 hover:bg-gilt-400 text-night-950 text-sm"
                   >
                     read it →
                   </button>
                   <button
                     onClick={onClose}
-                    className="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm"
+                    className="px-4 py-2 rounded bg-elevated hover:bg-elevated text-sub text-sm"
                   >
                     done
                   </button>
@@ -123,27 +123,27 @@ export default function ContributeModal({ open, onClose }: Props) {
               </>
             ) : result.status === 'rejected' ? (
               <>
-                <div className="text-rose-300 font-serif text-xl">declined by the canon</div>
-                <div className="text-slate-400 text-sm mt-3 italic">
+                <div className="text-crimson-500 font-serif text-xl">declined by the canon</div>
+                <div className="text-dim text-sm mt-3 italic">
                   {result.reason || 'The canon-keeper found this seed inconsistent with the world.'}
                 </div>
                 <button
                   onClick={() => setResult(null)}
-                  className="mt-6 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm"
+                  className="mt-6 px-4 py-2 rounded bg-elevated hover:bg-elevated text-heading text-sm"
                 >
                   try again
                 </button>
               </>
             ) : (
               <>
-                <div className="text-amber-300 font-serif text-xl">approved but unwritten</div>
-                <div className="text-slate-400 text-sm mt-3">
+                <div className="text-gilt-500 font-serif text-xl">approved but unwritten</div>
+                <div className="text-dim text-sm mt-3">
                   {result.reason ||
                     'Hermes accepted the seed but declined to canonize it as an article right now.'}
                 </div>
                 <button
                   onClick={onClose}
-                  className="mt-6 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm"
+                  className="mt-6 px-4 py-2 rounded bg-elevated hover:bg-elevated text-heading text-sm"
                 >
                   done
                 </button>
@@ -153,36 +153,36 @@ export default function ContributeModal({ open, onClose }: Props) {
         ) : (
           <div className="px-6 py-5 space-y-4">
             <div>
-              <label className="text-[11px] uppercase tracking-widest text-slate-500">Your handle</label>
+              <label className="text-[11px] uppercase tracking-widest text-faint">Your handle</label>
               <input
                 value={handle}
                 onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 32))}
                 placeholder="optional — leave blank for anonymous"
-                className="mt-1 w-full bg-slate-950 border border-slate-700/60 rounded px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-600/50"
+                className="mt-1 w-full bg-page border border-subtle rounded px-3 py-2 text-sm text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500"
               />
             </div>
             <div>
-              <label className="text-[11px] uppercase tracking-widest text-slate-500">Event seed</label>
+              <label className="text-[11px] uppercase tracking-widest text-faint">Event seed</label>
               <textarea
                 value={seed}
                 onChange={(e) => setSeed(e.target.value)}
                 rows={5}
                 placeholder='e.g. "A meteor lands in the eastern desert and the lunar correspondence ceases for forty days."'
-                className="mt-1 w-full bg-slate-950 border border-slate-700/60 rounded px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-600/50 resize-none font-serif leading-relaxed"
+                className="mt-1 w-full bg-page border border-subtle rounded px-3 py-2 text-sm text-heading placeholder:text-faint/70 focus:outline-none focus:border-gilt-500 resize-none font-serif leading-relaxed"
               />
-              <div className={`text-[11px] mt-1 ${overLimit ? 'text-rose-400' : 'text-slate-600'}`}>
+              <div className={`text-[11px] mt-1 ${overLimit ? 'text-crimson-500' : 'text-faint/70'}`}>
                 {remaining} characters remaining
               </div>
             </div>
-            {error && <div className="text-rose-400 text-sm">{error}</div>}
+            {error && <div className="text-crimson-500 text-sm">{error}</div>}
             <div className="flex items-center justify-between pt-2">
-              <div className="text-[11px] text-slate-600">
+              <div className="text-[11px] text-faint/70">
                 The canon agent rejects slop, contradictions, and out-of-world content.
               </div>
               <button
                 onClick={submit}
                 disabled={submitting || overLimit}
-                className="px-4 py-2 rounded bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded bg-gilt-500 hover:bg-gilt-400 text-night-950 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? 'submitting…' : 'submit to canon'}
               </button>

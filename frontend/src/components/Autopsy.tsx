@@ -79,34 +79,34 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl my-8 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl"
+        className="w-full max-w-3xl my-8 bg-page border border-subtle rounded-xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-baseline justify-between border-b border-slate-800/80 px-6 py-4">
+        <header className="flex items-baseline justify-between border-b border-subtle/80 px-6 py-4">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.3em] text-amber-400/70">
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gilt-500/70">
               civilization autopsy
             </div>
-            <div className="font-serif text-xl text-slate-100 mt-0.5">why this happened</div>
+            <div className="font-serif text-xl text-heading mt-0.5">why this happened</div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 text-sm">
+          <button onClick={onClose} className="text-faint hover:text-heading text-sm">
             close
           </button>
         </header>
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="text-rose-400 text-sm border border-rose-900/60 bg-rose-950/40 rounded-md p-4">
+            <div className="text-crimson-500 text-sm border border-crimson-500/30 bg-crimson-500/10 rounded-md p-4">
               {error}
             </div>
           )}
 
           {!error && !data && (
-            <div className="text-slate-500 italic animate-pulse">tracing causation…</div>
+            <div className="text-faint italic animate-pulse">tracing causation…</div>
           )}
 
           {data && !data.linked && (
-            <div className="text-slate-400 text-sm">
+            <div className="text-dim text-sm">
               No causal trace available — this article is older than the autopsy index. Newly canonized
               articles include the source event and its causal lineage.
             </div>
@@ -115,28 +115,28 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
           {data && data.linked && (
             <>
               <section>
-                <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">
+                <div className="text-[11px] uppercase tracking-widest text-faint mb-1">
                   source event · day {data.source_event.day} · {data.source_event.type}
                 </div>
-                <div className="font-serif text-lg text-slate-100">{data.source_event.title}</div>
+                <div className="font-serif text-lg text-heading">{data.source_event.title}</div>
                 {data.source_event.narrative && (
-                  <div className="text-sm text-slate-400 italic mt-1 leading-relaxed">
+                  <div className="text-sm text-dim italic mt-1 leading-relaxed">
                     {data.source_event.narrative}
                   </div>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   {data.source_event.user_triggered && (
-                    <span className="px-2 py-0.5 rounded border border-emerald-700/60 text-emerald-300">
+                    <span className="px-2 py-0.5 rounded border border-moss-500/60 text-moss-500">
                       user-triggered
                     </span>
                   )}
                   {data.source_event.agent_triggered && (
-                    <span className="px-2 py-0.5 rounded border border-amber-700/60 text-amber-200">
+                    <span className="px-2 py-0.5 rounded border border-gilt-500/60 text-gilt-400">
                       agent-triggered
                     </span>
                   )}
                   {data.source_event.prophecy_id && (
-                    <span className="px-2 py-0.5 rounded border border-violet-700/60 text-violet-200">
+                    <span className="px-2 py-0.5 rounded border border-gilt-400/60 text-gilt-400">
                       fulfilled prophecy
                     </span>
                   )}
@@ -147,14 +147,14 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                 <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {data.source_event.actors.length > 0 && (
                     <div>
-                      <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">cast</div>
+                      <div className="text-[11px] uppercase tracking-widest text-faint mb-1">cast</div>
                       <ul className="text-sm space-y-0.5">
                         {data.source_event.actors.map((a) => (
-                          <li key={a.id} className="text-slate-300">
+                          <li key={a.id} className="text-sub">
                             {a.name || a.id}
-                            {a.role && <span className="text-slate-500 ml-1">· {a.role}</span>}
+                            {a.role && <span className="text-faint ml-1">· {a.role}</span>}
                             {a.alive === false && (
-                              <span className="text-rose-400 ml-1 text-xs">(deceased)</span>
+                              <span className="text-crimson-500 ml-1 text-xs">(deceased)</span>
                             )}
                           </li>
                         ))}
@@ -163,10 +163,10 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                   )}
                   {data.source_event.factions.length > 0 && (
                     <div>
-                      <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-1">factions</div>
+                      <div className="text-[11px] uppercase tracking-widest text-faint mb-1">factions</div>
                       <ul className="text-sm space-y-0.5">
                         {data.source_event.factions.map((f) => (
-                          <li key={f.id} className="text-slate-300 flex items-center gap-2">
+                          <li key={f.id} className="text-sub flex items-center gap-2">
                             {f.color && (
                               <span
                                 className="inline-block w-2 h-2 rounded-full"
@@ -174,7 +174,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                               />
                             )}
                             <span>{f.name || f.id}</span>
-                            {f.ideology && <span className="text-slate-500 text-xs">· {f.ideology}</span>}
+                            {f.ideology && <span className="text-faint text-xs">· {f.ideology}</span>}
                           </li>
                         ))}
                       </ul>
@@ -185,17 +185,17 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
 
               {data.ancestors.length > 0 && (
                 <section>
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">
+                  <div className="text-[11px] uppercase tracking-widest text-faint mb-2">
                     causal chain — what led here
                   </div>
-                  <ol className="border-l border-slate-700/60 pl-4 space-y-3">
+                  <ol className="border-l border-subtle/60 pl-4 space-y-3">
                     {data.ancestors.map((a) => (
                       <li key={a.id} className="relative">
-                        <span className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-amber-500" />
-                        <div className="text-sm text-slate-300">
-                          <span className="text-slate-500 text-xs">day {a.day} · {a.type}</span>
-                          <div className="font-serif text-slate-200">{a.title}</div>
-                          {a.narrative && <div className="text-xs text-slate-500 mt-0.5">{a.narrative}</div>}
+                        <span className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-gilt-500" />
+                        <div className="text-sm text-sub">
+                          <span className="text-faint text-xs">day {a.day} · {a.type}</span>
+                          <div className="font-serif text-heading">{a.title}</div>
+                          {a.narrative && <div className="text-xs text-faint mt-0.5">{a.narrative}</div>}
                         </div>
                       </li>
                     ))}
@@ -207,26 +207,26 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                 Object.keys(data.outcome.casualties).length > 0 ||
                 Object.keys(data.outcome.morale_changes).length > 0) && (
                 <section>
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">
+                  <div className="text-[11px] uppercase tracking-widest text-faint mb-2">
                     what changed
                   </div>
                   <div className="text-sm space-y-1">
                     {Object.entries(data.outcome.territory_changes).map(([fname, rid]) => (
-                      <div key={`t-${fname}-${rid}`} className="text-slate-300">
-                        <span className="text-slate-500">territory · </span>
-                        {fname} took region <span className="font-mono text-amber-200">{rid}</span>
+                      <div key={`t-${fname}-${rid}`} className="text-sub">
+                        <span className="text-faint">territory · </span>
+                        {fname} took region <span className="font-mono text-gilt-400">{rid}</span>
                       </div>
                     ))}
                     {Object.entries(data.outcome.casualties).map(([fid, n]) => (
-                      <div key={`c-${fid}`} className="text-slate-300">
-                        <span className="text-slate-500">casualties · </span>
-                        <span className="font-mono text-rose-300">{n.toLocaleString()}</span> for {fid}
+                      <div key={`c-${fid}`} className="text-sub">
+                        <span className="text-faint">casualties · </span>
+                        <span className="font-mono text-crimson-500">{n.toLocaleString()}</span> for {fid}
                       </div>
                     ))}
                     {Object.entries(data.outcome.morale_changes).map(([fid, n]) => (
-                      <div key={`m-${fid}`} className="text-slate-300">
-                        <span className="text-slate-500">morale · </span>
-                        <span className={`font-mono ${n >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                      <div key={`m-${fid}`} className="text-sub">
+                        <span className="text-faint">morale · </span>
+                        <span className={`font-mono ${n >= 0 ? 'text-moss-500' : 'text-crimson-500'}`}>
                           {n >= 0 ? '+' : ''}{n}
                         </span>{' '}
                         for {fid}
@@ -238,17 +238,17 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
 
               {(data.direct_descendants.length > 0 || data.follow_ups.length > 0) && (
                 <section>
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">
+                  <div className="text-[11px] uppercase tracking-widest text-faint mb-2">
                     aftermath
                   </div>
                   {data.direct_descendants.length > 0 && (
                     <div className="mb-3">
-                      <div className="text-xs text-slate-500 mb-1">directly caused</div>
+                      <div className="text-xs text-faint mb-1">directly caused</div>
                       <ul className="text-sm space-y-1">
                         {data.direct_descendants.map((d) => (
-                          <li key={d.id} className="text-slate-300">
-                            <span className="text-slate-500 text-xs">day {d.day} · {d.type}</span>
-                            <div className="font-serif text-slate-200">{d.title}</div>
+                          <li key={d.id} className="text-sub">
+                            <span className="text-faint text-xs">day {d.day} · {d.type}</span>
+                            <div className="font-serif text-heading">{d.title}</div>
                           </li>
                         ))}
                       </ul>
@@ -256,12 +256,12 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                   )}
                   {data.follow_ups.length > 0 && (
                     <div>
-                      <div className="text-xs text-slate-500 mb-1">later events sharing actors / factions</div>
+                      <div className="text-xs text-faint mb-1">later events sharing actors / factions</div>
                       <ul className="text-sm space-y-1">
                         {data.follow_ups.map((f) => (
-                          <li key={f.id} className="text-slate-300">
-                            <span className="text-slate-500 text-xs">day {f.day} · {f.type}</span>
-                            <div className="font-serif text-slate-200">{f.title}</div>
+                          <li key={f.id} className="text-sub">
+                            <span className="text-faint text-xs">day {f.day} · {f.type}</span>
+                            <div className="font-serif text-heading">{f.title}</div>
                           </li>
                         ))}
                       </ul>
@@ -272,7 +272,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
 
               {data.related_articles.length > 0 && (
                 <section>
-                  <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">
+                  <div className="text-[11px] uppercase tracking-widest text-faint mb-2">
                     related canon (same actors)
                   </div>
                   <ul className="text-sm space-y-1">
@@ -283,10 +283,10 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                             onOpenArticle?.(r.slug);
                             onClose();
                           }}
-                          className="text-amber-300 hover:text-amber-200 text-left"
+                          className="text-gilt-500 hover:text-gilt-400 text-left"
                         >
                           {r.title}
-                          <span className="text-slate-500 text-xs ml-2">· {r.kind} · year {r.in_world_year}</span>
+                          <span className="text-faint text-xs ml-2">· {r.kind} · year {r.in_world_year}</span>
                         </button>
                       </li>
                     ))}

@@ -157,28 +157,28 @@ export default function Regen() {
       <main className="max-w-5xl mx-auto px-6 py-10">
         {!running && !done && (
           <section>
-            <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Seed</div>
+            <div className="text-[11px] uppercase tracking-widest text-faint mb-2">Seed</div>
             <textarea
               value={seed}
               onChange={(e) => setSeed(e.target.value)}
               rows={3}
               maxLength={600}
               placeholder="One sentence. Strange is good."
-              className="w-full bg-slate-900 border border-slate-700/60 rounded-md px-4 py-3 text-base text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-600/50 font-serif resize-none"
+              className="w-full bg-surface border border-subtle rounded-md px-4 py-3 text-base text-heading placeholder:text-faint/70 focus:outline-none focus:border-amber-600/50 font-serif resize-none"
             />
             <div className="flex flex-wrap gap-2 mt-3">
               {PROMPTS.map((p) => (
                 <button
                   key={p}
                   onClick={() => setSeed(p)}
-                  className="text-xs text-slate-500 hover:text-slate-200 italic px-2 py-1 rounded bg-slate-900/60 hover:bg-slate-800/60"
+                  className="text-xs text-faint hover:text-heading italic px-2 py-1 rounded bg-surface/60 hover:bg-slate-800/60"
                 >
                   “{p.length > 60 ? `${p.slice(0, 60)}…` : p}”
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-4 mt-6 flex-wrap">
-              <label className="text-sm text-slate-500">
+              <label className="text-sm text-faint">
                 days
                 <input
                   type="number"
@@ -186,16 +186,16 @@ export default function Regen() {
                   max={12}
                   value={days}
                   onChange={(e) => setDays(Math.max(1, Math.min(12, Number(e.target.value) || 5)))}
-                  className="ml-2 w-16 bg-slate-900 border border-slate-700/60 rounded px-2 py-1 text-sm text-slate-200"
+                  className="ml-2 w-16 bg-surface border border-subtle rounded px-2 py-1 text-sm text-heading"
                 />
               </label>
-              <label className="text-sm text-slate-500 flex items-center gap-2">
+              <label className="text-sm text-faint flex items-center gap-2">
                 writer
-                <div className="flex bg-slate-900 border border-slate-700/60 rounded overflow-hidden text-xs">
+                <div className="flex bg-surface border border-subtle rounded overflow-hidden text-xs">
                   <button
                     type="button"
                     onClick={() => setProvider('kimi')}
-                    className={`px-3 py-1 ${provider === 'kimi' ? 'bg-amber-700/70 text-slate-50' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-3 py-1 ${provider === 'kimi' ? 'bg-amber-700/70 text-heading' : 'text-dim hover:text-heading'}`}
                     title="Moonshot Kimi K2.6 — long-form prose, 256K context"
                   >
                     Kimi K2.6
@@ -203,7 +203,7 @@ export default function Regen() {
                   <button
                     type="button"
                     onClick={() => setProvider('nous')}
-                    className={`px-3 py-1 border-l border-slate-700/60 ${provider === 'nous' ? 'bg-amber-700/70 text-slate-50' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-3 py-1 border-l border-subtle ${provider === 'nous' ? 'bg-amber-700/70 text-heading' : 'text-dim hover:text-heading'}`}
                     title="Nous Hermes-4-70B — faster, structured"
                   >
                     Hermes-4
@@ -213,7 +213,7 @@ export default function Regen() {
               <button
                 onClick={start}
                 disabled={!seed.trim()}
-                className="px-5 py-2 rounded-md bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 regenerate the world
               </button>
@@ -225,30 +225,30 @@ export default function Regen() {
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[11px] uppercase tracking-widest text-slate-500">
+                <div className="text-[11px] uppercase tracking-widest text-faint">
                   {done ? 'complete' : 'in progress'}
                 </div>
-                <div className="font-serif text-2xl text-slate-100 mt-0.5">{worldName || 'unnamed civilization'}</div>
-                {eraName && <div className="text-sm text-amber-300 mt-0.5">era: {eraName}</div>}
+                <div className="font-serif text-2xl text-heading mt-0.5">{worldName || 'unnamed civilization'}</div>
+                {eraName && <div className="text-sm text-gilt-500 mt-0.5">era: {eraName}</div>}
               </div>
               <div className="flex items-center gap-3">
                 {(running || completion) && (
                   <button
                     onClick={() => nav('/control')}
-                    className="text-amber-300 hover:text-amber-200 text-sm border border-amber-700/40 hover:border-amber-500/60 rounded px-3 py-1.5"
+                    className="text-gilt-500 hover:text-gilt-400 text-sm border border-gilt-500/40 hover:border-amber-500/60 rounded px-3 py-1.5"
                     title="Live agentic pipeline view"
                   >
                     control room →
                   </button>
                 )}
                 {running ? (
-                  <button onClick={cancel} className="text-slate-500 hover:text-rose-300 text-sm">
+                  <button onClick={cancel} className="text-faint hover:text-rose-300 text-sm">
                     cancel
                   </button>
                 ) : completion ? (
                   <button
                     onClick={() => nav('/chronicle')}
-                    className="px-4 py-2 rounded-md bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm"
+                    className="px-4 py-2 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 text-sm"
                   >
                     open the canon →
                   </button>
@@ -256,14 +256,14 @@ export default function Regen() {
               </div>
             </div>
 
-            <div className="text-sm text-slate-400 italic flex items-center gap-2">
+            <div className="text-sm text-dim italic flex items-center gap-2">
               <span>{progress}</span>
               {(running || done) && (
                 <span
                   className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
                     provider === 'kimi'
-                      ? 'border-violet-700/60 text-violet-200 bg-violet-900/30'
-                      : 'border-amber-700/60 text-amber-200 bg-amber-900/30'
+                      ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
+                      : 'border-gilt-500/60 text-gilt-400 bg-amber-900/30'
                   }`}
                 >
                   writer · {provider === 'kimi' ? 'Kimi-K2.6' : 'Hermes-4-70B'}
@@ -272,28 +272,28 @@ export default function Regen() {
             </div>
 
             {stats && (
-              <div className="grid grid-cols-3 gap-px bg-slate-800/40 border border-slate-700/60 rounded-md overflow-hidden">
+              <div className="grid grid-cols-3 gap-px bg-elevated/40 border border-subtle rounded-md overflow-hidden">
                 {[
                   { label: 'regions', value: stats.regions },
                   { label: 'factions', value: stats.factions },
                   { label: 'characters', value: stats.characters },
                 ].map((c) => (
-                  <div key={c.label} className="bg-slate-900/60 px-4 py-3 text-center">
-                    <div className="text-xl font-semibold text-slate-100">{c.value}</div>
-                    <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">{c.label}</div>
+                  <div key={c.label} className="bg-surface/60 px-4 py-3 text-center">
+                    <div className="text-xl font-semibold text-heading">{c.value}</div>
+                    <div className="text-[11px] uppercase tracking-widest text-faint mt-0.5">{c.label}</div>
                   </div>
                 ))}
               </div>
             )}
 
             {lexicon.length > 0 && (
-              <div className="border border-slate-800/60 rounded-md p-4">
-                <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">lexicon</div>
+              <div className="border border-subtle rounded-md p-4">
+                <div className="text-[11px] uppercase tracking-widest text-faint mb-2">lexicon</div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 text-sm font-mono">
                   {lexicon.map(([en, lo]) => (
                     <div key={en} className="flex items-baseline justify-between">
-                      <span className="text-slate-500">{en}</span>
-                      <span className="text-amber-300">{lo}</span>
+                      <span className="text-faint">{en}</span>
+                      <span className="text-gilt-500">{lo}</span>
                     </div>
                   ))}
                 </div>
@@ -301,36 +301,36 @@ export default function Regen() {
             )}
 
             {daysCompleted > 0 && (
-              <div className="text-sm text-slate-500">
-                <span className="text-slate-300 font-mono">{daysCompleted}</span> days of history simulated.
+              <div className="text-sm text-faint">
+                <span className="text-sub font-mono">{daysCompleted}</span> days of history simulated.
               </div>
             )}
 
             {articles.length > 0 && (
               <div>
-                <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">articles canonized</div>
-                <div className="border border-slate-800/60 rounded-md overflow-hidden">
+                <div className="text-[11px] uppercase tracking-widest text-faint mb-2">articles canonized</div>
+                <div className="border border-subtle rounded-md overflow-hidden">
                   {articles.map((a) => (
                     <button
                       key={a.slug}
                       onClick={() => nav(`/chronicle/${a.slug}`)}
-                      className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"
+                      className="w-full text-left px-4 py-3 border-b border-subtle hover:bg-hover transition-colors"
                     >
                       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                        <div className="font-serif text-base text-slate-100">{a.title}</div>
+                        <div className="font-serif text-base text-heading">{a.title}</div>
                         {a.writer_label && (
                           <span
                             className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
                               /kimi/i.test(a.writer_label)
-                                ? 'border-violet-700/60 text-violet-200 bg-violet-900/30'
-                                : 'border-amber-700/60 text-amber-200 bg-amber-900/30'
+                                ? 'border-gilt-400/60 text-gilt-400 bg-gilt-500/10'
+                                : 'border-gilt-500/60 text-gilt-400 bg-amber-900/30'
                             }`}
                           >
                             {a.writer_label}
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
+                      <div className="text-[11px] text-faint mt-0.5">
                         {a.kind} · {a.voice} · {a.word_count.toLocaleString()} words
                       </div>
                     </button>
@@ -339,7 +339,7 @@ export default function Regen() {
               </div>
             )}
 
-            {error && <div className="text-rose-400 text-sm">{error}</div>}
+            {error && <div className="text-crimson-500 text-sm">{error}</div>}
           </section>
         )}
       </main>
