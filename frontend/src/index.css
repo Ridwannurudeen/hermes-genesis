@@ -1,4 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@400;600;700;900&display=swap');
+/* Editorial-AI three-face system — Google Fonts (CSP already allows
+ * fonts.googleapis.com + fonts.gstatic.com). Source Serif 4 Display
+ * (headlines), Source Serif 4 (article body at prose register), Geist
+ * (UI chrome — free Söhne alternative), JetBrains Mono (numbers, models).
+ * Cinzel + Inter are gone — they were the vibecoded tells. */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Source+Serif+4+Display:opsz,wght@60..72,400;60..72,600;60..72,700&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -77,23 +82,200 @@
 .placeholder-dim::placeholder { color: var(--text-dim); }
 .placeholder-faint::placeholder { color: var(--text-faint); }
 
+/* Default body face = UI chrome (Geist). Article-detail bodies override to
+ * the serif body face via the .editorial-prose class (see §editorial-prose). */
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Static gradient background ── */
-.bg-gradient-animated {
-  background: linear-gradient(135deg, var(--bg-page) 0%, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%, var(--bg-page) 100%);
+/* Numbers always tabular + mono in editorial UI. Override by adding `.no-mono`
+ * to numeric spans inside running prose. */
+.num,
+.tabular {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
-/* ── Subtle grid pattern ── */
-.bg-grid-pattern {
-  background-image:
-    linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
+/* ── Atmosphere layer — fixed backdrop that does work ──────────────────
+ * Light mode: warm paper grain (SVG noise) + subtle radial top glow.
+ * Dark mode: dot grid (gilt-tinted, low opacity) + gilt glow at top +
+ *            book-binding vignette at bottom edges.
+ * Pure CSS, ~2KB. Reads as "publication produced this," not "create-react-app."
+ */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Light: paper grain (SVG noise, low opacity) — feels like real cream stock. */
+body::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.32 0 0 0 0 0.13 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.07;
+}
+body::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 50% -8%, rgba(184, 137, 58, 0.10), transparent 70%);
+}
+
+/* Dark: dot grid + gilt halo + binding vignette. */
+.dark body::before {
+  background-image: radial-gradient(rgba(184, 137, 58, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 90%);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 90%);
+  opacity: 1;
+}
+.dark body::after {
+  background:
+    radial-gradient(ellipse 60% 30% at 50% -8%, rgba(184, 137, 58, 0.10), transparent 70%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(0, 0, 0, 0.45), transparent 70%);
+}
+
+/* Atmosphere is z-index 0; everything content goes above. */
+header, main, footer, [data-atmosphere-fg] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Reduce motion across the board for users who request it (skill §7). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Single focus-ring style site-wide — gilt offset on the page. */
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg-page),
+    0 0 0 3.5px #B8893A;
+  border-radius: 4px;
+  transition: box-shadow 120ms ease-out;
+}
+
+/* ── Editorial prose register — apply to the article body container ──── */
+.editorial-prose {
+  font-family: 'Source Serif 4', 'Source Serif 4 Display', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.7;
+  font-feature-settings: 'kern', 'liga', 'onum';
+  color: var(--text-page);
+}
+
+.editorial-prose p { margin-bottom: 1.05em; }
+.editorial-prose h2 { font-family: 'Source Serif 4 Display', Georgia, serif; font-size: 26px; line-height: 1.22; letter-spacing: -0.015em; margin: 1.6em 0 0.6em; color: var(--text-heading); }
+.editorial-prose h3 { font-family: 'Source Serif 4 Display', Georgia, serif; font-size: 21px; line-height: 1.28; letter-spacing: -0.01em; margin: 1.4em 0 0.5em; color: var(--text-heading); }
+.editorial-prose blockquote {
+  font-style: italic;
+  border-left: none;
+  padding: 0.4em 0 0.4em 1.6em;
+  margin: 1.4em 0;
+  position: relative;
+  color: var(--text-sub);
+}
+.editorial-prose blockquote::before {
+  content: "“";
+  position: absolute;
+  left: 0;
+  top: -0.15em;
+  font-family: 'Source Serif 4 Display', Georgia, serif;
+  font-size: 2.4em;
+  color: #B8893A;
+  line-height: 1;
+}
+.editorial-prose code {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--hover-bg);
+  padding: 0.12em 0.4em;
+  border-radius: 3px;
+}
+
+/* Drop cap for the first paragraph of an article body. Apply with
+ *   <article class="editorial-prose"><p class="drop-cap">…</p>…</article>
+ */
+.drop-cap::first-letter {
+  font-family: 'Source Serif 4 Display', Georgia, serif;
+  float: left;
+  font-size: 4.2em;
+  line-height: 0.92;
+  padding: 0.05em 0.12em 0 0;
+  font-weight: 600;
+  color: #B8893A;
+  font-feature-settings: 'lnum';
+}
+
+/* ── Hairline rules — for editorial section dividers ──────────────────── */
+.rule-hairline {
+  border-top: 0.5px solid var(--border-subtle);
+}
+.rule-gilt {
+  border-top: 0.5px solid rgba(184, 137, 58, 0.35);
+}
+
+/* ── Eyebrow utility — small-caps editorial kicker labels ────────────── */
+.eyebrow {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ── Wire / pressroom feed surface ────────────────────────────────────── */
+.wire-feed {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%);
+}
+
+/* Live dot — solid + ping ring same color (skill §7). */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #B8893A;
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: #B8893A;
+  opacity: 0.6;
+  animation: livePulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after { animation: none; }
+}
+
+/* ── Surface tokens — the alternative to glass cards ──────────────────── */
+.surface {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+.surface-elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Marquee container for wire-service tickers ──────────────────────── */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
 }
 
 /* ── Static gradient text ── */
