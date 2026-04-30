@@ -34,27 +34,30 @@
   --hover-bg: rgba(61, 44, 18, 0.05);
 }
 .dark {
-  --bg-page: #1a1410;
-  --bg-surface: #1e1810;
-  --bg-elevated: #2a1f14;
-  --text-page: #e8dcc8;
-  --text-muted: #c9b896;
-  --text-heading: #ffffff;
-  --text-sub: #d1d5db;
-  --text-dim: #6b7280;
-  --text-faint: #4b5563;
-  --text-input: #f3f4f6;
-  --genesis-title: #f0e8d8;
-  --genesis-body: #c9b896;
-  --glass-bg: rgba(30, 25, 18, 0.88);
-  --glass-input-bg: rgba(35, 28, 20, 0.9);
-  --scrollbar-track: #1a1410;
-  --scrollbar-thumb: #3d2c12;
-  --scrollbar-thumb-hover: #543d1c;
-  --select-bg: #1e1810;
-  --select-text: #e0d2b8;
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --hover-bg: rgba(255, 255, 255, 0.05);
+  /* Editorial-AI dark mode — warm vellum on warm-black night. Replaces the
+   * previous mix of warm-bg + cool-text-grays which made the dark mode read
+   * as "half publication, half generic SaaS." All text colors now warm. */
+  --bg-page: #0E0A06;        /* night-950 */
+  --bg-surface: #14100B;     /* night-900 */
+  --bg-elevated: #1E1812;    /* night-800 */
+  --text-page: #CDB890;      /* vellum-200 — body default */
+  --text-heading: #FBF5E8;   /* vellum-50 — display headlines */
+  --text-muted: #E8D9BC;     /* vellum-100 */
+  --text-sub: #CDB890;       /* vellum-200 — was cool slate-300; 10.19:1 contrast */
+  --text-dim: #B8A085;       /* vellum-300 — was cool gray-500; 7.89:1 contrast */
+  --text-faint: #8A7860;     /* vellum-400 — was cool gray-600; 4.64:1 contrast (passes AA) */
+  --text-input: #FBF5E8;     /* vellum-50 */
+  --genesis-title: #FBF5E8;
+  --genesis-body: #CDB890;
+  --glass-bg: rgba(20, 16, 11, 0.88);
+  --glass-input-bg: rgba(30, 24, 18, 0.9);
+  --scrollbar-track: #0E0A06;
+  --scrollbar-thumb: #2A2014;     /* ink-800 */
+  --scrollbar-thumb-hover: #3F3220;/* ink-700 */
+  --select-bg: #14100B;
+  --select-text: #E8D9BC;
+  --border-subtle: rgba(184, 160, 133, 0.10);  /* warm vellum tint, not white */
+  --hover-bg: rgba(184, 137, 58, 0.05);        /* gilt tint */
 }
 
 @layer utilities {
@@ -83,12 +86,26 @@
 .placeholder-faint::placeholder { color: var(--text-faint); }
 
 /* Default body face = UI chrome (Geist). Article-detail bodies override to
- * the serif body face via the .editorial-prose class (see §editorial-prose). */
+ * the serif body face via the .editorial-prose class (see §editorial-prose).
+ *
+ * The body owns the page background. Page wrappers should NOT repeat
+ * `bg-page` — doing so paints over the atmosphere layer (paper grain / dot
+ * grid / gilt halo / binding vignette). The .bg-page utility on a wrapper
+ * is now a no-op (transparent) so the body's background + ::before/::after
+ * stack shows through. */
 body {
+  background-color: var(--bg-page);
+  color: var(--text-page);
   font-family: 'Geist', system-ui, -apple-system, sans-serif;
   font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override: when used on a page wrapper, .bg-page is transparent so the
+ * body atmosphere shows. Nested cards/surfaces still get their own bg. */
+[class~="min-h-screen"].bg-page {
+  background-color: transparent;
 }
 
 /* Numbers always tabular + mono in editorial UI. Override by adding `.no-mono`

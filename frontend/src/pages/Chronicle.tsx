@@ -464,8 +464,11 @@ export default function Chronicle() {
                   <dd className="text-heading">Hermes-4-70B</dd>
                   <dt className="text-faint">writer</dt>
                   <dd className="text-heading">
-                    {article.word_count > 0 ? 'Kimi-K2.6' : 'Hermes-4-70B'} ·{' '}
-                    {article.word_count.toLocaleString()} words
+                    {/* The /articles list endpoint doesn't expose writer_provider,
+                       and the runner picks Kimi-K2.6 for canon writes by default
+                       (regen demos can pass 'nous'). Show the canonical default
+                       rather than guessing from word_count, which always matched. */}
+                    Kimi-K2.6 · {article.word_count.toLocaleString()} words
                   </dd>
                   <dt className="text-faint">anti-slop</dt>
                   <dd className="text-heading">
