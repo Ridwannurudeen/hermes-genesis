@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Masthead from '../components/Masthead';
 import { authHeaders, chronicle, type ChronicleStats } from '../api';
 
 /**
@@ -384,29 +385,32 @@ export default function Control() {
   const showcase = active.length === 0 ? recent[0] : null;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="border-b border-slate-800/80 sticky top-0 z-10 bg-slate-950/85 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6 flex-wrap">
-          <button onClick={() => nav('/chronicle')} className="text-slate-400 hover:text-slate-200 text-sm">
-            ← chronicle
-          </button>
+    <div className="min-h-screen bg-page text-page">
+      <Masthead />
+      <div className="border-b border-subtle bg-page/85 backdrop-blur sticky top-14 z-20">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-baseline gap-6 flex-wrap">
+          <span className="eyebrow text-faint">control room</span>
           <div>
-            <h1 className="font-serif text-2xl text-slate-100 leading-tight">Canon Control Room</h1>
-            <p className="text-xs text-slate-500">live agentic pipeline · Hermes-4-70B + Kimi-K2.6</p>
+            <h1 className="font-display text-h2 text-heading leading-tight tracking-[-0.02em]">
+              The pressroom
+            </h1>
+            <p className="eyebrow text-faint mt-1 normal-case tracking-[0.08em]">
+              live agentic pipeline · Hermes-4-70B + Kimi-K2.6
+            </p>
           </div>
-          <div className="ml-auto flex items-center gap-4">
-            <span className="flex items-center gap-2 text-xs text-slate-400">
-              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+          <div className="ml-auto flex items-center gap-5">
+            <span className="flex items-center gap-2 eyebrow text-dim">
+              {connected ? <span className="live-dot" /> : <span className="w-2 h-2 rounded-full bg-faint" />}
               {connected ? 'live' : 'reconnecting…'}
             </span>
             {stats && (
-              <span className="text-xs text-slate-500 font-mono">
+              <span className="font-mono text-micro text-faint tabular-nums">
                 {stats.article_count} articles · {stats.total_words.toLocaleString()} words · {stats.era_count} eras
               </span>
             )}
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
         <section>

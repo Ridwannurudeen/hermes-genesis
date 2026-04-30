@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Masthead from '../components/Masthead';
 import {
   ArrowRight,
   BookOpen,
@@ -155,36 +156,25 @@ export default function Judge() {
   );
 
   return (
-    <main className="min-h-screen bg-page text-slate-100">
-      <header className="border-b border-subtle bg-slate-950/80">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <div>
-              <div className="font-display font-semibold tracking-wide">Judge Mode</div>
-              <div className="text-xs text-slate-500">Hermes Genesis / Chroniclon</div>
-            </div>
-          </div>
-          <nav className="flex items-center gap-2 text-sm">
-            <Link to="/control" className="px-3 py-2 rounded-md text-slate-300 hover:bg-slate-800">
-              Control
-            </Link>
-            <Link to="/demo" className="px-3 py-2 rounded-md text-slate-300 hover:bg-slate-800">
-              Demo
-            </Link>
-            <Link to="/chronicle" className="px-3 py-2 rounded-md text-slate-300 hover:bg-slate-800">
-              Chronicle
-            </Link>
-            <Link
-              to="/regen"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500 text-slate-950 font-semibold"
-            >
-              Regen
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </nav>
+    <main className="min-h-screen bg-page text-page">
+      <Masthead />
+      <div className="border-b border-subtle">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-baseline gap-5">
+          <span className="eyebrow text-faint">curated</span>
+          <h1 className="font-display text-h3 text-heading tracking-[-0.015em]">
+            Judge Mode
+          </h1>
+          <span className="eyebrow text-faint hidden md:inline">
+            agentic pipeline · provenance · proof
+          </span>
+          <Link
+            to="/regen"
+            className="ml-auto inline-flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+          >
+            regen <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
-      </header>
+      </div>
 
       <section className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">

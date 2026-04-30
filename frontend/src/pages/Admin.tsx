@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Masthead from '../components/Masthead';
 import {
   Activity,
   BarChart3,
@@ -138,39 +139,30 @@ export default function Admin() {
   const admin = status?.admin === true;
 
   return (
-    <main className="min-h-screen bg-page text-slate-100">
-      <header className="border-b border-subtle bg-slate-950/80">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className={`w-5 h-5 ${admin ? 'text-emerald-400' : 'text-amber-400'}`} />
-            <div>
-              <div className="font-display font-semibold tracking-wide">Admin</div>
-              <div className="text-xs text-slate-500">
-                {status?.auth_required ? (admin ? 'session active' : 'locked') : 'auth disabled'}
-              </div>
-            </div>
-          </div>
-          <nav className="flex items-center gap-2 text-sm">
-            <Link to="/judge" className="px-3 py-2 rounded-md text-slate-300 hover:bg-slate-800">
-              Judge
-            </Link>
-            <Link to="/" className="px-3 py-2 rounded-md text-slate-300 hover:bg-slate-800">
-              Worlds
-            </Link>
-            {admin ? (
-              <button
-                type="button"
-                onClick={logout}
-                disabled={busy}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 disabled:opacity-50"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
-            ) : null}
-          </nav>
+    <main className="min-h-screen bg-page text-page">
+      <Masthead />
+      <div className="border-b border-subtle">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-baseline gap-5">
+          <span className="eyebrow text-faint">internal</span>
+          <h1 className="font-display text-h3 text-heading tracking-[-0.015em]">
+            Admin
+          </h1>
+          <span className="eyebrow text-faint hidden sm:inline">
+            {status?.auth_required ? (admin ? '· session active' : '· locked') : '· auth disabled'}
+          </span>
+          {admin && (
+            <button
+              type="button"
+              onClick={logout}
+              disabled={busy}
+              className="ml-auto inline-flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-dim hover:text-heading disabled:opacity-50 transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              logout
+            </button>
+          )}
         </div>
-      </header>
+      </div>
 
       <section className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {!admin ? (

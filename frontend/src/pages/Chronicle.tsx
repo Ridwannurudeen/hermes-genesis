@@ -4,6 +4,7 @@ import Autopsy from '../components/Autopsy';
 import ContributeModal from '../components/ContributeModal';
 import EraCeremony from '../components/EraCeremony';
 import LanguageTree from '../components/LanguageTree';
+import Masthead from '../components/Masthead';
 import {
   chronicle,
   type Article,
@@ -312,13 +313,14 @@ export default function Chronicle() {
           onOpenArticle={(s) => nav(`/chronicle/${s}`)}
         />
       )}
-      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
-          <button onClick={() => nav('/')} className="text-slate-400 hover:text-slate-200 text-sm">
-            ← genesis
-          </button>
-          <h1 className="font-serif text-2xl text-slate-100">Chroniclon</h1>
-          <div className="text-xs text-slate-500 hidden md:block">
+      <Masthead />
+      <div className="border-b border-subtle bg-page/85 backdrop-blur sticky top-14 z-20">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-baseline gap-6">
+          <span className="eyebrow text-faint">archive</span>
+          <h1 className="font-display text-h2 text-heading tracking-[-0.02em]">
+            Chroniclon
+          </h1>
+          <div className="eyebrow text-faint hidden md:block">
             a wikipedia for a world that doesn't exist
           </div>
           <div className="ml-auto flex items-center gap-3">
@@ -326,24 +328,11 @@ export default function Chronicle() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="search articles…"
-              className="bg-slate-900/80 border border-slate-700/60 rounded px-3 py-1.5 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-600/50 w-64"
+              className="bg-surface border border-subtle rounded-md px-3 py-1.5 text-body text-input placeholder:text-faint focus:outline-none focus:border-gilt-500 w-64 font-ui"
             />
             <button
-              onClick={() => nav('/control')}
-              className="px-3 py-1.5 rounded border border-amber-700/40 text-amber-200/90 hover:border-amber-500/60 hover:text-amber-100 text-sm"
-              title="Live agentic pipeline view"
-            >
-              control room
-            </button>
-            <button
-              onClick={() => nav('/regen')}
-              className="px-3 py-1.5 rounded border border-slate-700/60 text-slate-300 hover:text-slate-100 hover:border-slate-500 text-sm"
-            >
-              regen
-            </button>
-            <button
               onClick={() => setContributeOpen(true)}
-              className="px-3 py-1.5 rounded bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm font-medium"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
             >
               + contribute
             </button>
@@ -352,7 +341,7 @@ export default function Chronicle() {
         <div className="max-w-7xl mx-auto px-6 pb-4">
           <StatsBanner stats={stats} />
         </div>
-      </header>
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
         <div className="col-span-12 md:col-span-3">

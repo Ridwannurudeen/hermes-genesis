@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Masthead from '../components/Masthead';
 import { streamRegen, type RegenEvent } from '../lib/streamRegen';
 
 /* The judges' seed: a tested, evocative one-liner that produces consistently
@@ -93,21 +94,19 @@ export default function Demo() {
   const phaseIndex = phaseOrder.indexOf(phase);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="border-b border-slate-800/80">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-6">
-          <button onClick={() => nav('/')} className="text-slate-400 hover:text-slate-200 text-sm">
-            ← home
-          </button>
-          <h1 className="font-serif text-2xl text-slate-100">Live demo</h1>
-          <div className="text-xs text-slate-500 hidden md:block">
-            one click — Hermes + Kimi build a civilization in front of you
-          </div>
-          <div className="ml-auto text-xs text-slate-600 italic">
-            seed: <span className="text-slate-400">"{DEMO_SEED.slice(0, 50)}…"</span>
+    <div className="min-h-screen bg-page text-page">
+      <Masthead />
+      <div className="border-b border-subtle">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-baseline gap-6">
+          <span className="eyebrow text-faint">live demo</span>
+          <h1 className="font-display text-h3 text-heading tracking-[-0.015em]">
+            Hermes <span className="text-gilt-500">+</span> Kimi build a civilization in front of you
+          </h1>
+          <div className="ml-auto eyebrow text-faint hidden md:block">
+            seed · <span className="font-mono text-dim normal-case tracking-normal">"{DEMO_SEED.slice(0, 48)}…"</span>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-5xl mx-auto px-6 py-10 space-y-8">
         {/* Phase ladder — judges follow the agentic pipeline at a glance. */}

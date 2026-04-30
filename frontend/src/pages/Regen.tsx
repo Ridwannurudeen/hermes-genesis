@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Masthead from '../components/Masthead';
 import { authHeaders } from '../api';
 
 const PROMPTS = [
@@ -141,18 +142,17 @@ export default function Regen() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <header className="border-b border-slate-800/80">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-6">
-          <button onClick={() => nav('/chronicle')} className="text-slate-400 hover:text-slate-200 text-sm">
-            ← chronicle
-          </button>
-          <h1 className="font-serif text-2xl text-slate-100">Live regen</h1>
-          <div className="text-xs text-slate-500 hidden md:block">
+    <div className="min-h-screen bg-page text-page">
+      <Masthead />
+      <div className="border-b border-subtle">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-baseline gap-5">
+          <span className="eyebrow text-faint">live</span>
+          <h1 className="font-display text-h3 text-heading tracking-[-0.015em]">Regen</h1>
+          <span className="eyebrow text-faint hidden md:inline">
             generate a fresh civilization from a single sentence
-          </div>
+          </span>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         {!running && !done && (
