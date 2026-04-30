@@ -295,6 +295,29 @@ header, main, footer, [data-atmosphere-fg] {
   mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
 }
 
+/* ── Skeleton text-shimmer — replaces SaaS-y spinning wheels ──────────
+ * Apply to a placeholder block while content loads. Looks like a real
+ * publication ghost-loading prose, not a debug spinner. Reduced-motion
+ * users see a static dim block. */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface) 0%,
+    var(--bg-elevated) 50%,
+    var(--bg-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
+  border-radius: 4px;
+}
+@keyframes skeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: var(--bg-surface); }
+}
+
 /* ── Legacy decorative utilities — REDEFINED to editorial tokens ────────
  * Kept as class names so existing JSX in CharacterList/EventTimeline/
  * CharacterChatModal/WorldView keeps rendering, but the visuals are now

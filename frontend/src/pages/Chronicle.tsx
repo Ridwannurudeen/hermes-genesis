@@ -108,13 +108,37 @@ function EraNav({
             }}
             title="View the era's transition ceremony"
             aria-label={`View ${e.name} transition ceremony`}
-            className="absolute top-2 right-2 text-gilt-500/60 hover:text-gilt-400 opacity-0 group-hover:opacity-100 transition-opacity text-base"
+            className="absolute top-2 right-2 text-gilt-500/60 hover:text-gilt-600 dark:hover:text-gilt-400 opacity-0 group-hover:opacity-100 transition-opacity text-base"
           >
             ✦
           </button>
         </div>
       ))}
     </aside>
+  );
+}
+
+function ShareLinkButton({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      const url = `${window.location.origin}/chronicle/${slug}`;
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      /* clipboard blocked — degrade silently */
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="Copy link to this article"
+      className="font-mono text-eyebrow uppercase tracking-eyebrow text-dim hover:text-heading transition-colors"
+    >
+      {copied ? '✓ copied' : 'copy link'}
+    </button>
   );
 }
 
@@ -216,7 +240,7 @@ function renderInline(text: string, onLink: (slug: string) => void): (string | J
       <button
         key={key++}
         onClick={() => onLink(slug)}
-        className="text-gilt-400 hover:text-gilt-400 underline underline-offset-2 decoration-dotted"
+        className="text-gilt-400 hover:text-gilt-600 dark:hover:text-gilt-400 underline underline-offset-2 decoration-dotted"
       >
         {slug.replace(/-/g, ' ')}
       </button>
@@ -337,7 +361,7 @@ export default function Chronicle() {
             />
             <button
               onClick={() => setContributeOpen(true)}
-              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
             >
               + contribute
             </button>
@@ -410,9 +434,11 @@ export default function Chronicle() {
               <h1 className="font-display text-h1 text-heading tracking-[-0.025em] leading-[1.08] mb-4">
                 {article.title}
               </h1>
-              <div className="flex items-baseline justify-between gap-3 mb-8 pb-4 border-b border-subtle">
+              <div className="flex items-baseline justify-between gap-3 mb-8 pb-4 border-b border-subtle flex-wrap">
                 <span className="font-mono text-micro text-dim tabular-nums">
                   {article.word_count.toLocaleString()} words
+                  {' · '}
+                  {Math.max(1, Math.ceil(article.word_count / 240))} min read
                   {article.anti_slop_score !== undefined && article.anti_slop_score !== null
                     ? ` · anti-slop ${article.anti_slop_score.toFixed(2)}`
                     : ''}
@@ -420,14 +446,17 @@ export default function Chronicle() {
                     ? ` · fact-check ${article.fact_check_score.toFixed(2)}`
                     : ''}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setAutopsySlug(article.slug)}
-                  title="Trace this article back to the simulation event"
-                  className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
-                >
-                  ✦ autopsy
-                </button>
+                <div className="flex items-center gap-5">
+                  <ShareLinkButton slug={article.slug} />
+                  <button
+                    type="button"
+                    onClick={() => setAutopsySlug(article.slug)}
+                    title="Trace this article back to the simulation event"
+                    className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
+                  >
+                    ✦ autopsy
+                  </button>
+                </div>
               </div>
 
               {article.illustration_url && (

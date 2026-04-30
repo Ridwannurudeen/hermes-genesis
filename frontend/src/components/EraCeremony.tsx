@@ -43,16 +43,17 @@ type Props = {
 function bannerGradient(artStyle: string): string {
   const s = artStyle.toLowerCase();
   // Editorial palette only — single-accent moods using night/ink/gilt/crimson/moss.
-  // Each mood is a 3-stop gradient on the editorial scale; all "warm" defaults
-  // anchor on night-950 with gilt or moss midtones.
-  if (/charcoal|smoke|ash|cinder|sepia/.test(s)) return 'from-night-950 via-gilt-600/30 to-night-950';
-  if (/parchment|ink|vellum|manuscript/.test(s)) return 'from-night-900 via-gilt-500/25 to-night-900';
-  if (/woodcut|engraving/.test(s)) return 'from-night-950 via-ink-700/40 to-night-950';
-  if (/celestial|astral|moon|star|night/.test(s)) return 'from-night-950 via-vellum-400/15 to-night-950';
-  if (/blood|crimson|war/.test(s)) return 'from-night-950 via-crimson-500/25 to-night-950';
-  if (/verdant|forest|leaf|moss/.test(s)) return 'from-night-950 via-moss-500/25 to-night-950';
-  if (/salt|sea|ocean|wave/.test(s)) return 'from-night-950 via-vellum-300/15 to-night-950';
-  return 'from-night-950 via-gilt-500/20 to-night-950';
+  // Each mood is a 3-stop gradient with the via-stop bumped to 45-60% alpha so
+  // the band actually reads (the previous 15-25% alpha rendered as a flat
+  // dark rectangle).
+  if (/charcoal|smoke|ash|cinder|sepia/.test(s)) return 'from-night-950 via-gilt-600/55 to-night-950';
+  if (/parchment|ink|vellum|manuscript/.test(s)) return 'from-night-900 via-gilt-500/55 to-night-900';
+  if (/woodcut|engraving/.test(s)) return 'from-night-950 via-ink-600/65 to-night-950';
+  if (/celestial|astral|moon|star|night/.test(s)) return 'from-night-950 via-vellum-300/40 to-night-950';
+  if (/blood|crimson|war/.test(s)) return 'from-night-950 via-crimson-500/50 to-night-950';
+  if (/verdant|forest|leaf|moss/.test(s)) return 'from-night-950 via-moss-500/50 to-night-950';
+  if (/salt|sea|ocean|wave/.test(s)) return 'from-night-950 via-vellum-200/40 to-night-950';
+  return 'from-night-950 via-gilt-500/45 to-night-950';
 }
 
 export default function EraCeremony({ eraId, onClose }: Props) {
@@ -256,7 +257,7 @@ export default function EraCeremony({ eraId, onClose }: Props) {
             <div className="text-center pt-2">
               <button
                 onClick={onClose}
-                className="px-5 py-2 rounded-md border border-gilt-500/40 hover:border-gilt-400 text-gilt-500 hover:text-gilt-400 text-sm"
+                className="px-5 py-2 rounded-md border border-gilt-500/40 hover:border-gilt-400 text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 text-sm"
               >
                 close the seal
               </button>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Masthead from '../components/Masthead';
 import { streamRegen, type RegenEvent } from '../lib/streamRegen';
 
@@ -23,6 +23,7 @@ const PHASE_LABELS: Record<Phase, string> = {
 
 export default function Demo() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
   const [phase, setPhase] = useState<Phase>('idle');
   const [progress, setProgress] = useState<string>('');
   const [worldName, setWorldName] = useState<string | null>(null);
@@ -81,14 +82,20 @@ export default function Demo() {
     });
   }, []);
 
-  // Auto-start on mount: judges land here and the demo immediately runs.
+  // Auto-start ONLY when ?auto=1 is present (e.g. linked from Judge mode).
+  // Default behaviour requires an explicit click — every visitor was burning a
+  // real Kimi+Nous canon flow on mount before this. Cleanup still aborts any
+  // in-flight stream on unmount.
+  const auto = searchParams.get('auto') === '1';
   useEffect(() => {
+    if (!auto) return;
     const t = setTimeout(start, 250);
     return () => {
       clearTimeout(t);
       abortRef.current?.();
     };
-  }, [start]);
+  }, [auto, start]);
+  useEffect(() => () => { abortRef.current?.(); }, []);
 
   const phaseOrder: Phase[] = ['world', 'era', 'simulating', 'canonizing', 'done'];
   const phaseIndex = phaseOrder.indexOf(phase);
@@ -109,7 +116,39 @@ export default function Demo() {
       </div>
 
       <main className="max-w-5xl mx-auto px-6 py-10 space-y-8">
+        {/* Idle: explicit start CTA. Auto-start only via ?auto=1. */}
+        {phase === 'idle' && (
+          <section className="border border-subtle rounded p-8 bg-surface">
+            <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
+              <div>
+                <div className="eyebrow text-gilt-500 mb-2 flex items-center gap-2">
+                  <span className="live-dot" />
+                  one-click demo · ~30 seconds
+                </div>
+                <h2 className="font-display text-h2 text-heading tracking-[-0.02em] mb-2">
+                  Watch Hermes <span className="italic text-gilt-500">+</span> Kimi build a civilization.
+                </h2>
+                <p className="font-ui text-body text-sub leading-relaxed">
+                  Press start. The agent will chart geography, breathe in factions, simulate three days of
+                  history, then canonize the most pivotal moments into Kimi-written articles —
+                  live, in front of you.
+                </p>
+                <div className="font-mono text-micro text-faint mt-3 tabular-nums">
+                  seed · "{DEMO_SEED}"
+                </div>
+              </div>
+              <button
+                onClick={start}
+                className="self-stretch md:self-auto px-6 h-12 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 font-ui font-semibold text-body-lg whitespace-nowrap transition-colors"
+              >
+                start the demo →
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* Phase ladder — agentic pipeline at a glance, editorial register. */}
+        {phase !== 'idle' && (
         <section>
           <ol className="grid grid-cols-1 md:grid-cols-5 gap-px bg-subtle border border-subtle rounded overflow-hidden mb-6">
             {phaseOrder.map((p, i) => {
@@ -181,6 +220,7 @@ export default function Demo() {
             {progress || PHASE_LABELS[phase]}
           </div>
         </section>
+        )}
 
         {stats && (
           <section className="grid grid-cols-3 gap-px bg-subtle border border-subtle rounded overflow-hidden">

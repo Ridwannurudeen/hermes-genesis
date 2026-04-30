@@ -3,12 +3,15 @@
 Mounted at /api/chronicle/* by main.py.
 """
 import asyncio
+import html
 import json
 import os
 import re
+from datetime import datetime, timezone
+from email.utils import format_datetime
 from pathlib import Path
-from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Query, Request
+from fastapi.responses import FileResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
@@ -40,6 +43,65 @@ def require_admin(
 # --------------------------------------------------------------------------- #
 #  Stats / index                                                              #
 # --------------------------------------------------------------------------- #
+
+@router.get("/rss.xml")
+async def rss_feed(request: Request) -> Response:
+    """RSS 2.0 feed of the most-recent canonized articles. The single
+    affordance that proves 'this is a real publication.'"""
+    base = str(request.base_url).rstrip("/")
+    rows = store.list_articles(limit=30)
+    items = []
+    for r in rows:
+        slug = r["slug"]
+        article = store.load_article_by_slug(slug)
+        if article is None:
+            continue
+        # First 280 chars of body, stripped of crosslink markup, for description
+        body = re.sub(r"\[\[([a-z0-9\-]+)\]\]", r"\1", article.body_md or "")
+        body = re.sub(r"`{1,3}[^`]*`{1,3}", " ", body)
+        body = re.sub(r"\*+", "", body)
+        body = re.sub(r"\s+", " ", body).strip()
+        description = body[:280] + ("…" if len(body) > 280 else "")
+        # Use updated_at as pubDate; fallback to created_at
+        ts = article.updated_at or article.created_at or datetime.now(timezone.utc)
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        items.append({
+            "title": html.escape(article.title),
+            "link": f"{base}/chronicle/{slug}",
+            "description": html.escape(description),
+            "pub_date": format_datetime(ts),
+            "guid": f"{base}/chronicle/{slug}",
+            "category": article.kind,
+            "year": article.in_world_year,
+        })
+    items_xml = "\n".join(
+        f"""    <item>
+      <title>{i['title']}</title>
+      <link>{i['link']}</link>
+      <guid isPermaLink=\"true\">{i['guid']}</guid>
+      <pubDate>{i['pub_date']}</pubDate>
+      <category>{i['category']}</category>
+      <description>{i['description']}</description>
+    </item>"""
+        for i in items
+    )
+    now = format_datetime(datetime.now(timezone.utc))
+    xml = f"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
+  <channel>
+    <title>Chroniclon — A Wikipedia for a World That Doesn't Exist</title>
+    <link>{base}</link>
+    <atom:link href=\"{base}/api/chronicle/rss.xml\" rel=\"self\" type=\"application/rss+xml\" />
+    <description>Autonomous canonization of fictional civilizations. Hermes-4-70B decides canon. Kimi-K2.6 writes it. The civilization keeps publishing.</description>
+    <language>en</language>
+    <lastBuildDate>{now}</lastBuildDate>
+{items_xml}
+  </channel>
+</rss>
+"""
+    return Response(content=xml, media_type="application/rss+xml; charset=utf-8")
+
 
 @router.get("/stats")
 async def stats() -> dict:

@@ -283,7 +283,7 @@ export default function Autopsy({ slug, onClose, onOpenArticle }: Props) {
                             onOpenArticle?.(r.slug);
                             onClose();
                           }}
-                          className="text-gilt-500 hover:text-gilt-400 text-left"
+                          className="text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 text-left"
                         >
                           {r.title}
                           <span className="text-faint text-xs ml-2">· {r.kind} · year {r.in_world_year}</span>

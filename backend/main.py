@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 import config
 from config import HOST, PORT, CORS_ORIGINS
 from auth import request_is_admin
@@ -118,6 +118,46 @@ app.include_router(chronicle_router)
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "version": "0.1.0", "auth_required": bool(config.API_KEY)}
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt() -> Response:
+    """Allow crawlers everywhere except admin + auth surfaces."""
+    body = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin\n"
+        "Disallow: /api/auth/\n"
+        "Disallow: /api/admin/\n"
+        "\n"
+        "Sitemap: https://hermesgenesis.world/sitemap.xml\n"
+    )
+    return Response(content=body, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml(request: Request) -> Response:
+    """Sitemap of public surfaces + every canonized article slug.
+    Crawler-discoverable; signal that this is a real publication."""
+    from chroniclon import store as chronicle_store
+
+    base = str(request.base_url).rstrip("/")
+    static_paths = [
+        "/", "/chronicle", "/about", "/contributors",
+        "/demo", "/try-it", "/control", "/judge",
+    ]
+    article_rows = chronicle_store.list_articles(limit=10_000)
+    article_paths = [f"/chronicle/{r['slug']}" for r in article_rows]
+
+    urls = [f"{base}{p}" for p in static_paths + article_paths]
+    body_xml = "\n".join(f"  <url><loc>{u}</loc></url>" for u in urls)
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{body_xml}\n"
+        "</urlset>\n"
+    )
+    return Response(content=xml, media_type="application/xml; charset=utf-8")
 
 # Serve frontend static files (in production, after Docker build copies dist/ to static/)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")

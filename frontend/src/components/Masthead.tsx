@@ -71,7 +71,7 @@ export default function Masthead() {
           {authStatus?.admin && (
             <Link
               to="/admin"
-              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
             >
               admin
             </Link>

@@ -132,7 +132,7 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
             disabled={loading || !command.trim()}
             className="flex items-center justify-center w-10 h-10 rounded-lg
               bg-gilt-500/20 border border-gilt-500/30 text-gilt-400
-              hover:bg-gilt-500/30 hover:text-gilt-400
+              hover:bg-gilt-500/30 hover:text-gilt-600 dark:hover:text-gilt-400
               disabled:opacity-40 disabled:cursor-not-allowed
               transition-all duration-200"
           >
@@ -154,7 +154,7 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
                 onClick={() => setCommand(cmd)}
                 disabled={loading}
                 className="text-xs px-2 py-0.5 rounded-full bg-white/[0.04] border border-subtle text-sub
-                  hover:text-gilt-400 hover:border-gilt-500/30 transition-colors
+                  hover:text-gilt-600 dark:hover:text-gilt-400 hover:border-gilt-500/30 transition-colors
                   disabled:opacity-50 disabled:cursor-not-allowed truncate max-w-[200px]"
               >
                 {cmd}

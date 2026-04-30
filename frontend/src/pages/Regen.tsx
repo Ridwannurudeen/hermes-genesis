@@ -235,7 +235,7 @@ export default function Regen() {
                 {(running || completion) && (
                   <button
                     onClick={() => nav('/control')}
-                    className="text-gilt-500 hover:text-gilt-400 text-sm border border-gilt-500/40 hover:border-gilt-500/60 rounded px-3 py-1.5"
+                    className="text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 text-sm border border-gilt-500/40 hover:border-gilt-500/60 rounded px-3 py-1.5"
                     title="Live agentic pipeline view"
                   >
                     control room →

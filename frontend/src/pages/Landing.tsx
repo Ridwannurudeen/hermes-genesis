@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import Masthead from '../components/Masthead';
+import WireTicker from '../components/WireTicker';
 import { api, chronicle, type ArticleSummary, type ChronicleStats } from '../api';
 import type { WorldSummary } from '../types';
 
@@ -246,12 +247,18 @@ export default function Landing() {
       Promise.all([
         api.listWorlds().catch(() => [] as WorldSummary[]),
         chronicle.stats().catch(() => null),
-        chronicle.listArticles({ limit: 5 }).catch(() => ({ items: [] as ArticleSummary[] })),
+        chronicle.listArticles({ limit: 30 }).catch(() => ({ items: [] as ArticleSummary[] })),
       ]).then(([w, s, a]) => {
         if (cancelled) return;
         setWorlds(w);
         setStats(s);
-        setLatest(a.items ?? []);
+        // Curate: prefer articles that already have audio or illustration (full
+        // multimedia showcase) so the front door shows the strongest examples.
+        // Fall back to recency order if not enough media-rich articles.
+        const items = a.items ?? [];
+        const featured = items.filter((x) => x.audio_url || x.illustration_url).slice(0, 5);
+        const fallback = items.filter((x) => !featured.includes(x)).slice(0, 5 - featured.length);
+        setLatest([...featured, ...fallback]);
       });
     };
     load();
@@ -316,6 +323,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-page text-page">
       <Masthead />
+      <WireTicker />
 
       <main className="max-w-6xl mx-auto px-6">
         {/* ── Hero ─────────────────────────────────────────────────── */}
@@ -468,6 +476,38 @@ export default function Landing() {
           <div>
             <div className="eyebrow text-faint mb-2">links</div>
             <ul className="space-y-1 font-ui text-body-sm">
+              <li>
+                <Link
+                  to="/about"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  methodology
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/contributors"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  contributors
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/judge"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  for judges
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="/api/chronicle/rss.xml"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  RSS feed
+                </a>
+              </li>
               <li>
                 <a
                   href="https://github.com/Ridwannurudeen/hermes-genesis"

@@ -171,7 +171,7 @@ export default function Judge() {
           </span>
           <Link
             to="/regen"
-            className="ml-auto inline-flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+            className="ml-auto inline-flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
           >
             regen <ArrowRight className="w-3 h-3" />
           </Link>
@@ -210,7 +210,7 @@ export default function Judge() {
             <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">Pipeline</h2>
             <Link
               to="/control"
-              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
             >
               open live control room →
             </Link>
@@ -238,7 +238,7 @@ export default function Judge() {
             <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">Latest canon</h2>
             <Link
               to="/chronicle"
-              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
             >
               open archive →
             </Link>
