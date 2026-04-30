@@ -109,27 +109,36 @@ export default function Demo() {
       </div>
 
       <main className="max-w-5xl mx-auto px-6 py-10 space-y-8">
-        {/* Phase ladder — judges follow the agentic pipeline at a glance. */}
+        {/* Phase ladder — agentic pipeline at a glance, editorial register. */}
         <section>
-          <ol className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-6">
+          <ol className="grid grid-cols-1 md:grid-cols-5 gap-px bg-subtle border border-subtle rounded overflow-hidden mb-6">
             {phaseOrder.map((p, i) => {
               const reached = phaseIndex >= i || phase === 'done';
               const active = phase === p && phase !== 'done';
               return (
                 <li
                   key={p}
-                  className={`px-3 py-2 rounded-md border text-xs leading-tight transition-colors ${
+                  className={`bg-page px-4 py-3 transition-colors ${
                     active
-                      ? 'border-amber-500/60 bg-amber-900/20 text-amber-100'
+                      ? 'bg-gilt-500/10'
                       : reached
-                      ? 'border-emerald-700/40 bg-emerald-900/10 text-emerald-200'
-                      : 'border-slate-800/60 bg-slate-900/40 text-slate-500'
+                      ? 'bg-moss-500/5'
+                      : ''
                   }`}
                 >
-                  <div className="flex items-center gap-1.5">
-                    {reached && !active && <span aria-hidden>✓</span>}
-                    {active && <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
-                    <span>{PHASE_LABELS[p]}</span>
+                  <div className="eyebrow text-faint mb-1.5 flex items-center gap-1.5">
+                    {reached && !active && (
+                      <span className="text-moss-500" aria-hidden>✓</span>
+                    )}
+                    {active && <span className="live-dot" />}
+                    step {i + 1}
+                  </div>
+                  <div
+                    className={`font-ui text-body-sm leading-tight ${
+                      active ? 'text-heading' : reached ? 'text-sub' : 'text-faint'
+                    }`}
+                  >
+                    {PHASE_LABELS[p]}
                   </div>
                 </li>
               );
@@ -138,58 +147,64 @@ export default function Demo() {
 
           <div className="flex items-baseline justify-between gap-4 flex-wrap">
             <div>
-              <div className="text-[11px] uppercase tracking-widest text-slate-500">
+              <div className="eyebrow text-faint">
                 {phase === 'done' ? 'complete' : phase === 'error' ? 'error' : 'in progress'}
               </div>
-              <div className="font-serif text-3xl text-slate-100 mt-1">
+              <h2 className="font-display text-h1 text-heading tracking-[-0.025em] mt-1">
                 {worldName || 'unnamed civilization'}
-              </div>
-              {eraName && <div className="text-amber-300 text-sm mt-1">era · {eraName}</div>}
+              </h2>
+              {eraName && (
+                <div className="font-mono text-micro text-gilt-500 mt-1 tabular-nums">
+                  era · {eraName}
+                </div>
+              )}
             </div>
             {phase === 'done' && completion && (
-              <div className="flex gap-3">
+              <div className="flex items-center gap-5">
                 <button
                   onClick={() => nav('/control')}
-                  className="text-amber-300 hover:text-amber-200 text-sm border border-amber-700/40 hover:border-amber-500/60 rounded px-3 py-1.5"
+                  className="font-mono text-eyebrow uppercase tracking-eyebrow text-dim hover:text-heading transition-colors"
                 >
                   control room →
                 </button>
                 <button
                   onClick={() => nav('/chronicle')}
-                  className="px-4 py-2 rounded-md bg-amber-700/80 hover:bg-amber-600 text-slate-100 text-sm"
+                  className="inline-flex items-center gap-2 px-5 h-10 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 font-ui font-semibold text-body transition-colors"
                 >
-                  open the canon →
+                  read the canon
                 </button>
               </div>
             )}
           </div>
 
-          <div className="text-sm text-slate-400 italic mt-2">{progress || PHASE_LABELS[phase]}</div>
+          <div className="font-ui text-body text-dim italic mt-3">
+            {progress || PHASE_LABELS[phase]}
+          </div>
         </section>
 
         {stats && (
-          <section className="grid grid-cols-3 gap-px bg-slate-800/40 border border-slate-700/60 rounded-md overflow-hidden">
+          <section className="grid grid-cols-3 gap-px bg-subtle border border-subtle rounded overflow-hidden">
             {[
               { label: 'regions', value: stats.regions },
               { label: 'factions', value: stats.factions },
               { label: 'characters', value: stats.characters },
             ].map((c) => (
-              <div key={c.label} className="bg-slate-900/60 px-4 py-4 text-center">
-                <div className="text-2xl font-semibold text-slate-100">{c.value}</div>
-                <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">{c.label}</div>
+              <div key={c.label} className="bg-page px-4 py-5 text-center">
+                <div className="font-mono text-h2 text-heading tabular-nums">{c.value}</div>
+                <div className="eyebrow text-faint mt-1">{c.label}</div>
               </div>
             ))}
           </section>
         )}
 
         {lexicon.length > 0 && (
-          <section className="border border-slate-800/60 rounded-md p-4">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">lexicon — the era's tongue</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 text-sm font-mono">
+          <section className="border border-subtle rounded p-5">
+            <div className="eyebrow text-faint mb-3">lexicon — the era's tongue</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5 font-mono text-body-sm">
               {lexicon.slice(0, 16).map(([en, lo]) => (
-                <div key={en} className="flex items-baseline justify-between">
-                  <span className="text-slate-500">{en}</span>
-                  <span className="text-amber-300">{lo}</span>
+                <div key={en} className="flex items-baseline justify-between gap-2">
+                  <span className="text-faint">{en}</span>
+                  <span className="text-gilt-500">{lo}</span>
                 </div>
               ))}
             </div>
@@ -198,32 +213,35 @@ export default function Demo() {
 
         {articles.length > 0 && (
           <section>
-            <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">
-              articles canonized — Hermes decided + Kimi wrote
+            <div className="eyebrow text-faint mb-3">
+              articles canonized · Hermes decided + Kimi wrote
             </div>
-            <div className="border border-slate-800/60 rounded-md overflow-hidden">
+            <div className="border-y border-subtle divide-y divide-subtle">
               {articles.map((a) => (
                 <button
                   key={a.slug}
                   onClick={() => nav(`/chronicle/${a.slug}`)}
-                  className="w-full text-left px-4 py-3 border-b border-slate-800/60 last:border-b-0 hover:bg-slate-800/30 transition-colors"
+                  className="w-full text-left px-1 py-3 hover:bg-hover transition-colors group"
                 >
                   <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                    <div className="font-serif text-base text-slate-100">{a.title}</div>
+                    <div className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors">
+                      {a.title}
+                    </div>
                     {a.writer_label && (
                       <span
-                        className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+                        className={`font-mono text-eyebrow uppercase tracking-eyebrow px-1.5 py-0.5 rounded border ${
                           /kimi/i.test(a.writer_label)
-                            ? 'border-violet-700/60 text-violet-200 bg-violet-900/30'
-                            : 'border-amber-700/60 text-amber-200 bg-amber-900/30'
+                            ? 'border-gilt-500/40 text-gilt-500'
+                            : 'border-vellum-400/40 text-vellum-300'
                         }`}
                       >
                         {a.writer_label}
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    {a.kind} · {a.voice} · {a.word_count.toLocaleString()} words
+                  <div className="eyebrow text-faint mt-1 normal-case tracking-[0.06em]">
+                    {a.kind} · {a.voice} ·{' '}
+                    <span className="font-mono tabular-nums">{a.word_count.toLocaleString()} words</span>
                   </div>
                 </button>
               ))}
@@ -232,14 +250,13 @@ export default function Demo() {
         )}
 
         {daysCompleted > 0 && phase !== 'done' && (
-          <div className="text-sm text-slate-500">
-            <span className="text-slate-300 font-mono">{daysCompleted}</span> /{' '}
-            {DEMO_DAYS} days simulated
+          <div className="font-mono text-body-sm text-dim tabular-nums">
+            <span className="text-heading">{daysCompleted}</span> / {DEMO_DAYS} days simulated
           </div>
         )}
 
         {error && (
-          <div className="text-rose-400 text-sm border border-rose-900/60 bg-rose-950/40 rounded-md p-4">
+          <div className="font-ui text-body text-crimson-500 border border-crimson-500/30 bg-crimson-500/10 rounded p-4">
             {error} — try refreshing.
           </div>
         )}
