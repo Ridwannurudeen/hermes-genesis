@@ -1,366 +1,285 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Globe,
-  Zap,
-  Dna,
-  Loader2,
-  Trash2,
-  Calendar,
-  Brain,
-  Swords,
-  BookOpen,
-  Github,
-  ExternalLink,
-  Wifi,
-  WifiOff,
-  ArrowRight,
-  Sparkles,
-  Map,
-  Users,
-  Scroll,
-  Music,
-  Eye,
-  Crown,
-} from 'lucide-react';
-import { api } from '../api';
-import ThemeToggle from '../components/ThemeToggle';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import Masthead from '../components/Masthead';
+import { api, chronicle, type ArticleSummary, type ChronicleStats } from '../api';
 import type { WorldSummary } from '../types';
 
-/* ── Constants ── */
+/* Editorial-AI landing page.
+ *
+ * Replaces the Awwwards-y framer + glass + gradient hero with:
+ *  - publication masthead (Masthead component)
+ *  - editorial display headline with one gilt-accented word
+ *  - signature display-xl live article counter (number-flash on poll)
+ *  - "How it publishes" three-step provenance strip
+ *  - latest canon — top 5 articles as editorial list rows (NOT a card grid)
+ *  - public worlds — hairline-divided list, day count in mono
+ *  - sandbox seed input, restrained (no glow, no framer)
+ *
+ * Constraints:
+ *  - No framer-motion, no `glass`, no `card-glow`, no `bg-gradient-animated`.
+ *  - All numbers tabular-nums + mono.
+ *  - No `rounded-2xl+` on cards.
+ *  - Max one signature moment (the live article counter).
+ *  - Editorial copy register — no emoji icons in chrome.
+ */
 
-const PLACEHOLDER_SEEDS = [
-  'A dying fantasy kingdom where magic is fading and old gods demand sacrifice...',
-  'Post-apocalyptic wasteland where three rival warlords fight over the last water source...',
-  'Cyberpunk megacity where corporate AIs wage invisible wars through human proxies...',
-  'Ancient Rome at the height of its power, but a prophecy foretells its fall...',
-  'A generation ship where factions have forgotten they are in space...',
-  'Norse mythology brought to life — Ragnarok approaches and the gods scheme...',
+const PLACEHOLDERS = [
+  'A world where the moon is sentient and writes letters to the queen.',
+  'An island that remembers everything anyone has ever done on it.',
+  'A civilization that worships extinct languages.',
+  'A city built on the bones of a sleeping titan.',
+  'Norse mythology brought to life — Ragnarok approaches and the gods scheme.',
 ];
 
 const STAGE_MAP: Record<string, string> = {
-  geography: 'Charting geography and climate...',
-  geography_done: 'Terrain mapped!',
-  factions: 'Breathing life into factions...',
-  factions_done: 'Factions established!',
-  characters: 'Forging characters with unique genomes...',
-  characters_done: 'Characters born!',
-  assembling: 'Binding the atlas...',
-  prophecies: 'The oracle speaks...',
-  complete: 'World is alive!',
+  geography: 'charting geography',
+  geography_done: 'terrain mapped',
+  factions: 'breathing life into factions',
+  factions_done: 'factions established',
+  characters: 'forging characters',
+  characters_done: 'characters born',
+  assembling: 'binding the atlas',
+  prophecies: 'the oracle speaks',
+  complete: 'world is alive',
 };
 
-/* ── Tag inference ── */
-
-function inferTag(seed: string): string {
-  const s = seed.toLowerCase();
-  if (/cyber|neon|corp|hack|ai\b|android|robot/.test(s)) return 'Cyberpunk';
-  if (/space|ship|galact|planet|star|orbit|asteroid/.test(s)) return 'Sci-Fi';
-  if (/apocalyp|wasteland|survive|ruin|collapse/.test(s)) return 'Post-Apocalyptic';
-  if (/myth|god|norse|greek|olymp|ragnarok|zeus/.test(s)) return 'Mythology';
-  if (/rome|empire|caesar|medieval|knight|king|queen|throne|castle/.test(s)) return 'Historical';
-  if (/horror|undead|demon|curse|dark|shadow|blood/.test(s)) return 'Dark Fantasy';
-  return 'Fantasy';
+function fmtN(n: number | null | undefined): string {
+  if (n === null || n === undefined || Number.isNaN(n)) return '0';
+  return n.toLocaleString();
 }
 
-function formatTime(iso: string): string {
+function ago(iso: string | undefined | null): string {
+  if (!iso) return '';
   try {
-    const d = new Date(iso);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    const days = Math.floor(hrs / 24);
-    return `${days}d ago`;
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
   } catch {
     return '';
   }
 }
 
-/* ── Sticky header ── */
+/* ── Signature moment: live article counter with number-flash on poll ── */
+function ArticleCounter({ stats }: { stats: ChronicleStats | null }) {
+  const [flash, setFlash] = useState(false);
+  const lastRef = useRef<number | null>(null);
 
-function Header({ connected }: { connected: boolean }) {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-subtle">
-      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-amber-400" />
-          <span className="font-display font-bold text-heading text-sm tracking-wide">
-            CHRONICLON
-          </span>
-          <span className="text-faint text-[10px] uppercase tracking-widest hidden sm:inline">
-            built on Hermes Genesis
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5" title={connected ? 'API connected' : 'API disconnected'}>
-            {connected ? (
-              <Wifi className="w-3.5 h-3.5 text-genesis-400" />
-            ) : (
-              <WifiOff className="w-3.5 h-3.5 text-red-400" />
-            )}
-            <span className={`text-[11px] ${connected ? 'text-genesis-400' : 'text-red-400'}`}>
-              {connected ? 'Online' : 'Offline'}
-            </span>
-          </div>
-          <ThemeToggle />
-          <a
-            href="https://github.com/Ridwannurudeen/hermes-genesis"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-lg text-dim hover:text-heading hover:bg-hover transition-colors"
-            aria-label="GitHub repository"
-          >
-            <Github className="w-4 h-4" />
-          </a>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-/* ── Footer ── */
-
-function Footer() {
-  return (
-    <footer className="border-t border-subtle mt-40">
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
-        <div>
-          <h4 className="text-sm font-semibold text-sub uppercase tracking-wider mb-3">
-            Project
-          </h4>
-          <ul className="space-y-2">
-            <li>
-              <a
-                href="https://github.com/Ridwannurudeen/hermes-genesis"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-dim hover:text-genesis-400 transition-colors flex items-center gap-1.5"
-              >
-                <Github className="w-3.5 h-3.5" />
-                Repository
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://github.com/Ridwannurudeen/hermes-genesis#readme"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-dim hover:text-genesis-400 transition-colors flex items-center gap-1.5"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                Documentation
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold text-sub uppercase tracking-wider mb-3">
-            Powered By
-          </h4>
-          <ul className="space-y-2">
-            <li>
-              <a
-                href="https://nousresearch.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-dim hover:text-genesis-400 transition-colors flex items-center gap-1.5"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Nous Research
-              </a>
-            </li>
-            <li>
-              <span className="text-sm text-faint">
-                Hermes-4-70B
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold text-sub uppercase tracking-wider mb-3">
-            Community
-          </h4>
-          <ul className="space-y-2">
-            <li>
-              <a
-                href="https://discord.gg/nousresearch"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-dim hover:text-genesis-400 transition-colors flex items-center gap-1.5"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Discord
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://x.com/NousResearch"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-dim hover:text-genesis-400 transition-colors flex items-center gap-1.5"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                @NousResearch
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="border-t border-subtle py-6 text-center">
-        <p className="text-xs text-faint">
-          Hermes Genesis &middot; Autonomous Living World Engine &middot; NousResearch Hackathon 2026
-        </p>
-      </div>
-    </footer>
-  );
-}
-
-/* ── Stagger animation variants ── */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
-};
-
-/* ── World card ── */
-
-function WorldCard({
-  world,
-  onDelete,
-  deletingId,
-  onClick,
-}: {
-  world: WorldSummary;
-  onDelete: (e: React.MouseEvent, id: string) => void;
-  deletingId: string | null;
-  onClick: () => void;
-}) {
-  const tag = inferTag(world.seed);
-  const timestamp = world.created_at ? formatTime(world.created_at) : '';
+  useEffect(() => {
+    if (!stats) return;
+    if (lastRef.current !== null && stats.article_count !== lastRef.current) {
+      setFlash(true);
+      const t = setTimeout(() => setFlash(false), 1200);
+      return () => clearTimeout(t);
+    }
+    lastRef.current = stats.article_count;
+  }, [stats]);
 
   return (
-    <motion.div
-      variants={scaleIn}
-      whileHover={{ y: -4 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      onClick={onClick}
-      className="relative glass rounded-2xl p-5 cursor-pointer group overflow-hidden"
-    >
-      {/* Gradient accent at top */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-genesis-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      {/* Delete button */}
-      <button
-        onClick={(e) => onDelete(e, world.id)}
-        disabled={deletingId === world.id}
-        className="absolute top-3 right-3 p-1.5 rounded-lg text-faint hover:text-red-400 hover:bg-hover opacity-0 group-hover:opacity-100 transition-all z-10"
-        aria-label="Delete world"
-      >
-        {deletingId === world.id ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Trash2 className="w-4 h-4" />
-        )}
-      </button>
-
-      {/* Content */}
-      <h3 className="text-lg font-bold text-heading mb-1 pr-8 font-display">
-        {world.name}
-      </h3>
-      <p className="text-dim text-sm mb-4 line-clamp-2 italic leading-relaxed">
-        &ldquo;{world.seed}&rdquo;
-      </p>
-
-      {/* Meta row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-dim">
-          {timestamp && (
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              {timestamp}
-            </span>
-          )}
-          <span className="flex items-center gap-1">
-            Day {world.current_day}
-          </span>
-          <span className="px-2 py-0.5 rounded-full bg-genesis-950/80 text-genesis-400 border border-genesis-800/50 text-[10px] font-medium uppercase tracking-wider">
-            #{tag}
-          </span>
-        </div>
-
-        {/* Explore button */}
-        <span className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-700 text-dim group-hover:border-genesis-600 group-hover:bg-genesis-600 group-hover:text-white transition-all duration-200">
-          Explore
-          <ArrowRight className="w-3 h-3" />
+    <div className="space-y-3">
+      <div className="flex items-baseline gap-3">
+        <span
+          className={`font-mono text-display-xl text-heading tabular-nums leading-none transition-colors ${
+            flash ? 'animate-numberFlash' : ''
+          }`}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {fmtN(stats?.article_count)}
+        </span>
+        <span className="eyebrow text-faint pb-2">articles canonized</span>
+      </div>
+      <div className="flex items-baseline gap-6 font-mono text-micro text-dim tabular-nums">
+        <span>
+          <span className="text-heading">{fmtN(stats?.total_words)}</span> words
+        </span>
+        <span>
+          <span className="text-heading">{fmtN(stats?.era_count)}</span> eras
+        </span>
+        <span>
+          <span className="text-heading">{fmtN(stats?.linguistic_eras)}</span> tongues
+        </span>
+        <span>
+          <span className="text-heading">{fmtN(stats?.contributor_count)}</span> contributors
         </span>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+/* ── How-it-publishes — three-step editorial provenance strip ── */
+function ProvenanceStrip() {
+  const steps = [
+    {
+      eyebrow: 'step one',
+      label: 'canon decision',
+      model: 'Hermes-4-70B',
+      body: 'For each event, an agent decides if it is article-worthy and chooses kind, voice, title, and length.',
+    },
+    {
+      eyebrow: 'step two',
+      label: 'long-form prose',
+      model: 'Kimi-K2.6',
+      body: 'The article is written in the era’s voice, with cross-links into the canon already published.',
+    },
+    {
+      eyebrow: 'step three',
+      label: 'anti-slop · fact-check',
+      model: 'Hermes-4-70B',
+      body: 'Two critic passes score the article; if either fails, it is revised and re-scored before sealing.',
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-subtle border border-subtle rounded-md overflow-hidden">
+      {steps.map((s) => (
+        <div key={s.label} className="bg-page p-6">
+          <div className="eyebrow text-faint mb-2">{s.eyebrow}</div>
+          <div className="font-display text-h4 text-heading mb-1">{s.label}</div>
+          <div className="font-mono text-micro text-gilt-500 mb-4 tabular-nums">{s.model}</div>
+          <p className="font-ui text-body text-sub leading-relaxed">{s.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Latest canon — top N articles as editorial list rows ── */
+function LatestCanon({ articles }: { articles: ArticleSummary[] }) {
+  const navigate = useNavigate();
+  return (
+    <div className="border-y border-subtle divide-y divide-subtle">
+      {articles.map((a) => (
+        <button
+          key={a.slug}
+          onClick={() => navigate(`/chronicle/${a.slug}`)}
+          className="w-full text-left grid grid-cols-[auto_1fr_auto] gap-6 items-baseline px-1 py-4 hover:bg-hover transition-colors group"
+        >
+          <span className="eyebrow text-faint w-20">{a.kind}</span>
+          <span className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors">
+            {a.title}
+          </span>
+          <span className="font-mono text-micro text-dim tabular-nums">
+            year {a.in_world_year} · {a.word_count.toLocaleString()} words
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── Worlds list — hairline-divided rows, NOT a card grid ── */
+function WorldsList({
+  worlds,
+  onDelete,
+  deletingId,
+}: {
+  worlds: WorldSummary[];
+  onDelete: (e: React.MouseEvent, id: string) => void;
+  deletingId: string | null;
+}) {
+  const navigate = useNavigate();
+  if (worlds.length === 0) {
+    return (
+      <div className="font-ui text-body text-dim italic py-6">
+        No public worlds yet. Use the sandbox below to build one.
+      </div>
+    );
+  }
+  return (
+    <div className="border-y border-subtle divide-y divide-subtle">
+      {worlds.map((w) => (
+        <div
+          key={w.id}
+          className="grid grid-cols-[1fr_auto_auto] gap-5 items-baseline py-4 group"
+        >
+          <button
+            onClick={() => navigate(`/world/${w.id}`)}
+            className="text-left flex items-baseline gap-4 min-w-0"
+          >
+            <span className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors truncate">
+              {w.name}
+            </span>
+            <span className="font-ui text-body-sm text-dim italic truncate hidden md:inline">
+              "{w.seed}"
+            </span>
+          </button>
+          <span className="font-mono text-micro text-dim tabular-nums">
+            day {w.current_day} · {ago(w.created_at)}
+          </span>
+          <button
+            onClick={(e) => onDelete(e, w.id)}
+            disabled={deletingId === w.id}
+            aria-label={`Delete ${w.name}`}
+            className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint hover:text-crimson-500 transition-colors disabled:opacity-40"
+          >
+            {deletingId === w.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'delete'}
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }
 
 /* ── Main Landing ── */
-
 export default function Landing() {
   const navigate = useNavigate();
   const [seed, setSeed] = useState('');
   const [loading, setLoading] = useState(false);
   const [stageMessage, setStageMessage] = useState('');
   const [worlds, setWorlds] = useState<WorldSummary[]>([]);
+  const [stats, setStats] = useState<ChronicleStats | null>(null);
+  const [latest, setLatest] = useState<ArticleSummary[]>([]);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [connected, setConnected] = useState(true);
   const abortRef = useRef<(() => void) | null>(null);
 
+  // Bootstrap data + poll stats every 30s for the live counter signature.
   useEffect(() => {
-    api
-      .listWorlds()
-      .then((w) => {
+    let cancelled = false;
+    const load = () => {
+      Promise.all([
+        api.listWorlds().catch(() => [] as WorldSummary[]),
+        chronicle.stats().catch(() => null),
+        chronicle.listArticles({ limit: 5 }).catch(() => ({ items: [] as ArticleSummary[] })),
+      ]).then(([w, s, a]) => {
+        if (cancelled) return;
         setWorlds(w);
-        setConnected(true);
-      })
-      .catch(() => setConnected(false));
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIdx((i) => (i + 1) % PLACEHOLDER_SEEDS.length);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
+        setStats(s);
+        setLatest(a.items ?? []);
+      });
+    };
+    load();
+    const t = setInterval(load, 30_000);
     return () => {
-      abortRef.current?.();
+      cancelled = true;
+      clearInterval(t);
     };
   }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => setPlaceholderIdx((i) => (i + 1) % PLACEHOLDERS.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => () => abortRef.current?.(), []);
 
   const handleGenerate = useCallback(async () => {
     const trimmed = seed.trim();
     if (!trimmed) return;
     setLoading(true);
-    setStageMessage('Weaving the fabric of reality...');
+    setStageMessage('seeding the void');
     setError(null);
     try {
       await new Promise<void>((resolve, reject) => {
         abortRef.current = api.createWorldStream(trimmed, {
           onProgress: (data) => {
-            const msg = STAGE_MAP[data.stage] || data.detail || 'Working...';
+            const msg = STAGE_MAP[data.stage] || data.detail || 'working';
             setStageMessage(msg);
           },
           onComplete: (data) => {
@@ -371,7 +290,7 @@ export default function Landing() {
         });
       });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create world');
+      setError(err instanceof Error ? err.message : 'generation failed');
       setLoading(false);
     }
   }, [seed, navigate]);
@@ -384,433 +303,205 @@ export default function Landing() {
         await api.deleteWorld(id);
         setWorlds((prev) => prev.filter((w) => w.id !== id));
       } catch {
-        // ignore
+        /* ignore */
       } finally {
         setDeletingId(null);
       }
     },
-    []
+    [],
   );
 
+  const placeholder = useMemo(() => PLACEHOLDERS[placeholderIdx], [placeholderIdx]);
+
   return (
-    <div className="min-h-screen bg-page relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-animated opacity-15 pointer-events-none" />
+    <div className="min-h-screen bg-page text-page">
+      <Masthead />
 
-      {/* Radial glow behind hero */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.09) 0%, transparent 70%)',
-        }}
-        aria-hidden="true"
-      />
-
-      <Header connected={connected} />
-
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-16">
-        {/* ── Hero — Chroniclon-first ── */}
-        <motion.section
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="text-center mb-24"
-        >
-          <motion.div
-            variants={fadeUp}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-700/40 bg-amber-950/30 mb-6"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-[11px] uppercase tracking-[0.2em] text-amber-300 font-mono">
+      <main className="max-w-6xl mx-auto px-6">
+        {/* ── Hero ─────────────────────────────────────────────────── */}
+        <section className="pt-20 pb-24 grid lg:grid-cols-[1.4fr_1fr] gap-16 items-end">
+          <div>
+            <div className="eyebrow text-gilt-500 mb-6 flex items-center gap-2">
+              <span className="live-dot" />
               live · written autonomously
-            </span>
-          </motion.div>
-
-          <motion.h1
-            variants={fadeUp}
-            className="text-shimmer text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight font-display mb-6"
-          >
-            CHRONICLON
-          </motion.h1>
-
-          <motion.div variants={fadeUp} className="overflow-hidden mb-4">
-            <motion.p
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="text-xl sm:text-2xl text-sub font-light font-serif italic"
-            >
-              A wikipedia for a world that doesn't exist.
-            </motion.p>
-          </motion.div>
-
-          <motion.p
-            variants={fadeUp}
-            className="text-sm text-dim max-w-2xl mx-auto leading-relaxed mb-7"
-          >
-            One sentence in, a self-writing encyclopedia out. Long-form articles, era-by-era
-            linguistic drift, illustrations and narration for every entry — composed by{' '}
-            <span className="text-amber-300">Hermes-4-70B</span> (canon agent &amp; critics) and{' '}
-            <span className="text-violet-300">Kimi K2.6</span> (long-form prose).
-          </motion.p>
-
-          {/* Primary CTAs */}
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-3 flex-wrap mb-8">
-            <button
-              onClick={() => navigate('/chronicle')}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-700/80 hover:bg-amber-600 text-slate-50 font-semibold text-sm transition-colors btn-glow"
-            >
-              <BookOpen className="w-4 h-4" />
-              Browse the canon
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => navigate('/regen')}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-amber-700/50 hover:border-amber-500 text-amber-200 hover:text-amber-100 font-semibold text-sm transition-colors"
-            >
-              <Sparkles className="w-4 h-4" />
-              Regen a civilization
-            </button>
-            <button
-              onClick={() => navigate('/control')}
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-700 hover:border-slate-500 text-dim hover:text-heading text-sm transition-colors"
-              title="Live agentic pipeline"
-            >
-              <Eye className="w-4 h-4" />
-              Control room
-            </button>
-          </motion.div>
-
-          {/* Model provenance pills — make the dual-model story visible */}
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-2 flex-wrap mb-10 text-[11px] font-mono">
-            <span className="px-2 py-0.5 rounded border border-amber-700/40 bg-amber-950/30 text-amber-300">
-              Hermes-4-70B
-            </span>
-            <span className="text-faint">·</span>
-            <span className="px-2 py-0.5 rounded border border-violet-700/40 bg-violet-950/30 text-violet-300">
-              Kimi-K2.6
-            </span>
-            <span className="text-faint">·</span>
-            <span className="px-2 py-0.5 rounded border border-cyan-700/40 bg-cyan-950/30 text-cyan-300">
-              FLUX
-            </span>
-            <span className="text-faint">·</span>
-            <span className="px-2 py-0.5 rounded border border-emerald-700/40 bg-emerald-950/30 text-emerald-300">
-              ElevenLabs / OpenAI TTS
-            </span>
-          </motion.div>
-        </motion.section>
-
-        {/* ── Sandbox: build your own world from scratch (Genesis flow) ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
-          variants={stagger}
-          className="mb-28"
-        >
-          <motion.div variants={fadeUp} className="text-center mb-6">
-            <h2 className="text-xs uppercase tracking-[0.2em] text-faint font-mono">
-              Sandbox · Hermes Genesis
-            </h2>
-            <p className="text-sm text-dim mt-2">
-              Or skip the wiki and just generate a fresh living world.
-            </p>
-          </motion.div>
-
-          <motion.div variants={fadeUp} className="max-w-xl mx-auto">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={seed}
-                onChange={(e) => setSeed(e.target.value)}
-                placeholder={PLACEHOLDER_SEEDS[placeholderIdx]}
-                disabled={loading}
-                className="flex-1 glass-input rounded-xl px-4 py-3 text-input text-sm placeholder-faint focus:outline-none focus:ring-2 focus:ring-genesis-500/40 disabled:opacity-50 font-light truncate"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleGenerate();
-                }}
-                aria-label="World seed description"
-              />
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleGenerate}
-                disabled={loading || !seed.trim()}
-                className="shrink-0 px-5 py-3 bg-genesis-600 hover:bg-genesis-500 disabled:bg-genesis-900 disabled:text-genesis-700 text-white font-semibold text-sm rounded-xl transition-colors flex items-center gap-2 btn-glow disabled:shadow-none"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Globe className="w-4 h-4" />
-                )}
-                {loading ? stageMessage.split('...')[0] + '...' : 'Generate'}
-              </motion.button>
             </div>
-            <AnimatePresence mode="wait">
-              {error && (
-                <motion.p
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  className="text-red-400 text-sm mt-2 text-center"
-                  role="alert"
-                >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.section>
-
-        {/* ── How It Works ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="mb-32"
-        >
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-heading font-display mb-2">
-              How It Works
-            </h2>
-            <p className="text-sm text-dim">
-              From a single sentence to a living, breathing civilization.
+            <h1 className="font-display text-display sm:text-display-xl text-heading leading-[0.96] tracking-[-0.04em] mb-8">
+              A wikipedia for a world that <span className="italic text-gilt-500">doesn’t exist.</span>
+            </h1>
+            <p className="font-ui text-body-lg text-sub leading-relaxed max-w-xl mb-8">
+              One sentence in. A self-writing encyclopedia out — long-form articles, era-by-era linguistic drift,
+              illustrations, narration. Hermes-4-70B decides what becomes canon. Kimi-K2.6 writes it.
+              Hermes critics score it. The civilization keeps publishing after you leave.
             </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                step: '01',
-                icon: BookOpen,
-                title: 'Describe',
-                text: 'Write a seed — any premise, any genre. A dying empire, a cyberpunk megacity, Norse Ragnarok. One sentence is all it takes.',
-              },
-              {
-                step: '02',
-                icon: Globe,
-                title: 'Generate',
-                text: 'Hermes builds an entire world: regions with terrain, factions with ideology, characters with genetic codes — all interconnected.',
-              },
-              {
-                step: '03',
-                icon: Swords,
-                title: 'Simulate',
-                text: 'Hit play and watch history unfold. Wars erupt, alliances shift, leaders fall, prophecies fulfill. Every event has consequences.',
-              },
-            ].map((item) => (
-              <motion.div
-                key={item.step}
-                variants={scaleIn}
-                className="glass rounded-2xl p-6 text-center relative overflow-hidden group"
+            <div className="flex items-center gap-6 flex-wrap">
+              <Link
+                to="/chronicle"
+                className="inline-flex items-center gap-2 px-5 h-11 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 font-ui font-semibold text-body transition-colors"
               >
-                <span className="absolute top-4 right-4 text-genesis-800/40 font-display text-4xl font-black">
-                  {item.step}
-                </span>
-                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-genesis-400/20 to-genesis-600/20 border border-genesis-400/20 flex items-center justify-center">
-                  <item.icon className="w-6 h-6 text-genesis-400" />
-                </div>
-                <h3 className="text-lg font-bold text-genesis-title font-display mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-genesis-body leading-relaxed">
-                  {item.text}
-                </p>
-              </motion.div>
-            ))}
+                Read the canon
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                to="/regen"
+                className="font-ui text-body text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+              >
+                run a fresh civilization
+              </Link>
+              <Link
+                to="/control"
+                className="font-mono text-eyebrow uppercase tracking-eyebrow text-dim hover:text-heading transition-colors"
+              >
+                control room →
+              </Link>
+            </div>
           </div>
-        </motion.section>
 
-        {/* ── Recent Worlds ── */}
-        <AnimatePresence>
-          {worlds.length > 0 && (
-            <motion.section
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={stagger}
-              className="mb-32"
+          {/* Signature moment — live counter */}
+          <div className="border-l border-subtle pl-10">
+            <ArticleCounter stats={stats} />
+          </div>
+        </section>
+
+        {/* ── How it publishes ─────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="flex items-baseline justify-between mb-6">
+            <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
+              How it publishes
+            </h2>
+            <span className="eyebrow text-faint">three agents · two models</span>
+          </div>
+          <ProvenanceStrip />
+        </section>
+
+        {/* ── Latest canon ─────────────────────────────────────────── */}
+        {latest.length > 0 && (
+          <section className="pb-24">
+            <div className="flex items-baseline justify-between mb-6">
+              <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
+                Latest canon
+              </h2>
+              <Link
+                to="/chronicle"
+                className="font-mono text-eyebrow uppercase tracking-eyebrow text-dim hover:text-heading transition-colors"
+              >
+                full archive →
+              </Link>
+            </div>
+            <LatestCanon articles={latest} />
+          </section>
+        )}
+
+        {/* ── Sandbox: build a fresh world ─────────────────────────── */}
+        <section className="pb-24">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
+              Sandbox
+            </h2>
+            <span className="eyebrow text-faint">hermes genesis</span>
+          </div>
+          <p className="font-ui text-body text-sub max-w-2xl mb-6">
+            Skip the wiki and just generate a fresh living world from a single sentence. The agent will
+            chart geography, breathe in factions, forge characters with genomes, and write the first prophecies.
+          </p>
+          <div className="border border-subtle rounded-md bg-surface p-1.5 flex gap-1.5 max-w-3xl">
+            <input
+              type="text"
+              value={seed}
+              onChange={(e) => setSeed(e.target.value)}
+              placeholder={placeholder}
+              disabled={loading}
+              onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+              aria-label="World seed"
+              className="flex-1 bg-transparent px-3 h-10 font-ui text-body text-input placeholder-faint focus:outline-none disabled:opacity-50"
+            />
+            <button
+              onClick={handleGenerate}
+              disabled={loading || !seed.trim()}
+              className="shrink-0 px-5 h-10 rounded bg-gilt-500 hover:bg-gilt-400 disabled:bg-faint disabled:text-page text-night-950 font-ui font-semibold text-body transition-colors flex items-center gap-2"
             >
-              <motion.div variants={fadeUp} className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-heading font-display">
-                  Recent Worlds
-                </h2>
-                <span className="text-xs text-faint uppercase tracking-wider">
-                  {worlds.length} world{worlds.length !== 1 ? 's' : ''}
-                </span>
-              </motion.div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {worlds.map((w) => (
-                  <WorldCard
-                    key={w.id}
-                    world={w}
-                    onDelete={handleDelete}
-                    deletingId={deletingId}
-                    onClick={() => navigate(`/world/${w.id}`)}
-                  />
-                ))}
-              </div>
-            </motion.section>
+              {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {loading ? stageMessage : 'generate'}
+            </button>
+          </div>
+          {error && (
+            <p className="font-mono text-micro text-crimson-500 mt-3" role="alert">
+              {error}
+            </p>
           )}
-        </AnimatePresence>
+        </section>
 
-        {/* ── What Genesis Creates ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="mb-32"
-        >
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-heading font-display mb-2">
-              One Sentence Creates All of This
-            </h2>
-            <p className="text-sm text-dim max-w-lg mx-auto">
-              Every system is interconnected. One event changes everything.
-            </p>
-          </motion.div>
-
-          {/* What gets generated */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-            {[
-              { icon: Map, label: 'Regions', detail: '5+ with terrain, resources & borders', color: 'text-green-400' },
-              { icon: Users, label: 'Factions', detail: 'Ideology, morale, territory & armies', color: 'text-blue-400' },
-              { icon: Crown, label: 'Characters', detail: '12+ with genetics, roles & lineage', color: 'text-genesis-400' },
-              { icon: Swords, label: 'Events', detail: 'Wars, alliances, betrayals, births', color: 'text-red-400' },
-              { icon: Scroll, label: 'Prophecies', detail: 'Planted and fulfilled dynamically', color: 'text-purple-400' },
-              { icon: Music, label: 'Soundtrack', detail: 'Reactive ambient music per event', color: 'text-cyan-400' },
-            ].map((item) => (
-              <motion.div
-                key={item.label}
-                variants={scaleIn}
-                className="glass rounded-xl p-4 text-center group"
-              >
-                <item.icon className={`w-7 h-7 mx-auto mb-2 ${item.color} opacity-80`} />
-                <p className="text-sm font-bold text-genesis-title font-display">{item.label}</p>
-                <p className="text-[11px] text-genesis-400 mt-1 leading-snug">{item.detail}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Core capabilities — no duplication */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { icon: Swords, title: 'Causal Events', desc: 'Every event has consequences. Betrayals trigger wars, wars cause successions, alliances reshape borders.', accent: 'from-amber-700 to-orange-800' },
-              { icon: Dna, title: 'Genetic Evolution', desc: 'Characters reproduce, mutate, and die. Traits shift across generations through crossover and natural selection.', accent: 'from-genesis-500 to-genesis-700' },
-              { icon: Zap, title: 'God Mode', desc: 'Intervene as a deity. Command storms, forge alliances, or reshape reality with natural language.', accent: 'from-yellow-600 to-amber-700' },
-              { icon: Eye, title: 'Cinematic Mode', desc: 'AI-generated scene art, voice narration, and reactive ambient music — fully autonomous.', accent: 'from-genesis-400 to-genesis-600' },
-              { icon: Brain, title: 'Autonomous Agent', desc: 'A World Master AI governs the simulation — observing, deciding, intervening without human input.', accent: 'from-amber-600 to-yellow-800' },
-              { icon: BookOpen, title: 'Chronicle Export', desc: 'Export your world\'s history as epic lore, campaign kits, or session prep for tabletop RPGs.', accent: 'from-genesis-300 to-genesis-500' },
-            ].map((item) => (
-              <motion.div
-                key={item.title}
-                variants={scaleIn}
-                className="glass rounded-xl p-4 border border-genesis-800/30"
-              >
-                <div className="flex items-center gap-2.5 mb-2">
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.accent} p-[1px] shrink-0`}>
-                    <div className="w-full h-full rounded-lg bg-genesis-950/80 flex items-center justify-center">
-                      <item.icon className="w-4 h-4 text-genesis-title" />
-                    </div>
-                  </div>
-                  <h4 className="text-sm font-bold text-genesis-title font-display">{item.title}</h4>
-                </div>
-                <p className="text-[12px] text-genesis-body leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ── Use Cases ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="mb-32"
-        >
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-heading font-display mb-2">
-              Built For
-            </h2>
-            <p className="text-sm text-dim">
-              Whether you create worlds for fun or for work.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              {
-                title: 'Tabletop RPG',
-                text: 'Generate campaign settings, lore, and NPCs in seconds. Export chronicles as session prep. Your next D&D campaign starts here.',
-              },
-              {
-                title: 'Writers & Worldbuilders',
-                text: 'Build rich, consistent worlds with emergent history. Let the simulation surprise you with plot twists you\'d never write yourself.',
-              },
-              {
-                title: 'Game Developers',
-                text: 'Prototype narrative systems and faction dynamics. Test how political AI behaves when left to govern itself.',
-              },
-              {
-                title: 'AI Research & Education',
-                text: 'Explore emergent behavior, causal reasoning, and multi-agent simulation. A sandbox for studying how LLMs model complex systems.',
-              },
-            ].map((item) => (
-              <motion.div
-                key={item.title}
-                variants={scaleIn}
-                className="glass rounded-2xl p-5 group"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 mt-2 rounded-full bg-genesis-400 shrink-0" />
-                  <div>
-                    <h3 className="text-base font-bold text-genesis-title font-display mb-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-genesis-body leading-relaxed">
-                      {item.text}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ── CTA — scroll back to top ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="max-w-2xl mx-auto mb-32 text-center"
-        >
-          <motion.div variants={fadeUp}>
-            <h2 className="text-2xl font-bold text-heading font-display mb-2">
-              Ready to Create?
-            </h2>
-            <p className="text-sm text-dim mb-6">
-              Describe any world. Genesis will do the rest.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-genesis-600 hover:bg-genesis-500 text-white font-semibold text-lg rounded-2xl transition-colors btn-glow"
-            >
-              <Globe className="w-5 h-5" />
-              Generate World
-            </motion.button>
-          </motion.div>
-        </motion.section>
+        {/* ── Worlds — hairline-divided list ───────────────────────── */}
+        {worlds.length > 0 && (
+          <section className="pb-32">
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
+                Public worlds
+              </h2>
+              <span className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint tabular-nums">
+                {worlds.length} listed
+              </span>
+            </div>
+            <WorldsList worlds={worlds} onDelete={handleDelete} deletingId={deletingId} />
+          </section>
+        )}
       </main>
 
-      <Footer />
+      {/* ── Footer — restrained editorial colophon ───────────────── */}
+      <footer className="border-t border-subtle">
+        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div>
+            <div className="eyebrow text-faint mb-2">colophon</div>
+            <p className="font-ui text-body-sm text-sub leading-relaxed">
+              Chroniclon is built on Hermes Genesis — a research artefact for the
+              NousResearch Hermes Agent Hackathon, 2026.
+            </p>
+          </div>
+          <div>
+            <div className="eyebrow text-faint mb-2">models</div>
+            <ul className="space-y-1 font-mono text-micro text-sub tabular-nums">
+              <li>Hermes-4-70B · canon decision &amp; critics</li>
+              <li>Kimi-K2.6 · long-form prose</li>
+              <li>FLUX · article illustrations</li>
+              <li>ElevenLabs / OpenAI · narration</li>
+            </ul>
+          </div>
+          <div>
+            <div className="eyebrow text-faint mb-2">links</div>
+            <ul className="space-y-1 font-ui text-body-sm">
+              <li>
+                <a
+                  href="https://github.com/Ridwannurudeen/hermes-genesis"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  source
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://nousresearch.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  Nous Research
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://moonshot.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"
+                >
+                  Moonshot AI
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
