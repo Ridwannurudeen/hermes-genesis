@@ -263,10 +263,13 @@ function formatScore(s?: number | null): string {
 }
 
 function modelBadge(model: string): string {
-  if (/kimi/i.test(model)) return 'bg-violet-900/40 text-violet-200 border-violet-700/60';
-  if (/eleven|openai|tts/i.test(model)) return 'bg-emerald-900/40 text-emerald-200 border-emerald-700/60';
-  if (/flux/i.test(model)) return 'bg-cyan-900/40 text-cyan-200 border-cyan-700/60';
-  return 'bg-amber-900/40 text-amber-200 border-amber-700/60';
+  // Editorial palette: gilt = canon (Hermes default), gilt-400 lighter for
+  // Kimi (writer), moss = audio/narration, gilt-600 for image. All single-
+  // accent + semantic alpha — no decorative palette.
+  if (/kimi/i.test(model)) return 'border-gilt-400/60 text-gilt-400';
+  if (/eleven|openai|tts/i.test(model)) return 'border-moss-500/60 text-moss-500';
+  if (/flux/i.test(model)) return 'border-gilt-600/60 text-gilt-600';
+  return 'border-gilt-500/60 text-gilt-500';
 }
 
 function stateGlyph(state: StageState): string {
@@ -277,10 +280,10 @@ function stateGlyph(state: StageState): string {
 }
 
 function stateColor(state: StageState): string {
-  if (state === 'done') return 'text-emerald-300';
-  if (state === 'active') return 'text-amber-300 animate-pulse';
-  if (state === 'failed') return 'text-rose-300';
-  return 'text-slate-600';
+  if (state === 'done') return 'text-moss-500';
+  if (state === 'active') return 'text-gilt-500 animate-pulse';
+  if (state === 'failed') return 'text-crimson-500';
+  return 'text-faint';
 }
 
 export default function Control() {
@@ -412,18 +415,14 @@ export default function Control() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-12">
         <section>
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-[11px] uppercase tracking-widest text-slate-500">
+            <h2 className="font-display text-h3 text-heading tracking-[-0.015em]">
               {active.length > 0 ? 'Active pipelines' : showcase ? 'Last canonization' : 'Active pipelines'}
             </h2>
-            <span className="text-[11px] text-slate-600 font-mono">
-              {active.length > 0
-                ? `${active.length} running`
-                : showcase
-                ? 'replay'
-                : 'idle'}
+            <span className="font-mono text-micro text-faint tabular-nums">
+              {active.length > 0 ? `${active.length} running` : showcase ? 'replay' : 'idle'}
             </span>
           </div>
 
@@ -436,7 +435,7 @@ export default function Control() {
           ) : showcase ? (
             <PipelineCard p={showcase} />
           ) : (
-            <div className="border border-dashed border-slate-800 rounded-md px-6 py-10 text-center text-slate-500 text-sm">
+            <div className="border border-dashed border-subtle rounded px-6 py-10 text-center font-ui text-body text-dim italic">
               The runner is idle. New simulation events will surface here as they enter the canon pipeline.
             </div>
           )}
@@ -445,41 +444,45 @@ export default function Control() {
         {recent.length > 0 && (
           <section>
             <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-[11px] uppercase tracking-widest text-slate-500">Recently published</h2>
-              <span className="text-[11px] text-slate-600 font-mono">{recent.length} shown</span>
+              <h2 className="font-display text-h3 text-heading tracking-[-0.015em]">Recently published</h2>
+              <span className="font-mono text-micro text-faint tabular-nums">{recent.length} shown</span>
             </div>
-            <div className="border border-slate-800/60 rounded-md overflow-hidden">
+            <div className="border-y border-subtle divide-y divide-subtle">
               {recent.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => p.publishedSlug && nav(`/chronicle/${p.publishedSlug}`)}
-                  className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/40 transition-colors"
+                  className="w-full text-left px-1 py-3 hover:bg-hover transition-colors group"
                 >
                   <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                    <span className="font-serif text-base text-slate-100">{p.title || p.eventTitle}</span>
-                    <span className="text-[11px] text-slate-500 font-mono">y. {p.inWorldYear ?? '?'}</span>
+                    <span className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors">
+                      {p.title || p.eventTitle}
+                    </span>
+                    <span className="font-mono text-micro text-faint tabular-nums">
+                      year {p.inWorldYear ?? '?'}
+                    </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-500">
-                    <span className={`px-1.5 py-0.5 rounded border ${modelBadge(p.stages.writing.model)}`}>
+                  <div className="flex flex-wrap items-center gap-3 mt-1.5 eyebrow text-faint normal-case tracking-[0.06em]">
+                    <span className={`font-mono uppercase tracking-eyebrow px-1.5 py-0.5 rounded border ${modelBadge(p.stages.writing.model)}`}>
                       {p.stages.writing.model}
                     </span>
                     <span>{p.kind ?? '—'}</span>
-                    <span className="text-slate-700">·</span>
+                    <span className="text-faint/60">·</span>
                     <span>{p.voice ?? '—'}</span>
-                    <span className="text-slate-700">·</span>
-                    <span>{p.wordCount?.toLocaleString() ?? '?'} words</span>
-                    <span className="text-slate-700">·</span>
-                    <span>slop {formatScore(p.antiSlopScore)}</span>
-                    <span className="text-slate-700">·</span>
-                    <span>fact {formatScore(p.factCheckScore)}</span>
+                    <span className="text-faint/60">·</span>
+                    <span className="font-mono tabular-nums">{p.wordCount?.toLocaleString() ?? '?'} words</span>
+                    <span className="text-faint/60">·</span>
+                    <span className="font-mono tabular-nums">slop {formatScore(p.antiSlopScore)}</span>
+                    <span className="text-faint/60">·</span>
+                    <span className="font-mono tabular-nums">fact {formatScore(p.factCheckScore)}</span>
                     <span className="ml-auto inline-flex gap-1.5">
                       {p.imageUrl && (
-                        <span className="inline-flex items-center text-cyan-300 text-[10px] uppercase tracking-widest border border-cyan-700/50 rounded px-1.5 py-0.5">
+                        <span className="inline-flex items-center font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5">
                           image
                         </span>
                       )}
                       {p.audioUrl && (
-                        <span className="inline-flex items-center text-emerald-400 text-[10px] uppercase tracking-widest border border-emerald-700/50 rounded px-1.5 py-0.5">
+                        <span className="inline-flex items-center font-mono text-eyebrow uppercase tracking-eyebrow text-moss-500 border border-moss-500/40 rounded px-1.5 py-0.5">
                           audio · {p.audioArchetype ?? 'narrator'}
                         </span>
                       )}
@@ -494,15 +497,16 @@ export default function Control() {
         {skipped.length > 0 && (
           <section>
             <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-[11px] uppercase tracking-widest text-slate-500">Skipped (filler / not pivotal)</h2>
-              <span className="text-[11px] text-slate-600 font-mono">{skipped.length} shown</span>
+              <h2 className="font-display text-h3 text-heading tracking-[-0.015em]">Skipped</h2>
+              <span className="font-mono text-micro text-faint tabular-nums">{skipped.length} · filler / not pivotal</span>
             </div>
-            <div className="space-y-1.5 text-sm">
+            <div className="border-y border-subtle divide-y divide-subtle">
               {skipped.map((p) => (
-                <div key={p.id} className="px-3 py-2 rounded bg-slate-900/40 border border-slate-800/60">
-                  <span className="text-slate-300">{p.eventTitle}</span>
-                  <span className="text-slate-600"> — </span>
-                  <span className="text-slate-500 italic">{p.skippedReason || 'no reason given'}</span>
+                <div key={p.id} className="grid grid-cols-[1fr_2fr] gap-6 items-baseline px-1 py-2.5">
+                  <span className="font-ui text-body-sm text-sub truncate">{p.eventTitle}</span>
+                  <span className="font-ui text-body-sm text-dim italic">
+                    {p.skippedReason || 'no reason given'}
+                  </span>
                 </div>
               ))}
             </div>
@@ -515,14 +519,18 @@ export default function Control() {
 
 function PipelineCard({ p }: { p: Pipeline }) {
   return (
-    <div className="border border-slate-800/60 rounded-md p-5 bg-slate-900/30">
-      <div className="flex items-baseline justify-between gap-3 mb-1 flex-wrap">
-        <span className="text-[11px] uppercase tracking-widest text-amber-400/80">event</span>
-        <span className="text-[11px] text-slate-500 font-mono">{p.eraName ?? '—'} · y. {p.inWorldYear ?? '?'}</span>
+    <div className="border border-subtle rounded p-5 bg-surface">
+      <div className="flex items-baseline justify-between gap-3 mb-2 flex-wrap">
+        <span className="eyebrow text-gilt-500">event</span>
+        <span className="font-mono text-micro text-faint tabular-nums">
+          {p.eraName ?? '—'} · year {p.inWorldYear ?? '?'}
+        </span>
       </div>
-      <h3 className="font-serif text-xl text-slate-100 leading-tight mb-1">{p.eventTitle}</h3>
+      <h3 className="font-display text-h3 text-heading tracking-[-0.015em] leading-tight mb-1">
+        {p.eventTitle}
+      </h3>
       {p.title && p.title !== p.eventTitle && (
-        <p className="text-sm text-amber-200/80 italic mb-2">→ {p.title}</p>
+        <p className="font-ui text-body-sm text-gilt-500 italic mb-2">→ {p.title}</p>
       )}
       <div className="mt-4 space-y-2">
         {STAGE_ORDER.map(({ key }) => {
@@ -530,16 +538,22 @@ function PipelineCard({ p }: { p: Pipeline }) {
           return (
             <div
               key={key}
-              className={`flex items-center gap-3 text-sm ${s.state === 'pending' && p.status !== 'running' ? 'opacity-40' : ''}`}
+              className={`grid grid-cols-[20px_1fr_auto] gap-3 items-baseline font-ui text-body-sm ${
+                s.state === 'pending' && p.status !== 'running' ? 'opacity-40' : ''
+              }`}
             >
               <span className={`w-5 text-center font-mono ${stateColor(s.state)}`}>
                 {stateGlyph(s.state)}
               </span>
-              <span className={`text-[11px] uppercase tracking-wider px-2 py-0.5 rounded border ${modelBadge(s.model)}`}>
-                {s.model}
+              <div className="flex items-baseline gap-2 min-w-0">
+                <span className={`font-mono text-eyebrow uppercase tracking-eyebrow px-1.5 py-0.5 rounded border shrink-0 ${modelBadge(s.model)}`}>
+                  {s.model}
+                </span>
+                <span className="text-sub truncate">{s.label}</span>
+              </div>
+              <span className="font-mono text-micro text-faint tabular-nums text-right">
+                {s.detail ?? ''}
               </span>
-              <span className="text-slate-300">{s.label}</span>
-              <span className="text-slate-500 ml-auto text-right text-[12px]">{s.detail ?? ''}</span>
             </div>
           );
         })}

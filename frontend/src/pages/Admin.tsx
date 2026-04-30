@@ -48,39 +48,64 @@ function EndpointTable({ usage }: { usage: UsageSnapshot | null }) {
     return entries.sort((a, b) => b[1].requests - a[1].requests).slice(0, 12);
   }, [usage]);
 
+  // Max requests for sparkline-style bar normalization.
+  const max = rows[0]?.[1]?.requests ?? 0;
+
   if (!rows.length) {
     return (
-      <div className="border border-subtle rounded-md px-4 py-8 text-center text-dim">
+      <div className="border border-subtle rounded px-4 py-10 text-center font-ui text-body text-dim italic">
         No usage events recorded yet.
       </div>
     );
   }
 
   return (
-    <div className="border border-subtle rounded-md overflow-hidden">
-      <div className="grid grid-cols-[minmax(0,1fr)_90px_90px_110px_90px] gap-px bg-slate-800/70 text-[11px] uppercase tracking-widest text-slate-500">
-        <div className="bg-slate-950/80 px-3 py-2">endpoint</div>
-        <div className="bg-slate-950/80 px-3 py-2 text-right">requests</div>
-        <div className="bg-slate-950/80 px-3 py-2 text-right">failures</div>
-        <div className="bg-slate-950/80 px-3 py-2 text-right">model units</div>
-        <div className="bg-slate-950/80 px-3 py-2 text-right">avg ms</div>
+    <div className="border-y border-subtle">
+      <div className="grid grid-cols-[minmax(0,1fr)_140px_80px_80px_100px_80px] eyebrow text-faint border-b border-subtle">
+        <div className="px-3 py-2.5">endpoint</div>
+        <div className="px-3 py-2.5">load</div>
+        <div className="px-3 py-2.5 text-right">requests</div>
+        <div className="px-3 py-2.5 text-right">failures</div>
+        <div className="px-3 py-2.5 text-right">model units</div>
+        <div className="px-3 py-2.5 text-right">avg ms</div>
       </div>
-      {rows.map(([endpoint, row]) => (
-        <div
-          key={endpoint}
-          className="grid grid-cols-[minmax(0,1fr)_90px_90px_110px_90px] gap-px bg-slate-800/50 text-sm"
-        >
-          <div className="bg-slate-950/45 px-3 py-2 font-mono text-slate-300 truncate">{endpoint}</div>
-          <div className="bg-slate-950/45 px-3 py-2 text-right text-slate-200">{fmt(row.requests)}</div>
-          <div className="bg-slate-950/45 px-3 py-2 text-right text-slate-200">{fmt(row.failures)}</div>
-          <div className="bg-slate-950/45 px-3 py-2 text-right text-slate-200">
-            {fmt(row.estimated_model_units)}
-          </div>
-          <div className="bg-slate-950/45 px-3 py-2 text-right text-slate-400">
-            {Math.round(row.avg_ms)}
-          </div>
-        </div>
-      ))}
+      <div className="divide-y divide-subtle">
+        {rows.map(([endpoint, row]) => {
+          const failureRate = row.requests > 0 ? row.failures / row.requests : 0;
+          const tone = failureRate > 0.05 ? 'text-crimson-500' : 'text-heading';
+          const widthPct = max > 0 ? Math.max(2, (row.requests / max) * 100) : 0;
+          return (
+            <div
+              key={endpoint}
+              className="grid grid-cols-[minmax(0,1fr)_140px_80px_80px_100px_80px] items-center font-ui text-body-sm hover:bg-hover transition-colors"
+            >
+              <div className="px-3 py-2.5 font-mono text-micro text-sub truncate">{endpoint}</div>
+              {/* Inline sparkline-bar — proportion of total request volume */}
+              <div className="px-3 py-2.5">
+                <div className="h-1.5 bg-elevated rounded-sm overflow-hidden">
+                  <div
+                    className="h-full bg-gilt-500/70"
+                    style={{ width: `${widthPct}%` }}
+                    aria-hidden
+                  />
+                </div>
+              </div>
+              <div className="px-3 py-2.5 text-right font-mono tabular-nums text-heading">
+                {fmt(row.requests)}
+              </div>
+              <div className={`px-3 py-2.5 text-right font-mono tabular-nums ${tone}`}>
+                {fmt(row.failures)}
+              </div>
+              <div className="px-3 py-2.5 text-right font-mono tabular-nums text-sub">
+                {fmt(row.estimated_model_units)}
+              </div>
+              <div className="px-3 py-2.5 text-right font-mono tabular-nums text-dim">
+                {Math.round(row.avg_ms)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -164,10 +189,10 @@ export default function Admin() {
         </div>
       </div>
 
-      <section className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <section className="max-w-7xl mx-auto px-6 py-10 space-y-10">
         {!admin ? (
-          <form onSubmit={login} className="max-w-xl border border-subtle rounded-md p-5 bg-slate-950/45">
-            <label className="block text-xs uppercase tracking-widest text-slate-500 mb-2" htmlFor="admin-key">
+          <form onSubmit={login} className="max-w-xl border border-subtle rounded p-6 bg-surface">
+            <label className="eyebrow text-faint mb-2 block" htmlFor="admin-key">
               genesis api key
             </label>
             <div className="flex gap-2">
@@ -176,13 +201,13 @@ export default function Admin() {
                 type="password"
                 value={apiKey}
                 onChange={(ev) => setApiKey(ev.target.value)}
-                className="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-amber-500"
+                className="flex-1 bg-page border border-subtle rounded-md px-3 py-2 font-mono text-body-sm text-input outline-none focus:border-gilt-500"
                 autoComplete="current-password"
               />
               <button
                 type="submit"
                 disabled={busy || !apiKey}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-500 text-slate-950 font-semibold disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 font-ui font-semibold text-body disabled:opacity-50 transition-colors"
               >
                 <KeyRound className="w-4 h-4" />
                 Login
@@ -191,30 +216,30 @@ export default function Admin() {
           </form>
         ) : (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-800/60 border border-slate-800 rounded-md overflow-hidden">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-subtle border border-subtle rounded overflow-hidden">
               {cells.map(({ label, value, icon: Icon }) => (
-                <div key={label} className="bg-slate-950/65 px-4 py-4">
+                <div key={label} className="bg-page px-4 py-5">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-2xl font-semibold tracking-tight">{value}</div>
-                      <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-1">{label}</div>
+                      <div className="font-mono text-h2 text-heading tabular-nums">{value}</div>
+                      <div className="eyebrow text-faint mt-1">{label}</div>
                     </div>
-                    <Icon className="w-5 h-5 text-amber-400/80" />
+                    <Icon className="w-5 h-5 text-gilt-500/80" />
                   </div>
                 </div>
               ))}
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h1 className="font-display text-xl font-semibold">Usage</h1>
+              <div className="flex items-baseline justify-between mb-4">
+                <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">Usage</h2>
                 <button
                   type="button"
                   onClick={() => load().catch((err) => setError(err instanceof Error ? err.message : String(err)))}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-sm hover:bg-slate-800"
+                  className="inline-flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-dim hover:text-heading transition-colors"
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  Refresh
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  refresh
                 </button>
               </div>
               <EndpointTable usage={usage} />
@@ -223,7 +248,7 @@ export default function Admin() {
         )}
 
         {error ? (
-          <div className="border border-red-900/70 bg-red-950/30 text-red-200 rounded-md px-4 py-3 text-sm">
+          <div className="border border-crimson-500/30 bg-crimson-500/10 text-crimson-500 rounded px-4 py-3 font-ui text-body">
             {error}
           </div>
         ) : null}

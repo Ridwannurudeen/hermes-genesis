@@ -50,15 +50,15 @@ function MetricBand({ stats }: { stats: ChronicleStats | null }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-slate-800/70 border border-slate-800 rounded-md overflow-hidden">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-subtle border border-subtle rounded overflow-hidden">
       {cells.map(({ label, value, icon: Icon }) => (
-        <div key={label} className="bg-slate-950/70 px-4 py-4">
+        <div key={label} className="bg-page px-4 py-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-3xl font-semibold tracking-tight text-slate-50">{value}</div>
-              <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-1">{label}</div>
+              <div className="font-mono text-h2 text-heading tabular-nums">{value}</div>
+              <div className="eyebrow text-faint mt-1">{label}</div>
             </div>
-            <Icon className="w-5 h-5 text-amber-400/80" />
+            <Icon className="w-5 h-5 text-gilt-500/80" />
           </div>
         </div>
       ))}
@@ -69,7 +69,7 @@ function MetricBand({ stats }: { stats: ChronicleStats | null }) {
 function ArticleStrip({ articles }: { articles: ArticleSummary[] }) {
   if (!articles.length) {
     return (
-      <div className="border border-subtle rounded-md px-4 py-10 text-center text-dim">
+      <div className="border border-subtle rounded px-4 py-10 text-center font-ui text-body text-dim italic">
         No canon articles available yet.
       </div>
     );
@@ -81,27 +81,29 @@ function ArticleStrip({ articles }: { articles: ArticleSummary[] }) {
         <Link
           key={article.slug}
           to={`/chronicle/${article.slug}`}
-          className="group border border-slate-800 rounded-md overflow-hidden bg-slate-950/55 hover:border-amber-700/70 transition-colors"
+          className="group border border-subtle rounded overflow-hidden bg-surface hover:border-gilt-500/40 transition-colors"
         >
           {article.illustration_url ? (
             <img
               src={article.illustration_url}
               alt=""
               loading="lazy"
-              className="w-full aspect-[4/3] object-cover bg-slate-900"
+              className="w-full aspect-[4/3] object-cover bg-elevated"
             />
           ) : (
-            <div className="aspect-[4/3] bg-slate-900/70 flex items-center justify-center">
-              <BookOpen className="w-8 h-8 text-slate-700" />
+            <div className="aspect-[4/3] bg-elevated flex items-center justify-center">
+              <BookOpen className="w-7 h-7 text-faint" />
             </div>
           )}
           <div className="p-3">
-            <div className="text-sm font-serif text-slate-100 leading-tight line-clamp-2 group-hover:text-amber-200">
+            <div className="font-display text-body-lg text-heading leading-tight line-clamp-2 group-hover:text-gilt-500 transition-colors">
               {article.title}
             </div>
-            <div className="mt-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-slate-500">
+            <div className="mt-2 flex items-center justify-between eyebrow text-faint">
               <span>{article.kind}</span>
-              <span>{article.word_count}w</span>
+              <span className="font-mono tabular-nums normal-case tracking-normal">
+                {article.word_count}w
+              </span>
             </div>
           </div>
         </Link>
@@ -119,11 +121,11 @@ function ProofGrid({ status }: { status: AuthStatus | null }) {
   ];
 
   return (
-    <div className="grid md:grid-cols-4 gap-px bg-slate-800/70 border border-slate-800 rounded-md overflow-hidden">
+    <div className="grid md:grid-cols-4 gap-px bg-subtle border border-subtle rounded overflow-hidden">
       {rows.map(([label, value]) => (
-        <div key={label} className="bg-slate-950/65 px-4 py-4">
-          <div className="text-[11px] uppercase tracking-widest text-slate-500">{label}</div>
-          <div className="mt-1 text-sm text-slate-200 leading-snug">{value}</div>
+        <div key={label} className="bg-page px-4 py-5">
+          <div className="eyebrow text-faint">{label}</div>
+          <div className="mt-1.5 font-ui text-body text-sub leading-snug">{value}</div>
         </div>
       ))}
     </div>
@@ -176,34 +178,27 @@ export default function Judge() {
         </div>
       </div>
 
-      <section className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
+      <section className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+        <div className="grid lg:grid-cols-[1fr_360px] gap-8 items-start">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-300 mb-3">
-              autonomous creative agent
-            </div>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight text-slate-50 max-w-4xl">
-              Living worlds that turn simulated history into canon, art, audio, and playable lore.
+            <div className="eyebrow text-gilt-500 mb-4">autonomous creative agent</div>
+            <h1 className="font-display text-display text-heading tracking-[-0.035em] leading-[1.02] max-w-4xl">
+              Living worlds that turn simulated history into{' '}
+              <span className="italic text-gilt-500">canon</span>, art, audio, and playable lore.
             </h1>
           </div>
-          <div className="border border-slate-800 rounded-md bg-slate-950/55 p-4">
-            <div className="text-[11px] uppercase tracking-widest text-slate-500 mb-3">submission proof</div>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-400">Kimi eligibility</span>
-                <span className="text-emerald-300">present</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-400">Nous agent fit</span>
-                <span className="text-emerald-300">present</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-400">Admin auth</span>
-                <span className={status?.auth_required ? 'text-emerald-300' : 'text-amber-300'}>
-                  {status?.auth_required ? 'enabled' : 'dev mode'}
-                </span>
-              </div>
-            </div>
+          <div className="border border-subtle rounded p-5 bg-surface">
+            <div className="eyebrow text-faint mb-3">submission proof</div>
+            <dl className="grid grid-cols-[1fr_auto] gap-y-2 gap-x-4 font-mono text-micro tabular-nums">
+              <dt className="text-dim">Kimi eligibility</dt>
+              <dd className="text-moss-500">present</dd>
+              <dt className="text-dim">Nous agent fit</dt>
+              <dd className="text-moss-500">present</dd>
+              <dt className="text-dim">Admin auth</dt>
+              <dd className={status?.auth_required ? 'text-moss-500' : 'text-gilt-500'}>
+                {status?.auth_required ? 'enabled' : 'dev mode'}
+              </dd>
+            </dl>
           </div>
         </div>
 
@@ -211,42 +206,48 @@ export default function Judge() {
         <ProofGrid status={status} />
 
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-xl font-semibold">Pipeline</h2>
-            <Link to="/control" className="text-sm text-amber-300 hover:text-amber-200">
-              Open live control room
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">Pipeline</h2>
+            <Link
+              to="/control"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+            >
+              open live control room →
             </Link>
           </div>
-          <div className="grid md:grid-cols-7 gap-2">
+          <div className="grid md:grid-cols-7 gap-px bg-subtle border border-subtle rounded overflow-hidden">
             {activePipeline.map(({ label, model, icon: Icon, active }) => (
               <div
                 key={label}
-                className={`border rounded-md p-3 min-h-[116px] ${
-                  active
-                    ? 'border-emerald-800/70 bg-emerald-950/15'
-                    : 'border-slate-800 bg-slate-950/50'
+                className={`bg-page p-4 min-h-[120px] transition-colors ${
+                  active ? 'bg-gilt-500/8' : ''
                 }`}
               >
-                <Icon className={active ? 'w-5 h-5 text-emerald-300' : 'w-5 h-5 text-slate-600'} />
-                <div className="mt-3 text-sm text-slate-100 leading-tight">{label}</div>
-                <div className="mt-1 text-[11px] uppercase tracking-wider text-slate-500">{model}</div>
+                <Icon className={`w-5 h-5 ${active ? 'text-gilt-500' : 'text-faint'}`} />
+                <div className="mt-3 font-ui text-body-sm text-heading leading-tight">{label}</div>
+                <div className="mt-1 font-mono text-eyebrow uppercase tracking-eyebrow text-faint">
+                  {model}
+                </div>
               </div>
             ))}
           </div>
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-xl font-semibold">Latest Canon</h2>
-            <Link to="/chronicle" className="text-sm text-amber-300 hover:text-amber-200">
-              Open archive
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">Latest canon</h2>
+            <Link
+              to="/chronicle"
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-400 transition-colors"
+            >
+              open archive →
             </Link>
           </div>
           <ArticleStrip articles={articles} />
         </div>
 
         {error ? (
-          <div className="border border-red-900/70 bg-red-950/30 text-red-200 rounded-md px-4 py-3 text-sm">
+          <div className="border border-crimson-500/30 bg-crimson-500/10 text-crimson-500 rounded px-4 py-3 font-ui text-body">
             {error}
           </div>
         ) : null}
