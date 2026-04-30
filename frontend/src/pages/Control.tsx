@@ -374,6 +374,10 @@ export default function Control() {
     () => pipelines.filter((p) => p.status === 'skipped').slice(0, 4),
     [pipelines],
   );
+  // When no live pipeline is running, surface the most recently completed one
+  // with all stages shown — keeps the demo hero non-empty and gives judges a
+  // full agentic-pipeline view at all times.
+  const showcase = active.length === 0 ? recent[0] : null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
@@ -403,19 +407,29 @@ export default function Control() {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
         <section>
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-[11px] uppercase tracking-widest text-slate-500">Active pipelines</h2>
-            <span className="text-[11px] text-slate-600 font-mono">{active.length} running</span>
+            <h2 className="text-[11px] uppercase tracking-widest text-slate-500">
+              {active.length > 0 ? 'Active pipelines' : showcase ? 'Last canonization' : 'Active pipelines'}
+            </h2>
+            <span className="text-[11px] text-slate-600 font-mono">
+              {active.length > 0
+                ? `${active.length} running`
+                : showcase
+                ? 'replay'
+                : 'idle'}
+            </span>
           </div>
 
-          {active.length === 0 ? (
-            <div className="border border-dashed border-slate-800 rounded-md px-6 py-10 text-center text-slate-500 text-sm">
-              The runner is idle. New simulation events will surface here as they enter the canon pipeline.
-            </div>
-          ) : (
+          {active.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {active.map((p) => (
                 <PipelineCard key={p.id} p={p} />
               ))}
+            </div>
+          ) : showcase ? (
+            <PipelineCard p={showcase} />
+          ) : (
+            <div className="border border-dashed border-slate-800 rounded-md px-6 py-10 text-center text-slate-500 text-sm">
+              The runner is idle. New simulation events will surface here as they enter the canon pipeline.
             </div>
           )}
         </section>

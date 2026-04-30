@@ -101,39 +101,43 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
   return (
     <button
       onClick={() => onOpen(a.slug)}
-      className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"
+      className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors flex gap-3"
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="font-serif text-lg text-slate-100 leading-tight flex items-center gap-2">
-          {a.title}
-          {a.illustration_url ? (
-            <span
-              title="hero image available"
-              className="inline-flex items-center text-cyan-300 text-[10px] uppercase tracking-widest border border-cyan-700/50 rounded px-1.5 py-0.5"
-            >
-              image
-            </span>
-          ) : null}
-          {a.audio_url ? (
-            <span
-              title="audio narration available"
-              className="inline-flex items-center text-amber-400/90 text-[10px] uppercase tracking-widest border border-amber-700/50 rounded px-1.5 py-0.5"
-            >
-              audio
-            </span>
+      {a.illustration_url ? (
+        <img
+          src={a.illustration_url}
+          alt=""
+          loading="lazy"
+          className="w-20 h-14 rounded shrink-0 object-cover border border-slate-800/80 bg-slate-900"
+        />
+      ) : (
+        <div className="w-20 h-14 rounded shrink-0 border border-slate-800/80 bg-slate-900/40" />
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="font-serif text-lg text-slate-100 leading-tight flex items-center gap-2 truncate">
+            <span className="truncate">{a.title}</span>
+            {a.audio_url ? (
+              <span
+                title="audio narration available"
+                className="inline-flex items-center text-amber-400/90 text-[10px] uppercase tracking-widest border border-amber-700/50 rounded px-1.5 py-0.5 shrink-0"
+              >
+                audio
+              </span>
+            ) : null}
+          </div>
+          <div className="shrink-0 text-[11px] text-slate-500 font-mono">y. {a.in_world_year}</div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-1">
+          <span className="text-[11px] uppercase tracking-wider text-slate-500">{a.kind}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded ${VOICE_BADGE[a.voice] ?? 'bg-slate-700/40 text-slate-300'}`}>
+            {a.voice}
+          </span>
+          <span className="text-[11px] text-slate-500">{a.word_count.toLocaleString()} words</span>
+          {a.contributor ? (
+            <span className="text-[11px] text-emerald-400">via @{a.contributor}</span>
           ) : null}
         </div>
-        <div className="shrink-0 text-[11px] text-slate-500 font-mono">y. {a.in_world_year}</div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 mt-1">
-        <span className="text-[11px] uppercase tracking-wider text-slate-500">{a.kind}</span>
-        <span className={`text-[10px] px-1.5 py-0.5 rounded ${VOICE_BADGE[a.voice] ?? 'bg-slate-700/40 text-slate-300'}`}>
-          {a.voice}
-        </span>
-        <span className="text-[11px] text-slate-500">{a.word_count.toLocaleString()} words</span>
-        {a.contributor ? (
-          <span className="text-[11px] text-emerald-400">via @{a.contributor}</span>
-        ) : null}
       </div>
     </button>
   );
