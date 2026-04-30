@@ -32,6 +32,12 @@ CURATED_DEMO_NAMES = {
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="report changes without writing")
+    parser.add_argument(
+        "--force-curated",
+        action="store_true",
+        help="re-promote curated demo names even if their visibility is already set "
+        "(self-heals deploy races where an old runner stripped the field)",
+    )
     parser.add_argument("--data-dir", default=os.getenv("DATA_DIR", "data/worlds"))
     args = parser.parse_args()
 
@@ -53,11 +59,21 @@ def main() -> int:
             continue
 
         existing = data.get("visibility")
+        is_curated = data.get("name") in CURATED_DEMO_NAMES
+
         if existing in ("public", "unlisted", "private"):
-            skipped.append(f"{data.get('name')} ({existing})")
+            # Already set. If we're force-promoting and this is a curated demo
+            # currently NOT public, fix it. Otherwise skip.
+            if args.force_curated and is_curated and existing != "public":
+                data["visibility"] = "public"
+                promoted.append(f"{data.get('name')} ({data.get('id')}) — re-promoted from {existing}")
+                if not args.dry_run:
+                    f.write_text(json.dumps(data, indent=2), encoding="utf-8")
+            else:
+                skipped.append(f"{data.get('name')} ({existing})")
             continue
 
-        if data.get("name") in CURATED_DEMO_NAMES:
+        if is_curated:
             data["visibility"] = "public"
             promoted.append(f"{data.get('name')} ({data.get('id')})")
         else:
