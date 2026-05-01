@@ -18,3 +18,4 @@ gen-video-guide.py
 
 # Test fixtures created by usage middleware during pytest runs
 backend/tests/tmp_test_*/
+remotion/
