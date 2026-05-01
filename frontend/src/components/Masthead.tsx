@@ -103,10 +103,12 @@ export default function Masthead() {
           </span>
         </Link>
 
-        {/* Freshness pill — only shown when we have a recent timestamp */}
+        {/* Freshness pill — only shown when we have a recent timestamp.
+         * whitespace-nowrap so the label doesn't wrap to 4 lines when the
+         * masthead row is squeezed between the wordmark and the nav. */}
         {freshness && (
           <div
-            className="hidden sm:flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-faint"
+            className="hidden sm:flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-faint shrink-0 whitespace-nowrap"
             title={`Last canon write: ${new Date(lastCanonWrite!).toLocaleString()}`}
           >
             {isLive && <span className="live-dot" aria-hidden />}
