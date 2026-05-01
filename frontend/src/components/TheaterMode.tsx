@@ -494,7 +494,7 @@ export default function TheaterMode({
           {/* Scene loading indicator */}
           {sceneLoading && (
             <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-genesis-400 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-gilt-500 animate-pulse" />
               <span className="text-[10px] text-white/20 uppercase tracking-widest">Generating scene...</span>
             </div>
           )}
@@ -952,7 +952,7 @@ export default function TheaterMode({
               disabled={events.length === 0}
               className={`p-2 rounded-lg border transition-colors ${
  autoPlay
- ? 'bg-genesis-600/20 border-genesis-500/40 text-genesis-400'
+ ? 'bg-gilt-600/20 border-gilt-500/40 text-gilt-500'
  : 'bg-ink-900 border-ink-800 text-vellum-400 hover:text-white hover:border-ink-600'
  } disabled:opacity-30 disabled:cursor-not-allowed`}
             >

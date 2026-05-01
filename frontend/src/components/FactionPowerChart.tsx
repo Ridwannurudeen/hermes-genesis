@@ -76,7 +76,7 @@ export default function FactionPowerChart({ snapshots, factions }: Props) {
             onClick={() => setMetric(m.key)}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
  metric === m.key
- ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400'
+ ? 'bg-gilt-600/20 border border-gilt-500/50 text-gilt-500'
  : 'bg-white/[0.03] border border-subtle text-dim hover:text-sub hover:border-white/[0.12]'
  }`}
           >

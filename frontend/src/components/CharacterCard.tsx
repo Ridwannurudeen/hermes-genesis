@@ -63,10 +63,10 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
 
       {/* Fitness */}
       <div className="flex items-center gap-2">
-        <Activity className="w-3 h-3 text-genesis-500" />
+        <Activity className="w-3 h-3 text-gilt-500" />
         <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
           <div
-            className="h-full rounded-full bg-genesis-500"
+            className="h-full rounded-full bg-gilt-500"
             style={{ width: `${Math.max(2, character.fitness * 100)}%` }}
           />
         </div>

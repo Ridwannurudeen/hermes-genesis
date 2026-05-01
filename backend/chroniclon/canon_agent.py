@@ -13,6 +13,7 @@ event becomes an article. Pivotal events do.
 """
 import logging
 import random
+import re
 import uuid
 from collections import Counter
 from datetime import datetime
@@ -352,6 +353,33 @@ async def canonize_event(
     voice = decision.get("voice") or _pick_fallback_voice()
     target = int(decision.get("word_count_target") or 1200)
 
+    # Topic-dedupe: if the canon agent decided a title that's a near-match
+    # to an existing recent article's title, skip canonization. The data
+    # store accumulated 255 dupe slugs because the agent kept proposing the
+    # same headline ("Lyor Inkwell: A Mother's First Glimpse" was written
+    # 9 times). This guard stops that at the source.
+    from chroniclon.article_writer import _slugify
+    proposed_slug = _slugify(title)
+    proposed_norm = re.sub(r"[^a-z0-9]+", " ", title.lower()).strip()
+    proposed_words = set(proposed_norm.split())
+    for r in store.list_articles(limit=80):
+        if r["slug"] == proposed_slug:
+            logger.info(f"skip canonize (slug collision): {title} == existing {r['slug']}")
+            return None
+        existing_norm = re.sub(r"[^a-z0-9]+", " ", (r["title"] or "").lower()).strip()
+        existing_words = set(existing_norm.split())
+        if not proposed_words or not existing_words:
+            continue
+        # Jaccard ≥ 0.7 + same kind = the agent is repeating itself.
+        intersection = len(proposed_words & existing_words)
+        union = len(proposed_words | existing_words)
+        if union and (intersection / union) >= 0.7 and r.get("kind") == kind:
+            logger.info(
+                f"skip canonize (title overlap {intersection}/{union}): "
+                f"'{title}' ~ '{r['title']}'"
+            )
+            return None
+
     related_slugs = decision.get("related") or []
     related_articles: list[dict] = []
     for slug in related_slugs[:6]:
@@ -493,6 +521,27 @@ async def canonize_event(
             article.critic_passes = 2
         except Exception as e:
             logger.warning(f"revision pass failed, keeping original: {e}")
+
+    # Publish gate — drop articles that still score below floor after up to
+    # one revision pass. Stops low-quality articles from polluting the canon.
+    # Floor is intentionally lower than the revise threshold (we tried once;
+    # if it's still bad after a rewrite, it's not salvageable).
+    PUBLISH_FLOOR_SLOP = 0.55
+    PUBLISH_FLOOR_FACT = 0.55
+    if (article.anti_slop_score or 0) < PUBLISH_FLOOR_SLOP or (article.fact_check_score or 0) < PUBLISH_FLOOR_FACT:
+        logger.info(
+            f"skip publish (below floor): {title} "
+            f"slop={article.anti_slop_score} fact={article.fact_check_score}"
+        )
+        _control_emit({
+            "phase": "rejected",
+            "pipeline_id": pipeline_id,
+            "model": _HERMES_LABEL,
+            "stage": "publish gate",
+            "title": title,
+            "reason": "below quality floor",
+        })
+        return None
 
     # Cross-link pass
     available = [

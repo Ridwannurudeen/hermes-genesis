@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Play } from 'lucide-react';
 import Masthead from '../components/Masthead';
 import SubscribeForm from '../components/SubscribeForm';
 import WireTicker from '../components/WireTicker';
@@ -150,9 +150,11 @@ function ProvenanceStrip() {
   );
 }
 
-/* ── Audio/illustration markers — single source of truth ── */
+/* ── Audio/illustration + critic-score markers ── */
 function MediaBadges({ a }: { a: ArticleSummary }) {
-  if (!a.audio_url && !a.illustration_url) return null;
+  const hasMedia = a.audio_url || a.illustration_url;
+  const hasScores = a.anti_slop_score != null || a.fact_check_score != null;
+  if (!hasMedia && !hasScores) return null;
   return (
     <span className="flex items-center gap-1.5 shrink-0">
       {a.illustration_url && (
@@ -160,7 +162,7 @@ function MediaBadges({ a }: { a: ArticleSummary }) {
           title="illustrated"
           className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5"
         >
-          ill
+          art
         </span>
       )}
       {a.audio_url && (
@@ -169,6 +171,16 @@ function MediaBadges({ a }: { a: ArticleSummary }) {
           className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5"
         >
           audio
+        </span>
+      )}
+      {hasScores && (
+        <span
+          title={`anti-slop ${a.anti_slop_score?.toFixed(2) ?? '—'} · fact-check ${a.fact_check_score?.toFixed(2) ?? '—'}`}
+          className="font-mono text-eyebrow uppercase tracking-eyebrow text-moss-500 tabular-nums"
+        >
+          {a.anti_slop_score != null ? a.anti_slop_score.toFixed(2) : '—'}
+          /
+          {a.fact_check_score != null ? a.fact_check_score.toFixed(2) : '—'}
         </span>
       )}
     </span>
@@ -315,14 +327,24 @@ function WorldsList({
           <span className="font-mono text-micro text-dim tabular-nums col-span-2 sm:col-auto">
             day {w.current_day} · {ago(w.created_at)}
           </span>
-          <button
-            onClick={(e) => onDelete(e, w.id)}
-            disabled={deletingId === w.id}
-            aria-label={`Delete ${w.name}`}
-            className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint hover:text-crimson-500 transition-colors disabled:opacity-40"
-          >
-            {deletingId === w.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'delete'}
-          </button>
+          <div className="flex items-center gap-3 col-span-2 sm:col-auto">
+            <button
+              onClick={() => navigate(`/world/${w.id}?cinematic=1`)}
+              aria-label={`Watch ${w.name} cinematic`}
+              className="inline-flex items-center gap-1.5 font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
+            >
+              <Play className="w-3 h-3 fill-current" />
+              watch
+            </button>
+            <button
+              onClick={(e) => onDelete(e, w.id)}
+              disabled={deletingId === w.id}
+              aria-label={`Delete ${w.name}`}
+              className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint hover:text-crimson-500 transition-colors disabled:opacity-40"
+            >
+              {deletingId === w.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'delete'}
+            </button>
+          </div>
         </div>
       ))}
     </div>
@@ -350,21 +372,62 @@ export default function Landing() {
       Promise.all([
         api.listWorlds().catch(() => [] as WorldSummary[]),
         chronicle.stats().catch(() => null),
-        chronicle.listArticles({ limit: 50 }).catch(() => ({ items: [] as ArticleSummary[] })),
+        chronicle.listArticles({ limit: 100 }).catch(() => ({ items: [] as ArticleSummary[] })),
       ]).then(([w, s, a]) => {
         if (cancelled) return;
         setWorlds(w);
         setStats(s);
-        // Curate: lead with the strongest media-rich article, then fill the
-        // list with mostly-illustrated entries. The new LatestCanon layout
-        // surfaces illustration thumbs + audio badges so judges/visitors
-        // can see at a glance which articles have full multimedia treatment.
+        // Curate Latest canon — quality + diversity, not just recency:
+        //   1. Quality score = critic pass + media presence + audio bonus
+        //   2. Diversify: greedily pick across kinds + lead-character so
+        //      Lyor Inkwell doesn't dominate every row when the world has
+        //      stalled into one storyline
         const items = a.items ?? [];
-        const seen = new Set<string>();
-        const dedup = items.filter((x) => (seen.has(x.slug) ? false : seen.add(x.slug)));
-        const featured = dedup.filter((x) => x.audio_url || x.illustration_url).slice(0, 7);
-        const fallback = dedup.filter((x) => !featured.includes(x)).slice(0, Math.max(0, 7 - featured.length));
-        setLatest([...featured, ...fallback]);
+        const score = (x: ArticleSummary) => {
+          const slop = x.anti_slop_score ?? 0.5;
+          const fact = x.fact_check_score ?? 0.5;
+          const media = (x.illustration_url ? 0.15 : 0) + (x.audio_url ? 0.25 : 0);
+          return slop * 0.4 + fact * 0.4 + media + 0.2;
+        };
+        // Approximate "lead subject" from title — pick the longest capitalized
+        // word that isn't a stop word. Imperfect but sufficient for diversity.
+        const STOP = new Set(['The', 'And', 'Of', 'A', 'An', 'In', 'On']);
+        const leadSubject = (title: string): string => {
+          const tokens = title.split(/[\s:·,.]+/).filter(Boolean);
+          for (const t of tokens) {
+            const clean = t.replace(/[^A-Za-z]/g, '');
+            if (clean.length >= 4 && /^[A-Z]/.test(clean) && !STOP.has(clean)) {
+              return clean.toLowerCase();
+            }
+          }
+          return tokens[0]?.toLowerCase() ?? '';
+        };
+        // Slug-dedupe (defense in depth — list endpoint already dedupes).
+        const seenSlugs = new Set<string>();
+        const dedup = items.filter((x) => (seenSlugs.has(x.slug) ? false : seenSlugs.add(x.slug)));
+        // Sort by quality score, then greedy-pick to diversify subject + kind.
+        const sorted = [...dedup].sort((a, b) => score(b) - score(a));
+        const seenSubjects = new Map<string, number>();
+        const seenKinds = new Map<string, number>();
+        const picked: ArticleSummary[] = [];
+        for (const x of sorted) {
+          const subj = leadSubject(x.title);
+          if ((seenSubjects.get(subj) ?? 0) >= 2) continue;       // ≤2 per subject
+          if ((seenKinds.get(x.kind) ?? 0) >= 3) continue;        // ≤3 per kind
+          picked.push(x);
+          seenSubjects.set(subj, (seenSubjects.get(subj) ?? 0) + 1);
+          seenKinds.set(x.kind, (seenKinds.get(x.kind) ?? 0) + 1);
+          if (picked.length >= 7) break;
+        }
+        // If diversity gates left us short, fall back to top-by-score.
+        if (picked.length < 7) {
+          for (const x of sorted) {
+            if (picked.includes(x)) continue;
+            picked.push(x);
+            if (picked.length >= 7) break;
+          }
+        }
+        setLatest(picked);
       });
     };
     load();
@@ -426,6 +489,13 @@ export default function Landing() {
 
   const placeholder = useMemo(() => PLACEHOLDERS[placeholderIdx], [placeholderIdx]);
 
+  // Most-active world for the cinematic launcher. Picked by current_day so
+  // the user lands inside a world with real history to play back.
+  const cinematicTargetId = useMemo(() => {
+    if (worlds.length === 0) return null;
+    return worlds.reduce((a, b) => (a.current_day >= b.current_day ? a : b)).id;
+  }, [worlds]);
+
   return (
     <div className="min-h-screen bg-page text-page">
       <Masthead />
@@ -455,6 +525,15 @@ export default function Landing() {
                 Read the canon
                 <ArrowRight className="w-4 h-4" />
               </Link>
+              {cinematicTargetId && (
+                <Link
+                  to={`/world/${cinematicTargetId}?cinematic=1`}
+                  className="inline-flex items-center gap-2 px-5 h-11 rounded-md border border-gilt-500/60 hover:border-gilt-500 hover:bg-gilt-500/10 text-heading font-ui font-semibold text-body transition-colors"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  Watch the canon being written
+                </Link>
+              )}
               <Link
                 to="/regen"
                 className="font-ui text-body text-sub hover:text-heading underline underline-offset-4 decoration-gilt-500/40 hover:decoration-gilt-500"

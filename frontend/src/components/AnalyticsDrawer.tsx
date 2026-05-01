@@ -66,12 +66,12 @@ export default function AnalyticsDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 h-full z-50 flex flex-col bg-page/95 backdrop-blur-xl border-l border-genesis-300/10 w-full sm:w-96 md:w-[420px]"
+            className="fixed top-0 right-0 h-full z-50 flex flex-col bg-page/95 backdrop-blur-xl border-l border-gilt-400/10 w-full sm:w-96 md:w-[420px]"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-subtle flex-shrink-0">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-4.5 h-4.5 text-genesis-400" />
+                <BarChart3 className="w-4.5 h-4.5 text-gilt-500" />
                 <h2 className="text-sm font-semibold text-heading">Analytics</h2>
               </div>
               <button
@@ -93,7 +93,7 @@ export default function AnalyticsDrawer({
                       onClick={() => toggleSection(section.key)}
                       className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-hover transition-colors"
                     >
-                      <section.icon className={`w-4 h-4 flex-shrink-0 ${isExpanded ? 'text-genesis-400' : 'text-dim'}`} />
+                      <section.icon className={`w-4 h-4 flex-shrink-0 ${isExpanded ? 'text-gilt-500' : 'text-dim'}`} />
                       <span className={`text-sm font-medium flex-1 ${isExpanded ? 'text-heading' : 'text-sub'}`}>
                         {section.label}
                       </span>

@@ -68,7 +68,9 @@ async def chat_completion(
     chosen_model = model or cfg["model"]
     chosen_temp = _coerce_temperature(provider, chosen_model, temperature)
     chosen_max = _coerce_max_tokens(provider, chosen_model, max_tokens)
+    import asyncio, random
     last_err = None
+    backoff = 1.5
     for attempt in range(retries + 1):
         try:
             resp = await client.post(
@@ -83,6 +85,23 @@ async def chat_completion(
                     "max_tokens": chosen_max,
                 },
             )
+            # 429 / 5xx: respect Retry-After when present, else exponential
+            # backoff with jitter. Without this, the canon runner crashes on
+            # the first transient rate-limit and stops publishing.
+            if resp.status_code == 429 or resp.status_code >= 500:
+                if attempt < retries:
+                    retry_after = resp.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        wait = float(retry_after)
+                    else:
+                        wait = backoff + random.uniform(0, backoff * 0.3)
+                        backoff *= 1.8
+                    logger.warning(
+                        f"LLM {resp.status_code} from {provider} — sleeping {wait:.1f}s "
+                        f"(attempt {attempt + 1}/{retries + 1})"
+                    )
+                    await asyncio.sleep(wait)
+                    continue
             resp.raise_for_status()
             payload = resp.json()
             msg = payload["choices"][0]["message"]

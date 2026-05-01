@@ -31,6 +31,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
   const nav = useNavigate();
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<SearchHit[]>([]);
+  const [trending, setTrending] = useState<SearchHit[]>([]);
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,8 +43,15 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
       setActive(0);
       // Focus on next tick after the modal mounts.
       setTimeout(() => inputRef.current?.focus(), 0);
+      // Lazy-load trending on first open.
+      if (trending.length === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).fetch('/api/chronicle/articles?limit=6').then((r: Response) => r.ok ? r.json() : { items: [] }).then((data: { items: SearchHit[] }) => {
+          setTrending((data.items ?? []).slice(0, 5));
+        }).catch(() => {});
+      }
     }
-  }, [open]);
+  }, [open, trending.length]);
 
   useEffect(() => {
     const q = query.trim();
@@ -143,25 +151,46 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         </div>
         <div className="max-h-[60vh] overflow-y-auto py-2">
           {!query.trim() ? (
-            <div className="px-4 py-6 text-body-sm text-faint">
-              <div className="eyebrow text-faint mb-2">jump to</div>
-              <ul className="space-y-1">
-                {STATIC_ROUTES.slice(0, 6).map((r, i) => (
-                  <li key={r.path}>
-                    <button
-                      type="button"
-                      onClick={() => choose({ kind: 'route', ...r })}
-                      onMouseEnter={() => setActive(i)}
-                      className={`w-full text-left px-3 py-2 rounded font-ui ${
-                        active === i ? 'bg-surface text-heading' : 'text-sub hover:bg-surface/60'
-                      }`}
-                    >
-                      <span className="font-display text-body-lg">{r.label}</span>
-                      <span className="text-faint ml-2">— {r.subtitle}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            <div className="px-4 py-6 text-body-sm text-faint space-y-5">
+              {trending.length > 0 && (
+                <div>
+                  <div className="eyebrow text-faint mb-2">latest from the canon</div>
+                  <ul className="space-y-1">
+                    {trending.map((h) => (
+                      <li key={h.slug}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            nav(`/chronicle/${h.slug}`);
+                          }}
+                          className="w-full text-left px-3 py-2 rounded font-ui text-sub hover:bg-surface/60"
+                        >
+                          <span className="font-display text-body-lg text-heading">{h.title}</span>
+                          <span className="text-faint ml-2">— year {h.in_world_year}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div>
+                <div className="eyebrow text-faint mb-2">jump to</div>
+                <ul className="space-y-1">
+                  {STATIC_ROUTES.slice(0, 6).map((r) => (
+                    <li key={r.path}>
+                      <button
+                        type="button"
+                        onClick={() => choose({ kind: 'route', ...r })}
+                        className="w-full text-left px-3 py-2 rounded font-ui text-sub hover:bg-surface/60"
+                      >
+                        <span className="font-display text-body-lg">{r.label}</span>
+                        <span className="text-faint ml-2">— {r.subtitle}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           ) : loading && hits.length === 0 ? (
             <div className="px-4 py-6 text-body-sm text-faint italic">searching the canon…</div>

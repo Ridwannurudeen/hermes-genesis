@@ -369,6 +369,8 @@ export type ChronicleStats = {
   current_era: string | null;
   linguistic_eras: number;
   contributor_count: number;
+  subscriber_count?: number;
+  last_canon_write?: string | null;
 };
 
 export type ArticleKind =
@@ -390,6 +392,8 @@ export type ArticleSummary = {
   contributor: string | null;
   audio_url: string | null;
   illustration_url?: string | null;
+  anti_slop_score?: number | null;
+  fact_check_score?: number | null;
   updated_at: string;
 };
 
@@ -444,7 +448,7 @@ export const chronicle = {
   },
 
   subscribe: (email: string, source?: string) =>
-    fetchJson<{ status: 'subscribed' | 'already_subscribed' }>(
+    fetchJson<{ status: 'subscribed' | 'already_subscribed'; unsubscribe_token: string }>(
       '/api/chronicle/subscribe',
       {
         method: 'POST',

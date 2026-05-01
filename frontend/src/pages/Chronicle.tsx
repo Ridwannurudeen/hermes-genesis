@@ -179,7 +179,7 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
                 title="illustrated"
                 className="inline-flex items-center font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5 shrink-0"
               >
-                ill
+                art
               </span>
             ) : null}
             {a.audio_url ? (
@@ -191,8 +191,18 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
               </span>
             ) : null}
           </div>
-          <div className="shrink-0 font-mono text-micro text-faint tabular-nums">
-            year {a.in_world_year} · {a.word_count.toLocaleString()} words
+          <div className="shrink-0 font-mono text-micro text-faint tabular-nums flex items-center gap-3">
+            {(a.anti_slop_score != null || a.fact_check_score != null) && (
+              <span
+                title={`anti-slop ${a.anti_slop_score?.toFixed(2) ?? '—'} · fact-check ${a.fact_check_score?.toFixed(2) ?? '—'}`}
+                className="text-moss-500"
+              >
+                {a.anti_slop_score != null ? a.anti_slop_score.toFixed(2) : '—'}
+                {' / '}
+                {a.fact_check_score != null ? a.fact_check_score.toFixed(2) : '—'}
+              </span>
+            )}
+            <span>year {a.in_world_year} · {a.word_count.toLocaleString()} words</span>
           </div>
         </div>
       </div>

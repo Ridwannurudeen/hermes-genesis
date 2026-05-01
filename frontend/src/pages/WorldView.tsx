@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Map, Network, ScrollText, TrendingUp,
@@ -140,6 +140,8 @@ function SkeletonBlock({ className }: { className?: string }) {
 
 export default function WorldView() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const autoCinematic = searchParams.get('cinematic') === '1';
   const [world, setWorld] = useState<World | null>(null);
   const [factions, setFactions] = useState<Faction[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -167,10 +169,22 @@ export default function WorldView() {
   const [showCampaignKit, setShowCampaignKit] = useState(false);
   const [showCinematic, setShowCinematic] = useState(false);
   const [showReplay, setShowReplay] = useState(false);
+  const cinematicAutoOpenedRef = useRef(false);
   const [showSessionPrep, setShowSessionPrep] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
+
+  // ?cinematic=1 in the URL auto-opens CinematicMode once world data + map are
+  // loaded. Used by Landing's "Watch the canon being written" entry point so
+  // judges can hit the cinematic playback in one click from the front door.
+  useEffect(() => {
+    if (!autoCinematic || cinematicAutoOpenedRef.current) return;
+    if (world && mapData && !showCinematic) {
+      cinematicAutoOpenedRef.current = true;
+      setShowCinematic(true);
+    }
+  }, [autoCinematic, world, mapData, showCinematic]);
 
   const factionMap = useMemo(() => {
     const m: Record<string, Faction> = {};
@@ -352,7 +366,7 @@ export default function WorldView() {
       <div className="min-h-screen bg-page flex items-center justify-center">
         <div className="text-center">
           <p className="text-sub text-lg mb-4">World not found</p>
-          <Link to="/" className="text-genesis-400 hover:text-genesis-body transition-colors">
+          <Link to="/" className="text-gilt-500 hover:text-genesis-body transition-colors">
             Back to home
           </Link>
         </div>
@@ -363,11 +377,11 @@ export default function WorldView() {
   return (
     <div className="min-h-screen bg-page">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b border-genesis-300/10 bg-page/80 backdrop-blur-xl sticky top-0 z-30">
+      <div className="border-b border-gilt-400/10 bg-page/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/" className="text-dim hover:text-genesis-400 transition-colors">
+              <Link to="/" className="text-dim hover:text-gilt-500 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
@@ -378,7 +392,7 @@ export default function WorldView() {
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-xs text-dim uppercase tracking-wider">Day</p>
-                <p className="text-2xl font-mono font-bold text-genesis-400">{world.current_day}</p>
+                <p className="text-2xl font-mono font-bold text-gilt-500">{world.current_day}</p>
               </div>
               <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
               <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} aria-label={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
@@ -390,7 +404,7 @@ export default function WorldView() {
               </button>
               <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent" aria-label="World Master Agent"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
- showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-sub hover:text-genesis-400 hover:bg-hover'
+ showAgent ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
  }`}>
                 <Brain className="w-5 h-5" />
                 <span className="hidden sm:inline">Agent</span>
@@ -404,7 +418,7 @@ export default function WorldView() {
               <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
                 <Swords className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" aria-label="Generate Chronicle" className="p-2 text-sub hover:text-genesis-400 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" aria-label="Generate Chronicle" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
                 <BookOpen className="w-5 h-5" />
               </button>
               <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-crimson-500 hover:bg-hover rounded-lg transition-all">
@@ -449,7 +463,7 @@ export default function WorldView() {
       </div>
 
       {/* ── View Mode Selector ─────────────────────────────── */}
-      <div className="border-b border-genesis-300/10">
+      <div className="border-b border-gilt-400/10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-1 py-1">
             {VIEW_MODES.map((vm) => {
@@ -460,11 +474,11 @@ export default function WorldView() {
                   onClick={() => setViewMode(vm.key)}
                   className={`group flex items-center gap-2.5 px-5 py-3 text-sm font-medium rounded-lg transition-all ${
  isActive
- ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
+ ? 'bg-gilt-600/15 text-gilt-500 border border-gilt-500/30'
  : 'text-dim hover:text-heading hover:bg-white/[0.04] border border-transparent'
  }`}
                 >
-                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-faint group-hover:text-sub'}`} />
+                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-gilt-500' : 'text-faint group-hover:text-sub'}`} />
                   <div className="text-left">
                     <div className="flex items-center gap-1.5">
                       {vm.label}
@@ -474,7 +488,7 @@ export default function WorldView() {
                         </span>
                       )}
                     </div>
-                    <div className={`text-[10px] ${isActive ? 'text-genesis-500/70' : 'text-faint'}`}>
+                    <div className={`text-[10px] ${isActive ? 'text-gilt-500/70' : 'text-faint'}`}>
                       {vm.desc}
                     </div>
                   </div>
@@ -488,7 +502,7 @@ export default function WorldView() {
                 onClick={() => setAnalyticsOpen((p) => !p)}
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${
  analyticsOpen
- ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
+ ? 'text-gilt-500 bg-gilt-600/10 border border-gilt-500/20'
  : 'text-dim hover:text-heading border border-subtle hover:border-subtle hover:bg-white/[0.04]'
  }`}
               >

@@ -13,8 +13,10 @@ If no provider is configured, synthesize() raises — caller must check is_confi
 before invoking. The audio chapter is optional in the demo; missing TTS does not
 break the wiki.
 """
+import asyncio
 import logging
 import os
+import random
 from pathlib import Path
 from typing import Literal
 
@@ -130,6 +132,31 @@ async def synthesize(
     raise RuntimeError(f"unsupported provider: {provider}")
 
 
+async def _post_with_backoff(client: httpx.AsyncClient, url: str, *, headers: dict, json: dict, max_retries: int = 5) -> httpx.Response:
+    """POST with exponential backoff on 429s and transient 5xx. Honours
+    `Retry-After` if the server sends it, otherwise 1.5^N + jitter. The
+    audio backfill ran into bursty 429s on OpenAI without backoff and
+    failed 77/80 articles; this is the fix."""
+    delay = 1.0
+    for attempt in range(max_retries):
+        resp = await client.post(url, headers=headers, json=json)
+        if resp.status_code == 429 or resp.status_code >= 500:
+            if attempt == max_retries - 1:
+                resp.raise_for_status()
+            retry_after = resp.headers.get("Retry-After")
+            if retry_after and retry_after.isdigit():
+                wait = float(retry_after)
+            else:
+                wait = delay + random.uniform(0, delay * 0.3)
+                delay *= 1.8
+            logger.warning(f"TTS {resp.status_code} from {url} — sleeping {wait:.1f}s (attempt {attempt + 1}/{max_retries})")
+            await asyncio.sleep(wait)
+            continue
+        resp.raise_for_status()
+        return resp
+    raise RuntimeError(f"TTS exhausted {max_retries} retries on {url}")
+
+
 async def _elevenlabs_synth(text: str, voice_id: str, output_path: Path, speed: float) -> Path:
     api_key = os.getenv("ELEVENLABS_API_KEY", "")
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
@@ -149,8 +176,7 @@ async def _elevenlabs_synth(text: str, voice_id: str, output_path: Path, speed: 
         },
     }
     async with httpx.AsyncClient(timeout=120.0) as client:
-        resp = await client.post(url, headers=headers, json=body)
-        resp.raise_for_status()
+        resp = await _post_with_backoff(client, url, headers=headers, json=body)
         output_path.write_bytes(resp.content)
     logger.info(f"elevenlabs synth → {output_path} ({len(resp.content)} bytes)")
     return output_path
@@ -168,8 +194,7 @@ async def _openai_synth(text: str, voice_id: str, output_path: Path, speed: floa
         "speed": max(0.25, min(4.0, speed)),
     }
     async with httpx.AsyncClient(timeout=120.0) as client:
-        resp = await client.post(url, headers=headers, json=body)
-        resp.raise_for_status()
+        resp = await _post_with_backoff(client, url, headers=headers, json=body)
         output_path.write_bytes(resp.content)
     logger.info(f"openai tts synth → {output_path} ({len(resp.content)} bytes)")
     return output_path

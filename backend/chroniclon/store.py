@@ -158,10 +158,17 @@ def list_articles(
     limit: int = 100,
     offset: int = 0,
 ) -> list[dict]:
+    """Most-recent-first article list. Slug-deduped at this layer because
+    the live data has 255 collisions (separate canonization runs producing
+    the same title); without dedupe the same article appears twice in
+    Chronicle. The first occurrence (most recent by mtime) wins. Also
+    surfaces anti_slop_score + fact_check_score so the frontend can curate
+    by quality, not just recency."""
     d = _base_dir() / _ARTICLES
     if not d.exists():
         return []
     rows: list[dict] = []
+    seen_slugs: set[str] = set()
     for f in sorted(d.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
         if f.name.startswith("."):
             continue
@@ -173,6 +180,10 @@ def list_articles(
             continue
         if kind and a.get("kind") != kind:
             continue
+        slug = a.get("slug")
+        if slug in seen_slugs:
+            continue
+        seen_slugs.add(slug)
         rows.append({
             "article_id": a["article_id"],
             "slug": a["slug"],
@@ -185,6 +196,8 @@ def list_articles(
             "contributor": a.get("contributor"),
             "audio_url": a.get("audio_url"),
             "illustration_url": a.get("illustration_url"),
+            "anti_slop_score": a.get("anti_slop_score"),
+            "fact_check_score": a.get("fact_check_score"),
             "updated_at": a.get("updated_at"),
         })
     return rows[offset : offset + limit]
@@ -395,9 +408,40 @@ def add_subscriber(email: str, source: str | None = None) -> bool:
         "email": email.strip().lower(),
         "subscribed_at": datetime.now(timezone.utc).isoformat(),
         "source": source or "site",
+        "token": _subscriber_unsubscribe_token(email),
     }
     _atomic_write(path, json.dumps(payload, indent=2), flock)
     return True
+
+
+def _subscriber_unsubscribe_token(email: str) -> str:
+    """Per-email opaque token for one-click unsubscribe. Derived from the
+    email + a server secret so it's unguessable without server access."""
+    secret = os.getenv("UNSUBSCRIBE_SECRET", "chroniclon-default-secret-change-me")
+    return hashlib.sha256(f"{email.strip().lower()}::{secret}".encode("utf-8")).hexdigest()[:32]
+
+
+def remove_subscriber_by_token(token: str) -> str | None:
+    """Remove the subscriber whose unsubscribe token matches. Returns the
+    email that was removed, or None if no match."""
+    d = _base_dir() / _SUBSCRIBERS
+    if not d.exists():
+        return None
+    for f in d.glob("*.json"):
+        if f.name.startswith("."):
+            continue
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if data.get("token") == token:
+            email = data.get("email")
+            try:
+                f.unlink()
+            except OSError:
+                return None
+            return email
+    return None
 
 
 def subscriber_count() -> int:
@@ -405,3 +449,25 @@ def subscriber_count() -> int:
     if not d.exists():
         return 0
     return sum(1 for f in d.glob("*.json") if not f.name.startswith("."))
+
+
+def last_article_mtime_iso() -> str | None:
+    """ISO timestamp of the most-recently-saved article. Powers the Masthead
+    freshness pill ('last canon write 4 minutes ago') and any UI that needs
+    to show 'the publication is alive' without a full poll cycle."""
+    d = _base_dir() / _ARTICLES
+    if not d.exists():
+        return None
+    latest = 0.0
+    for f in d.glob("*.json"):
+        if f.name.startswith("."):
+            continue
+        try:
+            m = f.stat().st_mtime
+            if m > latest:
+                latest = m
+        except OSError:
+            continue
+    if latest == 0.0:
+        return None
+    return datetime.fromtimestamp(latest, tz=timezone.utc).isoformat()

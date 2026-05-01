@@ -21,10 +21,10 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-lg bg-surface border border-genesis-400/20 hover:border-genesis-400/40 transition-colors"
+      className="p-2 rounded-lg bg-surface border border-gilt-500/20 hover:border-gilt-500/40 transition-colors"
       title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {dark ? <Sun className="w-4 h-4 text-genesis-400" /> : <Moon className="w-4 h-4 text-genesis-400" />}
+      {dark ? <Sun className="w-4 h-4 text-gilt-500" /> : <Moon className="w-4 h-4 text-gilt-500" />}
     </button>
   );
 }

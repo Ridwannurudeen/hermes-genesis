@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import CommandPalette from './CommandPalette';
-import { auth, type AuthStatus } from '../api';
+import { auth, chronicle, type AuthStatus } from '../api';
 
 /* Editorial publication masthead — used on every route.
  *
@@ -21,20 +21,49 @@ const NAV: Array<{ to: string; label: string }> = [
   { to: '/demo',      label: 'demo' },
 ];
 
+function freshnessAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 0 || Number.isNaN(ms)) return '';
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
 export default function Masthead() {
   const { pathname } = useLocation();
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [lastCanonWrite, setLastCanonWrite] = useState<string | null>(null);
 
   useEffect(() => {
     auth.status().then(setAuthStatus).catch(() => setAuthStatus(null));
+  }, []);
+
+  // Poll the freshness pill — every 60s is plenty since the canon publishes
+  // on the order of minutes, not seconds.
+  useEffect(() => {
+    let cancelled = false;
+    const tick = () => {
+      chronicle.stats().then((s) => {
+        if (!cancelled) setLastCanonWrite(s.last_canon_write ?? null);
+      }).catch(() => {});
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   // Close the mobile nav when route changes.
   useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname]);
+
+  const freshness = lastCanonWrite ? freshnessAgo(lastCanonWrite) : null;
+  const isLive = lastCanonWrite ? Date.now() - new Date(lastCanonWrite).getTime() < 5 * 60_000 : false;
 
   // Global ⌘K / Ctrl+K shortcut. `/` also opens unless the user is already
   // typing in an input/textarea — matches NYT and most editorial sites.
@@ -70,6 +99,17 @@ export default function Masthead() {
             built on Hermes Genesis
           </span>
         </Link>
+
+        {/* Freshness pill — only shown when we have a recent timestamp */}
+        {freshness && (
+          <div
+            className="hidden sm:flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-faint"
+            title={`Last canon write: ${new Date(lastCanonWrite!).toLocaleString()}`}
+          >
+            {isLive && <span className="live-dot" aria-hidden />}
+            <span>{isLive ? 'live' : 'last write'} · {freshness}</span>
+          </div>
+        )}
 
         {/* Nav — hidden below md; mobile uses hamburger drawer below. */}
         <nav className="hidden md:flex flex-1 items-center gap-5 lg:gap-6">
@@ -153,6 +193,17 @@ export default function Masthead() {
       {mobileNavOpen && (
         <div className="md:hidden border-t border-subtle bg-paper-50/95 dark:bg-night-950/95 backdrop-blur">
           <nav className="max-w-6xl mx-auto px-4 py-3 flex flex-col">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavOpen(false);
+                setPaletteOpen(true);
+              }}
+              className="py-3 border-b border-subtle/60 text-left font-mono text-eyebrow uppercase tracking-eyebrow text-faint flex items-center justify-between"
+            >
+              <span>search the canon</span>
+              <kbd className="font-mono text-[10px] tracking-normal text-faint border border-subtle rounded px-1 py-0">⌘K</kbd>
+            </button>
             {NAV.map((item) => {
               const active =
                 item.to === '/chronicle'
@@ -186,6 +237,12 @@ export default function Masthead() {
             >
               github
             </a>
+            {freshness && (
+              <div className="py-3 border-t border-subtle font-mono text-eyebrow uppercase tracking-eyebrow text-faint flex items-center gap-2">
+                {isLive && <span className="live-dot" aria-hidden />}
+                <span>{isLive ? 'live' : 'last write'} · {freshness}</span>
+              </div>
+            )}
           </nav>
         </div>
       )}

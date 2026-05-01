@@ -109,7 +109,7 @@ export default function ChronicleModal({ worldId, worldName, onClose }: Props) {
           <div className="flex-1 overflow-y-auto px-6 py-6">
             {loading && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="w-8 h-8 text-genesis-400 animate-spin" />
+                <Loader2 className="w-8 h-8 text-gilt-500 animate-spin" />
                 <p className="text-sub text-sm">The chronicler is writing...</p>
               </div>
             )}

@@ -371,7 +371,7 @@ export default function CinematicMode({
             {/* Scene loading indicator */}
             {sceneLoading && (
               <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-genesis-400 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gilt-500 animate-pulse" />
                 <span className="text-[10px] text-white/20 uppercase tracking-widest">Generating scene...</span>
               </div>
             )}
@@ -484,7 +484,7 @@ export default function CinematicMode({
             exit={{ opacity: 0 }}
             className="absolute bottom-6 right-6 z-10 flex items-center gap-2"
           >
-            <div className="w-2 h-2 rounded-full bg-genesis-400 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-gilt-500 animate-pulse" />
             <span className="text-xs text-white/30">Simulating...</span>
           </motion.div>
         )}

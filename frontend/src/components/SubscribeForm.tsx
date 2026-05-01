@@ -3,6 +3,8 @@ import { chronicle } from '../api';
 
 type Status = 'idle' | 'submitting' | 'subscribed' | 'already_subscribed' | 'error';
 
+type SubscribeResult = { token: string };
+
 /**
  * Follow-the-canon subscribe form. Lives in editorial colophon strips
  * (Landing footer, Chronicle index footer). Single-line composition:
@@ -13,6 +15,7 @@ export default function SubscribeForm({ source }: { source?: string }) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [result, setResult] = useState<SubscribeResult | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +30,7 @@ export default function SubscribeForm({ source }: { source?: string }) {
     try {
       const res = await chronicle.subscribe(trimmed, source);
       setStatus(res.status);
+      setResult({ token: res.unsubscribe_token });
     } catch (err) {
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'subscribe failed');
@@ -35,14 +39,26 @@ export default function SubscribeForm({ source }: { source?: string }) {
 
   if (status === 'subscribed' || status === 'already_subscribed') {
     return (
-      <div className="font-display text-body-lg text-heading">
-        ✦{' '}
-        {status === 'subscribed'
-          ? 'You are on the masthead.'
-          : 'You are already on the masthead.'}{' '}
-        <span className="text-faint italic">
+      <div className="space-y-1">
+        <div className="font-display text-body-lg text-heading">
+          ✦{' '}
+          {status === 'subscribed'
+            ? 'You are on the masthead.'
+            : 'You are already on the masthead.'}
+        </div>
+        <div className="text-faint italic font-ui text-body-sm">
           New articles will land in your inbox as the canon publishes.
-        </span>
+        </div>
+        {result && (
+          <div className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint pt-2">
+            <a
+              href={`/api/chronicle/unsubscribe?token=${result.token}`}
+              className="hover:text-sub underline underline-offset-2"
+            >
+              unsubscribe at any time
+            </a>
+          </div>
+        )}
       </div>
     );
   }
