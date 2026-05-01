@@ -16,7 +16,8 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 [**Live →**](https://hermesgenesis.world) ·
 [**Watch →**](https://hermesgenesis.world/watch) ·
 [**Glossary →**](https://hermesgenesis.world/glossary) ·
-[**Demo film**](docs/X_THREAD.md) ·
+[**Demo film (75 s)**](docs/X_THREAD.md) ·
+[**AI usage**](AI_USAGE.md) ·
 [**Paper outline**](docs/PAPER_OUTLINE.md)
 
 </div>
@@ -40,7 +41,7 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 ## Live
 
 ```
-960 canonized articles · 4 in-world eras · 65 linguistic eras
+960 canonized articles · 65 linguistic eras · ~506 K words
 ~1 article published every 2 minutes · publishing right now
 ```
 
@@ -166,7 +167,7 @@ npm install && npm run dev
 
 ## Hermes Agent integration
 
-Ships as **9 hermes-agent skills** + an **MCP bridge** with **17 tools** + a **one-command setup**:
+Ships as **9 hermes-agent skills** + an **MCP bridge** with **18 tools** + a **one-command setup**:
 
 ```bash
 ./setup-hermes-agent.sh                                  # local
@@ -186,11 +187,13 @@ Ships as **9 hermes-agent skills** + an **MCP bridge** with **17 tools** + a **o
 MCP bridge auto-discovered by hermes-agent via stdio:
 
 ```
-genesis_create_world      genesis_simulate         genesis_intervene
-genesis_chat              genesis_council          genesis_chronicle
-chronicle_stats           chronicle_list_articles  chronicle_get_article
-chronicle_render_audio    chronicle_render_image   chronicle_control_backlog
-… 5 more
+genesis_create_world      genesis_list_worlds      genesis_get_world
+genesis_simulate          genesis_intervene        genesis_agent_start
+genesis_agent_stop        genesis_agent_status     genesis_chat
+genesis_council           genesis_chronicle        chronicle_stats
+chronicle_list_articles   chronicle_get_article    chronicle_render_audio
+chronicle_render_image    chronicle_control_backlog
+… 1 more
 ```
 
 Source: [`mcp-bridge/server.mjs`](mcp-bridge/server.mjs) · [`hermes-agent-demo.py`](hermes-agent-demo.py).
@@ -208,29 +211,26 @@ Source: [`mcp-bridge/server.mjs`](mcp-bridge/server.mjs) · [`hermes-agent-demo.
 ![Remotion](https://img.shields.io/badge/Remotion-4.0-EF4444?style=flat-square)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-**Backend** — FastAPI · 60+ endpoints · SSE streaming · file-locked atomic JSON store · 71 tests
-**Frontend** — React 18 · Source Serif 4 + JetBrains Mono · strict editorial palette · D3 · Framer Motion
+**Backend** — FastAPI · 60+ endpoints · SSE streaming · file-locked atomic JSON store · 133 tests
+**Frontend** — React 18 · Source Serif 4 + JetBrains Mono · strict editorial palette · D3 · Framer Motion · 16 tests (vitest)
 **Infra** — Docker Compose (web + canon-runner) · nginx + certbot · GitHub Actions CI
 
 ---
 
 ## Demo film
 
-A 32-second editorial demo accompanies the [X submission](docs/X_THREAD.md) — programmatic React composition (Remotion) rendered to mp4. ElevenLabs Antoni narration over a Kevin MacLeod (CC-BY-3.0) music bed; Seraphina narration takes the floor for 7 seconds during the proof beat. Video is the canonical artifact; the source composition lives outside this repo.
+A 75-second editorial demo accompanies the [X submission](docs/X_THREAD.md) — programmatic React composition (Remotion) rendered to mp4. ElevenLabs Antoni narration over a Kevin MacLeod (CC-BY-3.0) music bed; Seraphina narration takes the floor for 7 seconds during the proof beat. Video is the canonical artifact; source composition lives outside this repo.
 
 ---
 
 ## Why Hermes-4-70B
 
-This pipeline lives or dies on five Hermes capabilities:
+Two reasons the canon stack runs on Hermes specifically, not a hosted alternative:
 
-1. **Uncensored creative reasoning.** The canon agent makes brutal calls — kill characters, end dynasties, cancel prophecies. No safety refusals.
-2. **Multi-persona consistency.** Hundreds of characters with genome-shaped voices stay in character across articles.
-3. **Structured reasoning over JSON state.** Every event arrives as 50+ fields. Hermes parses them without hallucinating.
-4. **Long-context planning.** Prophecy fulfillment requires tracking conditions across hundreds of in-world days.
-5. **Reliable structured output.** Every LLM call returns valid JSON; we parse every response programmatically.
+1. **Uncensored creative reasoning.** The canon agent makes brutal calls — kills characters, ends dynasties, cancels prophecies. A safety-tuned model refuses these and the encyclopedia goes flat.
+2. **Open-weight agentic tool-use.** The MCP bridge invokes Hermes as a tool-calling model. Hermes-4-70B holds its tool-call schema across long, stateful loops; we self-host it without depending on a closed API for the agent loop.
 
-Kimi-K2.6 carries the long-form writing because of its 256K context — the writer sees ~50 prior canon excerpts when drafting any article.
+Kimi-K2.6 carries the long-form writing because of its 256 K context — the writer sees ~50 prior canon excerpts when drafting any article.
 
 ---
 
@@ -240,15 +240,16 @@ Kimi-K2.6 carries the long-form writing because of its 256K context — the writ
 $ curl -s https://hermesgenesis.world/api/chronicle/stats
 {
   "article_count":     960,
-  "total_words":       1156842,
-  "era_count":         4,
+  "total_words":       506219,
+  "era_count":         66,
+  "current_era":       "The Cinder Era",
   "linguistic_eras":   65,
-  "subscriber_count":  3,
-  "last_canon_write":  "2026-05-01T11:42:08+00:00"
+  "subscriber_count":  2,
+  "last_canon_write":  "2026-05-01T07:07:28+00:00"
 }
 ```
 
-13 worlds running on the production VPS. The largest (Wellspring Kingdom) is on day 335. All events, all characters, all faction dynamics: autonomous. No scripting.
+3 worlds running on the production VPS. The longest-running (Lunar Epistles) is on day 990. All events, all characters, all faction dynamics: autonomous. No scripting.
 
 ---
 
@@ -276,7 +277,7 @@ The category as we frame it: *autonomous publishing of fictional canon with cros
 | Linguistic drift module | ✅ Live |
 | Hermes-agent skills + MCP bridge | ✅ Live |
 | Editorial reskin + 8-route nav | ✅ Live |
-| 32s programmatic demo film | ✅ Shipped |
+| 75s programmatic demo film | ✅ Shipped |
 | Workshop paper (NeurIPS Creative AI) | 🔧 Drafting |
 | Multiplayer worlds (shared persistence) | 📋 Planned |
 | Voice-to-world (speak your world into existence) | 📋 Planned |
@@ -286,12 +287,6 @@ The category as we frame it: *autonomous publishing of fictional canon with cros
 ## Built for the NousResearch Hermes Agent Hackathon
 
 Hermes Genesis demonstrates what Hermes Agent can do when given full creative control over a living world. The World Master implements hermes-agent's observe→reason→act pattern, repo-local skills integrate with the framework, and the MCP bridge connects every layer of the simulation to hermes-agent's tool ecosystem.
-
-Every character decision, every faction power shift, every prophecy fulfilled, every article sealed into the canon — all driven by Hermes-4-70B reasoning over structured world state through the agent framework.
-
-A GM preps tonight's session in 60 seconds. A writer exports a chronicle and starts drafting chapter one. A teacher simulates the fall of an empire in front of the class. A researcher forks the genome system and benchmarks emergence.
-
-The world doesn't wait for you. It lives on its own. And when you're ready — you take it with you.
 
 ---
 
