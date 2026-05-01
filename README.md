@@ -97,49 +97,31 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 ## See it
 
 <p align="center">
-  <img src="docs/screenshots/nav-with-freshness.png" alt="Editorial masthead — wordmark, freshness pill, 8-item nav" width="100%">
-  <br>
-  <em>The masthead — wordmark + freshness pulse (live · Nm ago) + 8-item nav (chronicle · watch · glossary · regen · demo · control · judge · method).</em>
+  <img src="docs/screenshots/nav-with-freshness.png" alt="Editorial masthead — wordmark, freshness pill, 8-item nav" width="900">
 </p>
 
-<table>
+<table align="center">
   <tr>
-    <td width="50%">
-      <img src="docs/screenshots/article-detail.jpg" alt="Article detail with drop cap, FLUX hero, ElevenLabs narration, critic-score colophon"><br>
-      <b>Article detail</b> — drop cap, gilt rule, FLUX hero, ElevenLabs narration, critic-score colophon, provenance sidebar
+    <td width="50%" align="center">
+      <a href="https://hermesgenesis.world/chronicle/the-inkwell-parchmentshield-betrayal-seraphinas-final-entry"><img src="docs/screenshots/article-detail.jpg" alt="Article detail" width="440"></a><br>
+      <b>Article</b> — drop cap, FLUX hero, ElevenLabs narration, critic scores
     </td>
-    <td width="50%">
-      <img src="docs/screenshots/chronicle-home.png" alt="Chronicle archive — magazine list with audio + art badges"><br>
-      <b>Chronicle archive</b> — 960 articles, era nav, critic scores, audio + art badges, inline play buttons
+    <td width="50%" align="center">
+      <a href="https://hermesgenesis.world/glossary"><img src="docs/screenshots/glossary.png" alt="Glossary — linguistic family tree" width="440"></a><br>
+      <b>Glossary</b> — alphabetized lexicon across in-world eras
     </td>
   </tr>
   <tr>
-    <td width="50%">
-      <img src="docs/screenshots/glossary.png" alt="Glossary — linguistic family tree across in-world eras"><br>
-      <b>Glossary</b> — every English term that has been canonized into a constructed tongue, alphabetized, with the trail across linguistic eras
+    <td width="50%" align="center">
+      <a href="https://hermesgenesis.world/control"><img src="docs/screenshots/control-room.png" alt="Control Room — live agent pipeline" width="440"></a><br>
+      <b>Control Room</b> — canon agent → writer → critics → illustrator → narrator, live
     </td>
-    <td width="50%">
-      <img src="docs/screenshots/lexicon-preview.png" alt="Lexicon preview on Landing showing morphing English terms"><br>
-      <b>Lexicon preview</b> — the conlang differentiator surfaced on the front door: <code>karim → cherim → cherim-en</code>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/control-room.png" alt="Live canon control room — pipeline streaming"><br>
-      <b>Control Room</b> — every canonization streams live: canon agent → writer → critics → illustrator → narrator
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/regen.png" alt="Regen — SSE-streamed world creation from one sentence"><br>
-      <b>Regen</b> — seed your own civilization, watch it canonize in real time (Kimi-K2.6 ↔ Hermes-4 toggle)
+    <td width="50%" align="center">
+      <a href="https://hermesgenesis.world/watch"><img src="docs/screenshots/watch-cinematic.png" alt="/watch — cinematic mode" width="440"></a><br>
+      <b>/watch</b> — full-screen mood-themed playback against the liveliest world
     </td>
   </tr>
 </table>
-
-<p align="center">
-  <img src="docs/screenshots/watch-cinematic.png" alt="The /watch route — opens cinematic mode against the most-active world" width="60%">
-  <br>
-  <em><a href="https://hermesgenesis.world/watch">/watch</a> — picks the liveliest public world and opens cinematic mode against it: full-screen mood-themed scenes, voice narration, ambient sound.</em>
-</p>
 
 ---
 
