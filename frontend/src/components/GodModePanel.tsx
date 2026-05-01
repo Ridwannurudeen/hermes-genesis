@@ -124,7 +124,7 @@ export default function GodModePanel({ worldId, onIntervention }: Props) {
               className="w-full bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-4 py-2.5 text-input placeholder-dim text-sm
  focus:outline-none focus:ring-2 focus:ring-gilt-500/40 focus:border-gilt-500/50
  disabled:opacity-50 disabled:cursor-not-allowed
- transition-all duration-200"
+ duration-200"
             />
           </div>
           <button

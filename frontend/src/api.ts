@@ -443,6 +443,16 @@ export const chronicle = {
     }>(`/api/chronicle/search?${qs.toString()}`);
   },
 
+  subscribe: (email: string, source?: string) =>
+    fetchJson<{ status: 'subscribed' | 'already_subscribed' }>(
+      '/api/chronicle/subscribe',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source }),
+      },
+    ),
+
   listEras: () => fetchJson<{ items: EraSummary[] }>('/api/chronicle/eras'),
 
   lexicon: () =>

@@ -98,7 +98,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events by title or narrative..."
-            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none"
           />
         </div>
 
@@ -112,7 +112,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none"
           >
             <option value="all">All Types</option>
             {eventTypes.map((t) => (
@@ -125,7 +125,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={factionFilter}
             onChange={(e) => setFactionFilter(e.target.value)}
-            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none"
           >
             <option value="all">All Factions</option>
             {factions.map((f) => (
@@ -138,7 +138,7 @@ export default function EventTimeline({ events, factions, characters }: Props) {
           <select
             value={charFilter}
             onChange={(e) => setCharFilter(e.target.value)}
-            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-1.5 text-sm text-sub focus:outline-none"
           >
             <option value="all">All Characters</option>
             {eventActors.map((c) => (

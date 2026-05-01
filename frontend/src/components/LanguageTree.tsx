@@ -93,7 +93,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
         .attr('x', width / 2)
         .attr('y', height / 2)
         .attr('text-anchor', 'middle')
-        .attr('fill', '#475569')
+        .attr('fill', '#8A7860')
         .attr('font-size', 14)
         .text('Linguistic eras will appear as the canon advances.');
       return;
@@ -136,7 +136,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
 
     g.append('g')
       .attr('fill', 'none')
-      .attr('stroke', '#475569')
+      .attr('stroke', '#8A7860')
       .attr('stroke-opacity', 0.45)
       .attr('stroke-width', 1.2)
       .selectAll('path')
@@ -160,9 +160,9 @@ export default function LanguageTree({ data, height = 520 }: Props) {
       .append('circle')
       .attr('r', 7)
       .attr('fill', (d) =>
-        (selectedId ?? hoverId) === d.data.era.era_id ? '#fbbf24' : '#1e293b'
+        (selectedId ?? hoverId) === d.data.era.era_id ? '#D4A85F' : '#2A2014'
       )
-      .attr('stroke', '#fbbf24')
+      .attr('stroke', '#D4A85F')
       .attr('stroke-width', 1.5);
 
     nodeGroup
@@ -170,7 +170,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
       .attr('dy', '0.32em')
       .attr('x', 12)
       .attr('text-anchor', 'start')
-      .attr('fill', '#cbd5e1')
+      .attr('fill', '#CDB890')
       .attr('font-family', 'serif')
       .attr('font-size', 13)
       .text((d) => d.data.era.era_name);
@@ -180,7 +180,7 @@ export default function LanguageTree({ data, height = 520 }: Props) {
       .attr('dy', '1.6em')
       .attr('x', 12)
       .attr('text-anchor', 'start')
-      .attr('fill', '#64748b')
+      .attr('fill', '#8A7860')
       .attr('font-size', 10)
       .text((d) => `year ${d.data.era.in_world_year}`);
   }, [data, tree, width, height, hoverId, selectedId]);

@@ -15,7 +15,7 @@ const EVENT_MARKER_CONFIG: Record<string, { icon: string; color: string }> = {
   alliance: { icon: '\uD83E\uDD1D', color: '#22c55e' },
   betrayal: { icon: '\uD83D\uDDE1\uFE0F', color: '#a855f7' },
   political_intrigue: { icon: '\uD83C\uDFAD', color: '#8b5cf6' },
-  succession: { icon: '\uD83D\uDC51', color: '#fbbf24' },
+  succession: { icon: '\uD83D\uDC51', color: '#D4A85F' },
   birth: { icon: '\u2728', color: '#60a5fa' },
   natural_disaster: { icon: '\uD83C\uDF0B', color: '#f97316' },
   discovery: { icon: '\uD83D\uDD0D', color: '#06b6d4' },
@@ -261,7 +261,7 @@ export default function MapEventMarkers({ events, regionPositions }: Props) {
                     y1={marker.y - 44}
                     x2={marker.x + 14}
                     y2={marker.y - 16}
-                    stroke="#fbbf24"
+                    stroke="#D4A85F"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     opacity={0}
@@ -278,7 +278,7 @@ export default function MapEventMarkers({ events, regionPositions }: Props) {
                     y1={marker.y - 44}
                     x2={marker.x - 14}
                     y2={marker.y - 16}
-                    stroke="#fbbf24"
+                    stroke="#D4A85F"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     opacity={0}
@@ -303,7 +303,7 @@ export default function MapEventMarkers({ events, regionPositions }: Props) {
                         cx={marker.x}
                         cy={marker.y - 30}
                         r={1.5}
-                        fill={si % 2 === 0 ? '#fbbf24' : '#fef3c7'}
+                        fill={si % 2 === 0 ? '#D4A85F' : '#FBF5E8'}
                         opacity={0}
                         filter="url(#evt-spark-glow)"
                       >
@@ -343,7 +343,7 @@ export default function MapEventMarkers({ events, regionPositions }: Props) {
                         y1={marker.y - 30}
                         x2={marker.x}
                         y2={marker.y - 30}
-                        stroke={si % 2 === 0 ? '#fbbf24' : '#fff7ed'}
+                        stroke={si % 2 === 0 ? '#D4A85F' : '#FBF5E8'}
                         strokeWidth="1"
                         strokeLinecap="round"
                         opacity={0}

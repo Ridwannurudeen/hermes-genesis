@@ -94,7 +94,11 @@ async def api_key_middleware(request: Request, call_next):
         api_key
         and request.method in ("POST", "PATCH", "DELETE")
         and request.url.path.startswith("/api/")
-        and request.url.path not in {"/api/auth/login", "/api/auth/logout"}
+        and request.url.path not in {
+            "/api/auth/login",
+            "/api/auth/logout",
+            "/api/chronicle/subscribe",  # public follow-the-canon endpoint
+        }
     ):
         if not request_is_admin(request):
             return JSONResponse(status_code=403, content={"detail": "Invalid or missing API key"})

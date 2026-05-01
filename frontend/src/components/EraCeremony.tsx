@@ -145,8 +145,8 @@ export default function EraCeremony({ eraId, onClose }: Props) {
                 <svg viewBox="0 0 600 200" className="w-full h-full">
                   <defs>
                     <pattern id="seal" width="60" height="60" patternUnits="userSpaceOnUse">
-                      <circle cx="30" cy="30" r="22" fill="none" stroke="#fbbf24" strokeWidth="0.5" />
-                      <circle cx="30" cy="30" r="14" fill="none" stroke="#fbbf24" strokeWidth="0.5" />
+                      <circle cx="30" cy="30" r="22" fill="none" stroke="#D4A85F" strokeWidth="0.5" />
+                      <circle cx="30" cy="30" r="14" fill="none" stroke="#D4A85F" strokeWidth="0.5" />
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#seal)" />

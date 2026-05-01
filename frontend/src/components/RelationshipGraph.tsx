@@ -411,7 +411,7 @@ export default function RelationshipGraph({
                 .attr('opacity', (d) => d.name.toLowerCase().includes(q) ? 1 : 0.12);
             }}
             placeholder="Search characters..."
-            className="w-full bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg pl-3 pr-3 py-2 text-sm text-input placeholder-faint focus:outline-none transition-all"
+            className="w-full bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg pl-3 pr-3 py-2 text-sm text-input placeholder-faint focus:outline-none"
           />
         </div>
 
@@ -432,7 +432,7 @@ export default function RelationshipGraph({
             d3.select(svgRef.current).selectAll<SVGTextElement, SimNode>('.labels text')
               .attr('opacity', (d) => d.factionId === fid ? 1 : 0.1);
           }}
-          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Factions</option>
           {factions.map((f) => (
@@ -469,7 +469,7 @@ export default function RelationshipGraph({
                   style={{
                     borderColor: active ? cat.color : 'rgba(148, 163, 184, 0.2)',
                     backgroundColor: active ? `${cat.color}22` : 'transparent',
-                    color: active ? cat.color : '#64748b',
+                    color: active ? cat.color : '#8A7860',
                   }}
                   aria-pressed={active}
                 >

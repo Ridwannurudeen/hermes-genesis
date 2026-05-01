@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import Masthead from '../components/Masthead';
+import SubscribeForm from '../components/SubscribeForm';
 import WireTicker from '../components/WireTicker';
 import { api, chronicle, type ArticleSummary, type ChronicleStats } from '../api';
 import type { WorldSummary } from '../types';
@@ -454,6 +455,22 @@ export default function Landing() {
           </section>
         )}
       </main>
+
+      {/* ── Subscribe band — follow the canon ────────────────────── */}
+      <section className="border-t border-subtle bg-surface/40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
+          <div>
+            <h2 className="font-display text-h2 text-heading tracking-[-0.02em] mb-2">
+              Follow the canon.
+            </h2>
+            <p className="font-ui text-body-lg text-sub max-w-2xl leading-relaxed">
+              When the simulation crowns a new era or a contributor seeds an article that survives the canon-keeper, we'll send a single dispatch.
+              No marketing, no recap newsletter — just the new entries.
+            </p>
+          </div>
+          <SubscribeForm source="landing" />
+        </div>
+      </section>
 
       {/* ── Footer — restrained editorial colophon ───────────────── */}
       <footer className="border-t border-subtle">

@@ -344,7 +344,7 @@ export default function CharacterChatModal({
                 onKeyDown={handleKeyDown}
                 placeholder={`Say something to ${character.name}...`}
                 disabled={loading || initialLoading}
-                className="flex-1 bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-xl px-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none disabled:opacity-50 transition-all"
+                className="flex-1 bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-xl px-4 py-2.5 text-sm text-input placeholder-faint focus:outline-none disabled:opacity-50"
               />
               <button
                 onClick={handleSend}

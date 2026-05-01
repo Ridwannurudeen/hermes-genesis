@@ -59,7 +59,7 @@ export default function CharacterList({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search characters..."
-            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg pl-9 pr-4 py-2 text-sm text-input placeholder-faint focus:outline-none w-56 transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg pl-9 pr-4 py-2 text-sm text-input placeholder-faint focus:outline-none w-56"
           />
         </div>
 
@@ -70,7 +70,7 @@ export default function CharacterList({
         <select
           value={factionFilter}
           onChange={(e) => setFactionFilter(e.target.value)}
-          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Factions</option>
           {factions.map((f) => (
@@ -83,7 +83,7 @@ export default function CharacterList({
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Roles</option>
           {roles.map((r) => (
@@ -96,7 +96,7 @@ export default function CharacterList({
         <select
           value={aliveFilter}
           onChange={(e) => setAliveFilter(e.target.value)}
-          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Status</option>
           <option value="alive">Alive</option>

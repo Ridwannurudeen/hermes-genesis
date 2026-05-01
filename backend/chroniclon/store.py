@@ -25,6 +25,7 @@ _ARTICLES = "articles"
 _ERAS = "eras"
 _LEXICON = "lexicon"
 _SUBMISSIONS = "submissions"
+_SUBSCRIBERS = "subscribers"
 
 
 def _safe(name: str) -> str:
@@ -86,7 +87,41 @@ def era_lock(era_id: str) -> asyncio.Lock:
 
 # ---------- articles ----------
 
+def _resolve_unique_slug(desired: str, article_id: str) -> str:
+    """Return `desired`, or `desired-2`, `desired-3`, … if a *different*
+    article already owns the slug. Re-saving the same article (audio URL
+    update, illustration backfill, era recalibration) keeps its existing
+    slug. Without this guard the canon agent silently wrote dupes whenever
+    two articles converged on the same title — 255 collisions in the live
+    store before this landed."""
+    d = _base_dir() / _ARTICLES
+    if not d.exists():
+        return desired
+    used: dict[str, str] = {}  # slug -> article_id that owns it
+    for f in d.glob("*.json"):
+        if f.name.startswith("."):
+            continue
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        s = data.get("slug")
+        if s and s not in used:
+            used[s] = data.get("article_id", "")
+
+    if used.get(desired) in (None, article_id):
+        return desired
+
+    n = 2
+    while True:
+        candidate = f"{desired}-{n}"
+        if used.get(candidate) in (None, article_id):
+            return candidate
+        n += 1
+
+
 def save_article(article: WikiArticle) -> None:
+    article.slug = _resolve_unique_slug(article.slug, article.article_id)
     path = _path(_ARTICLES, article.article_id)
     flock = FileLock(str(_lock_path(_ARTICLES, article.article_id)), timeout=_FILE_LOCK_TIMEOUT)
     _atomic_write(path, json.dumps(article.model_dump(mode="json"), indent=2, default=str), flock)
@@ -333,3 +368,40 @@ def contributor_count() -> int:
         if s.canonized_article_id:
             handles.add(s.contributor_handle)
     return len(handles)
+
+
+# ---------- canon subscribers ----------
+
+import hashlib
+from datetime import datetime, timezone
+
+
+def _subscriber_key(email: str) -> str:
+    """Deterministic, filename-safe key from email — also serves as the
+    dedupe key so two POSTs from the same address overwrite, not append."""
+    return hashlib.sha256(email.strip().lower().encode("utf-8")).hexdigest()[:24]
+
+
+def add_subscriber(email: str, source: str | None = None) -> bool:
+    """Add an email to the canon subscriber list. Returns True if newly
+    added, False if already subscribed (idempotent)."""
+    key = _subscriber_key(email)
+    path = _path(_SUBSCRIBERS, key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        return False
+    flock = FileLock(str(_lock_path(_SUBSCRIBERS, key)), timeout=_FILE_LOCK_TIMEOUT)
+    payload = {
+        "email": email.strip().lower(),
+        "subscribed_at": datetime.now(timezone.utc).isoformat(),
+        "source": source or "site",
+    }
+    _atomic_write(path, json.dumps(payload, indent=2), flock)
+    return True
+
+
+def subscriber_count() -> int:
+    d = _base_dir() / _SUBSCRIBERS
+    if not d.exists():
+        return 0
+    return sum(1 for f in d.glob("*.json") if not f.name.startswith("."))

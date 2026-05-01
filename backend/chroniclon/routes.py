@@ -134,6 +134,27 @@ async def search(
     return {"items": store.search_articles(q, limit=limit), "query": q}
 
 
+# RFC-5321-ish email regex — pragmatic, not standards-perfect.
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+
+
+class SubscribeBody(BaseModel):
+    email: str = Field(..., min_length=5, max_length=254)
+    source: str | None = Field(None, max_length=80)
+
+
+@router.post("/subscribe")
+async def subscribe(body: SubscribeBody) -> dict:
+    """Follow-the-canon endpoint. Idempotent — same address resolves to the
+    same record file. No double-opt-in; sending campaigns is out of scope
+    for now, this just collects the list."""
+    email = body.email.strip().lower()
+    if not _EMAIL_RE.match(email):
+        raise HTTPException(400, "invalid email")
+    is_new = store.add_subscriber(email, source=body.source)
+    return {"status": "subscribed" if is_new else "already_subscribed"}
+
+
 def _wrap_lines(text: str, max_chars: int, max_lines: int = 4) -> list[str]:
     """Cheap word-wrap for the SVG title. Doesn't measure glyph widths —
     falls back to char-count which is close enough for a 1200×630 card."""

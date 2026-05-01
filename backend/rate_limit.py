@@ -30,6 +30,9 @@ LLM_ENDPOINT_LIMITS = {
     "/scene-image": 10,
     "/images/render": 10,
     "/audio/render": 10,
+    # Subscribe is non-LLM but anonymous + unauthenticated, so cap to deter
+    # the "spam the form 1000 times" attack.
+    "/subscribe": 6,
 }
 
 # Rate limit config
