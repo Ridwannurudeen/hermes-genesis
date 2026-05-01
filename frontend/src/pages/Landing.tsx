@@ -49,7 +49,9 @@ const STAGE_MAP: Record<string, string> = {
 };
 
 function fmtN(n: number | null | undefined): string {
-  if (n === null || n === undefined || Number.isNaN(n)) return '0';
+  // Em-dash placeholder while stats are loading. Showing literal "0" on first
+  // paint reads as "no canon" — the exact opposite of the pitch.
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
   return n.toLocaleString();
 }
 
