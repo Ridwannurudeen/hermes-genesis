@@ -1,45 +1,92 @@
 import { AbsoluteFill, Audio, Sequence, staticFile } from 'remotion';
 import { ColdOpen } from './sequences/ColdOpen';
-import { Seed } from './sequences/Seed';
 import { Pipeline } from './sequences/Pipeline';
 import { Proof } from './sequences/Proof';
 import { Drift } from './sequences/Drift';
 import { Close } from './sequences/Close';
 import { PaperGrain } from './components/PaperGrain';
-import { TIMING, FPS, colors } from './lib/tokens';
+import { TIMING, FPS, colors, TOTAL_DURATION } from './lib/tokens';
 
 /**
- * 90-second editorial demo film for Hermes Genesis / Chroniclon.
+ * 32-second tight cut. Three audio tracks scheduled in sequence:
  *
- * Structure (frames at 30fps):
- *   0–240    Cold open       — title card, ink fade-in
- *   240–660  Seed            — one sentence in, world spawning
- *   660–1140 Pipeline        — Hermes / Kimi / critics
- *   1140–2040 Proof          — real article + ElevenLabs narration
- *   2040–2460 Drift          — phonological + lexicon drift
- *   2460–2700 Close          — URL, stats, "still publishing"
+ *    0.00 – 18.07s   presenter-1.mp3   (intro through "Listen.")
+ *   18.07 – 25.07s   seraphina.mp3     (real article narrated by Sarah)
+ *   25.07 – 31.30s   presenter-2.mp3   (drift + URL)
+ *   31.30 – 32.00s   tail hold         (URL stays on screen, music fades out)
  *
- * The audio bed is the ElevenLabs Seraphina narration. We trim a 30-second
- * window (start ~30s into the file, where the prose has settled) and play
- * it during the Proof sequence. Other sequences are silent — the editorial
- * register doesn't need a music bed.
+ * Music bed plays the full 32s, ducks to near-silent during Seraphina.
+ * No "still publishing" / "Nine hundred and sixty articles" / "two models" —
+ * cut on user feedback. Every word names a visible event.
  */
 
-const PROOF_AUDIO_START_SEC = 30; // jump past the article's title intro
-const PROOF_AUDIO_DURATION_SEC = 30;
+const PART1_DUR = 18.07;
+const SERAPHINA_AT = 18.07;
+const SERAPHINA_DUR = 7;
+const PART2_AT = SERAPHINA_AT + SERAPHINA_DUR; // 25.07s
+
+const SERAPHINA_START_SEC = 30;
 
 export const Demo: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: colors.paper[50] }}>
-      {/* Atmospheric paper-grain pattern, persistent under all sequences. */}
       <PaperGrain />
 
-      <Sequence from={TIMING.coldOpen.from} durationInFrames={TIMING.coldOpen.duration}>
-        <ColdOpen />
+      {/* Music bed */}
+      <Audio
+        src={staticFile('music.mp3')}
+        volume={(f) => {
+          const fadeIn = Math.min(1, f / (FPS * 1.5));
+          const fadeOut = Math.min(1, (TOTAL_DURATION - f) / (FPS * 1.5));
+          const seraphinaStart = SERAPHINA_AT * FPS;
+          const seraphinaEnd = (SERAPHINA_AT + SERAPHINA_DUR) * FPS;
+          const inSeraphina = f > seraphinaStart - FPS && f < seraphinaEnd + FPS;
+          const base = inSeraphina ? 0.04 : 0.10;
+          return base * Math.max(0, Math.min(fadeIn, fadeOut));
+        }}
+      />
+
+      {/* Presenter Part 1 */}
+      <Sequence from={0} durationInFrames={Math.round(PART1_DUR * FPS)}>
+        <Audio
+          src={staticFile('presenter-1.mp3')}
+          volume={(f) => {
+            const fadeIn = Math.min(1, f / FPS);
+            const fadeOut = Math.min(1, (PART1_DUR * FPS - f) / (FPS * 0.4));
+            return Math.max(0, Math.min(fadeIn, fadeOut));
+          }}
+        />
       </Sequence>
 
-      <Sequence from={TIMING.seed.from} durationInFrames={TIMING.seed.duration}>
-        <Seed />
+      {/* Seraphina */}
+      <Sequence from={Math.round(SERAPHINA_AT * FPS)} durationInFrames={SERAPHINA_DUR * FPS}>
+        <Audio
+          src={staticFile('seraphina.mp3')}
+          startFrom={SERAPHINA_START_SEC * FPS}
+          endAt={(SERAPHINA_START_SEC + SERAPHINA_DUR) * FPS}
+          volume={(f) => {
+            const fadeIn = Math.min(1, f / (FPS * 0.4));
+            const fadeOut = Math.min(1, (SERAPHINA_DUR * FPS - f) / (FPS * 0.4));
+            return 0.95 * Math.max(0, Math.min(fadeIn, fadeOut));
+          }}
+        />
+      </Sequence>
+
+      {/* Presenter Part 2 */}
+      <Sequence from={Math.round(PART2_AT * FPS)} durationInFrames={TOTAL_DURATION - Math.round(PART2_AT * FPS)}>
+        <Audio
+          src={staticFile('presenter-2.mp3')}
+          volume={(f) => {
+            const fadeIn = Math.min(1, f / (FPS * 0.4));
+            const fadeOut = Math.min(1, (TOTAL_DURATION - Math.round(PART2_AT * FPS) - f) / (FPS * 0.6));
+            return Math.max(0, Math.min(fadeIn, fadeOut));
+          }}
+        />
+      </Sequence>
+
+      {/* Visual sequences */}
+      <Sequence from={TIMING.coldOpen.from} durationInFrames={TIMING.coldOpen.duration}>
+        <ColdOpen />
       </Sequence>
 
       <Sequence from={TIMING.pipeline.from} durationInFrames={TIMING.pipeline.duration}>
@@ -48,22 +95,6 @@ export const Demo: React.FC = () => {
 
       <Sequence from={TIMING.proof.from} durationInFrames={TIMING.proof.duration}>
         <Proof />
-      </Sequence>
-
-      {/* Audio bed — only during the Proof sequence. */}
-      <Sequence from={TIMING.proof.from} durationInFrames={PROOF_AUDIO_DURATION_SEC * FPS}>
-        <Audio
-          src={staticFile('seraphina.mp3')}
-          startFrom={PROOF_AUDIO_START_SEC * FPS}
-          endAt={(PROOF_AUDIO_START_SEC + PROOF_AUDIO_DURATION_SEC) * FPS}
-          volume={(f) => {
-            // 1s fade-in, 1.5s fade-out so the cut to Drift breathes.
-            const fadeIn = Math.min(1, f / FPS);
-            const total = PROOF_AUDIO_DURATION_SEC * FPS;
-            const fadeOut = Math.min(1, (total - f) / (1.5 * FPS));
-            return Math.max(0, Math.min(fadeIn, fadeOut));
-          }}
-        />
       </Sequence>
 
       <Sequence from={TIMING.drift.from} durationInFrames={TIMING.drift.duration}>

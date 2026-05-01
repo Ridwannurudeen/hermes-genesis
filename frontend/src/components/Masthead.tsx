@@ -15,8 +15,11 @@ import { auth, chronicle, type AuthStatus } from '../api';
 
 const NAV: Array<{ to: string; label: string }> = [
   { to: '/chronicle', label: 'chronicle' },
-  { to: '/control',   label: 'control' },
+  { to: '/watch',     label: 'watch' },
+  { to: '/glossary',  label: 'glossary' },
   { to: '/regen',     label: 'regen' },
+  { to: '/demo',      label: 'demo' },
+  { to: '/control',   label: 'control' },
   { to: '/judge',     label: 'judge' },
   { to: '/about',     label: 'method' },
 ];
@@ -111,8 +114,9 @@ export default function Masthead() {
           </div>
         )}
 
-        {/* Nav — hidden below md; mobile uses hamburger drawer below. */}
-        <nav className="hidden md:flex flex-1 items-center gap-5 lg:gap-6">
+        {/* Nav — 8 items at lg+, drawer below md. Tighter gap so all
+         * killer surfaces fit on one row at standard laptop widths. */}
+        <nav className="hidden lg:flex flex-1 items-center gap-4 xl:gap-5">
           {NAV.map((item) => {
             const active =
               item.to === '/chronicle'
@@ -186,7 +190,7 @@ export default function Masthead() {
             onClick={() => setMobileNavOpen((o) => !o)}
             aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileNavOpen}
-            className="md:hidden flex flex-col justify-center gap-[3px] w-7 h-7 -mr-1 text-faint hover:text-sub"
+            className="lg:hidden flex flex-col justify-center gap-[3px] w-7 h-7 -mr-1 text-faint hover:text-sub"
           >
             <span aria-hidden className={`block h-px w-5 bg-current transition-transform ${mobileNavOpen ? 'translate-y-[4px] rotate-45' : ''}`} />
             <span aria-hidden className={`block h-px w-5 bg-current transition-opacity ${mobileNavOpen ? 'opacity-0' : ''}`} />
@@ -197,7 +201,7 @@ export default function Masthead() {
 
       {/* Mobile drawer — slides down beneath the masthead, paper bg. */}
       {mobileNavOpen && (
-        <div className="md:hidden border-t border-subtle bg-paper-50/95 dark:bg-night-950/95 backdrop-blur">
+        <div className="lg:hidden border-t border-subtle bg-paper-50/95 dark:bg-night-950/95 backdrop-blur">
           <nav className="max-w-6xl mx-auto px-4 py-3 flex flex-col">
             <button
               type="button"

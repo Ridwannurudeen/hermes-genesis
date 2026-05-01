@@ -1,120 +1,64 @@
 import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from 'remotion';
 import { Eyebrow } from '../components/Eyebrow';
 import { GiltRule } from '../components/GiltRule';
-import { DisplayText, Accent } from '../components/DisplayText';
 import { colors, fonts } from '../lib/tokens';
 
 /**
- * Cold open — 8 seconds.
+ * Cold Open — 3 seconds. Title card that lands clean.
  *
- *  0.0–1.5  The eyebrow appears: HERMES GENESIS · CHRONICLON
- *  1.5–4.0  The display headline fades in word-by-word, last word italic gilt
- *  4.0–6.5  Hold; gilt rule under the line draws itself
- *  6.5–8.0  Subtitle line, then everything begins to lift toward the next cut
+ * Narration over this sequence:
+ *   "Chroniclon. A wikipedia for a world that doesn't exist."
+ *
+ * Held the whole 3s. No word-by-word reveal — the previous cut tried to
+ * choreograph each word and ran ahead of the narrator. New approach:
+ * fade headline in as one block, hold, fade out.
  */
 export const ColdOpen: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Word-by-word reveal of "A civilization that publishes its own canon."
-  // Last word italic gilt — that's the editorial accent.
-  const words = ['A', 'civilization', 'that', 'publishes', 'its', 'own', 'canon.'];
-  const wordStart = 45; // 1.5s
-  const wordStep = 9;   // ~0.30s per word — slower so 7 words land in roughly the same time as 8 did
-
-  const eyebrowOpacity = interpolate(frame, [0, 30], [0, 1], {
-    extrapolateRight: 'clamp',
-    easing: Easing.out(Easing.quad),
-  });
-
-  const subtitleOpacity = interpolate(frame, [200, 230], [0, 1], {
-    extrapolateRight: 'clamp',
-    easing: Easing.out(Easing.quad),
-  });
-
-  // Slow, almost imperceptible upward drift on the whole stack — gives the
-  // composition a cinematic settle, not a static title card.
-  const drift = interpolate(frame, [0, 240], [12, -4], {
-    extrapolateRight: 'clamp',
-    easing: Easing.inOut(Easing.quad),
-  });
+  const eyebrowOp = interpolate(frame, [0, 14], [0, 1], { extrapolateRight: 'clamp' });
+  const headlineOp = interpolate(frame, [10, 30], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
+  const headlineY = interpolate(frame, [10, 30], [12, 0], { extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
 
   return (
-    <AbsoluteFill
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1500,
-          padding: '0 80px',
-          transform: `translateY(${drift}px)`,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, opacity: eyebrowOpacity }}>
-          <GiltRule width={56} startFrame={6} duration={20} />
-          <Eyebrow>Hermes Genesis · Chroniclon</Eyebrow>
-        </div>
-
-        <div style={{ marginTop: 36, lineHeight: 1.04 }}>
-          {words.map((w, i) => {
-            const isLast = i === words.length - 1;
-            const f = frame - (wordStart + i * wordStep);
-            const op = interpolate(f, [0, 14], [0, 1], {
-              extrapolateLeft: 'clamp',
-              extrapolateRight: 'clamp',
-              easing: Easing.out(Easing.cubic),
-            });
-            const y = interpolate(f, [0, 14], [10, 0], {
-              extrapolateLeft: 'clamp',
-              extrapolateRight: 'clamp',
-              easing: Easing.out(Easing.cubic),
-            });
-            return (
-              <span
-                key={`${w}-${i}`}
-                style={{
-                  fontFamily: fonts.display,
-                  fontSize: 124,
-                  fontWeight: 600,
-                  letterSpacing: '-0.035em',
-                  color: isLast ? colors.gilt[500] : colors.ink[900],
-                  fontStyle: isLast ? 'italic' : 'normal',
-                  display: 'inline-block',
-                  marginRight: 24,
-                  opacity: op,
-                  transform: `translateY(${y}px)`,
-                }}
-              >
-                {w}
-              </span>
-            );
-          })}
+    <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 1500, padding: '0 80px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, opacity: eyebrowOp }}>
+          <GiltRule width={56} startFrame={4} duration={16} />
+          <Eyebrow>hermes genesis · live</Eyebrow>
         </div>
 
         <div
           style={{
-            marginTop: 56,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 18,
-            opacity: subtitleOpacity,
+            marginTop: 28,
+            opacity: headlineOp,
+            transform: `translateY(${headlineY}px)`,
           }}
         >
-          <span
+          <div
+            style={{
+              fontFamily: fonts.display,
+              fontSize: 168,
+              fontWeight: 600,
+              color: colors.ink[900],
+              letterSpacing: '-0.035em',
+              lineHeight: 0.95,
+            }}
+          >
+            Chroniclon
+          </div>
+          <div
             style={{
               fontFamily: fonts.body,
-              fontSize: 28,
+              fontSize: 36,
               fontStyle: 'italic',
-              color: colors.ink[600],
+              color: colors.gilt[500],
+              marginTop: 18,
               letterSpacing: '-0.005em',
             }}
           >
-            One sentence in. A self-writing canon out.
-          </span>
+            a wikipedia for a world that doesn't exist
+          </div>
         </div>
       </div>
     </AbsoluteFill>

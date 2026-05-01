@@ -56,18 +56,31 @@ export const fonts = {
   mono: '"JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace',
 } as const;
 
-/** Composition-wide constants. 90s @ 30fps = 2700 frames. */
+/** Composition-wide constants. 32s @ 30fps = 960 frames — every line earns
+ * its place. Audio:
+ *   presenter-1.mp3  18.07s  (intro through "Listen.")
+ *   seraphina        7.00s   (the canon reads itself)
+ *   presenter-2.mp3   6.22s  (drift + URL)
+ *   tail buffer      ~0.7s   (URL holds after voice ends)
+ */
 export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
-export const TOTAL_DURATION = 90 * FPS; // 2700
+export const TOTAL_DURATION = 32 * FPS; // 960
 
-/** Sequence boundaries, in frames. Keep in lockstep with Demo.tsx. */
+/**
+ * Sequence boundaries, word-locked to Antoni's narration. See SCRIPT.md.
+ *
+ *   0–5s     Cold Open  — "Chroniclon. A wikipedia for a world that doesn't exist."
+ *   5–14s    Pipeline   — "Three agents. Hermes-4 decides… Kimi writes… Critics score."
+ *  14–25s    Proof      — "This one. Seraphina's Final Entry. Listen." + Seraphina (7s)
+ *  25–29s    Drift      — "And the language drifts. Karim becomes cherim."
+ *  29–32s    Close      — "Hermesgenesis dot world."
+ */
 export const TIMING = {
-  coldOpen: { from: 0, duration: 8 * FPS },           //   0 –  8s
-  seed: { from: 8 * FPS, duration: 14 * FPS },        //   8 – 22s
-  pipeline: { from: 22 * FPS, duration: 16 * FPS },   //  22 – 38s
-  proof: { from: 38 * FPS, duration: 30 * FPS },      //  38 – 68s
-  drift: { from: 68 * FPS, duration: 14 * FPS },      //  68 – 82s
-  close: { from: 82 * FPS, duration: 8 * FPS },       //  82 – 90s
+  coldOpen: { from: 0, duration: 5 * FPS },            //   0 –  5s
+  pipeline: { from: 5 * FPS, duration: 9 * FPS },      //   5 – 14s
+  proof: { from: 14 * FPS, duration: 11 * FPS },       //  14 – 25s
+  drift: { from: 25 * FPS, duration: 4 * FPS },        //  25 – 29s
+  close: { from: 29 * FPS, duration: 3 * FPS },        //  29 – 32s
 } as const;

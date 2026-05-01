@@ -423,12 +423,18 @@ export default function WorldView() {
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
               </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
-                <Play className="w-5 h-5" />
+              <button onClick={() => setShowCinematic(true)} title="Cinematic mode — live narrated playback" aria-label="Cinematic mode" className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-sub hover:text-gilt-500 hover:bg-hover transition-all">
+                <Play className="w-4 h-4" />
+                <span className="hidden sm:inline">Cinematic</span>
               </button>
-              {/* Tools overflow — secondary actions moved into a dropdown to
-               * cut the 14-button density. Primary actions (cinematic,
-               * voice/ambient, theme, autoplay, simulate) stay visible. */}
+              <button onClick={() => setShowReplay(true)} title="Theater — replay this world's history" aria-label="Theater replay" disabled={events.length === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-sub hover:text-gilt-500 hover:bg-hover transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                <Theater className="w-4 h-4" />
+                <span className="hidden sm:inline">Theater</span>
+              </button>
+              {/* Tools overflow — secondary actions in a dropdown to keep
+               * primary actions (cinematic, theater, voice/ambient, theme,
+               * autoplay, simulate) visible without cluttering the bar. */}
               <div ref={toolsRef} className="relative">
                 <button
                   onClick={() => setToolsOpen((p) => !p)}
@@ -457,9 +463,6 @@ export default function WorldView() {
                     </button>
                     <button role="menuitem" onClick={() => { setShowChronicle(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
                       <BookOpen className="w-4 h-4 shrink-0" /> Generate chronicle
-                    </button>
-                    <button role="menuitem" onClick={() => { setShowReplay(true); setToolsOpen(false); }} disabled={events.length === 0} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                      <History className="w-4 h-4 shrink-0" /> Replay history
                     </button>
                     <button role="menuitem" onClick={() => { setShowSessionPrep(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
                       <Sparkles className="w-4 h-4 shrink-0" /> Session prep

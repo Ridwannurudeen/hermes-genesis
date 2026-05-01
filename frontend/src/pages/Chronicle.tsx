@@ -110,7 +110,7 @@ function EraNav({
             }}
             title="View the era's transition ceremony"
             aria-label={`View ${e.name} transition ceremony`}
-            className="absolute top-2 right-2 text-gilt-500/60 hover:text-gilt-600 dark:hover:text-gilt-400 opacity-0 group-hover:opacity-100 transition-opacity text-base"
+            className="absolute top-2 right-2 text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 opacity-70 hover:opacity-100 transition-opacity text-base"
           >
             ✦
           </button>
@@ -525,23 +525,31 @@ export default function Chronicle() {
         </div>
 
         <main className="col-span-12 md:col-span-9">
-          <div className="mb-6 flex items-center gap-1 text-body">
+          <div className="mb-6 flex items-center gap-2 text-body border-b border-subtle pb-3">
             <button
               onClick={() => setView('articles')}
-              className={`font-mono text-eyebrow uppercase tracking-eyebrow px-3 py-1.5 rounded transition-colors ${
- view === 'articles' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
+              className={`font-mono text-eyebrow uppercase tracking-eyebrow px-4 py-2 rounded-md border transition-colors ${
+ view === 'articles' ? 'border-gilt-500/50 bg-gilt-500/5 text-heading' : 'border-transparent text-faint hover:text-sub'
  }`}
             >
               articles
+              <span className="ml-2 text-faint/70 normal-case tracking-normal">{stats?.article_count ?? '—'}</span>
             </button>
             <button
               onClick={() => setView('languages')}
-              className={`font-mono text-eyebrow uppercase tracking-eyebrow px-3 py-1.5 rounded transition-colors ${
- view === 'languages' ? 'bg-surface text-heading' : 'text-faint hover:text-sub'
+              className={`font-mono text-eyebrow uppercase tracking-eyebrow px-4 py-2 rounded-md border transition-colors ${
+ view === 'languages' ? 'border-gilt-500/50 bg-gilt-500/5 text-heading' : 'border-transparent text-faint hover:text-sub'
  }`}
+              title="Linguistic family tree — phonology, lexicon, drift across eras"
             >
               languages
+              <span className="ml-2 text-faint/70 normal-case tracking-normal">{stats?.linguistic_eras ?? '—'}</span>
             </button>
+            {view === 'languages' && (
+              <span className="ml-auto font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 italic">
+                · linguistic family tree
+              </span>
+            )}
           </div>
           {view === 'languages' ? (
             <LanguageTree data={linguistic} />

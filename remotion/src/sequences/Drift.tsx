@@ -52,10 +52,10 @@ export const Drift: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const eyebrowOp = interpolate(frame, [0, 24], [0, 1], { extrapolateRight: 'clamp' });
+  const eyebrowOp = interpolate(frame, [0, 18], [0, 1], { extrapolateRight: 'clamp' });
 
-  // Phonological rule reveal
-  const ruleOp = interpolate(frame, [20, 60], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
+  // Phonological rule lands as narrator says "And the language drifts" (0–3s)
+  const ruleOp = interpolate(frame, [10, 50], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
 
   return (
     <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -110,10 +110,13 @@ export const Drift: React.FC = () => {
           </div>
         </div>
 
-        {/* Lexicon table */}
+        {/* Lexicon table — Drift is now 6s = 180 frames. Rows land as narrator
+         * says "Karim becomes cherim" (~2-4s in). Compressed staggers so the
+         * full table is visible by 4s, with hold for "A real linguistic
+         * system." */}
         <div style={{ marginTop: 36 }}>
           {LEXICON.map((lex, idx) => (
-            <LexRow key={lex.english} lex={lex} startFrame={80 + idx * 28} fps={fps} />
+            <LexRow key={lex.english} lex={lex} startFrame={30 + idx * 28} fps={fps} />
           ))}
         </div>
       </div>

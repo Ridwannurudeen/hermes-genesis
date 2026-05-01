@@ -34,12 +34,13 @@ const BODY_PARAGRAPHS: { dropCap?: boolean; text: string }[] = [
 export const Proof: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Whole composition slow-zoom, the way print docs frame a still.
-  const scale = interpolate(frame, [0, 900], [1, 1.04], {
+  // Slow-zoom across the 14s Proof window (420 frames). Tightened from
+  // the longer cut so the move feels deliberate rather than meandering.
+  const scale = interpolate(frame, [0, 420], [1, 1.04], {
     extrapolateRight: 'clamp',
     easing: Easing.inOut(Easing.quad),
   });
-  const yShift = interpolate(frame, [0, 900], [12, -36], {
+  const yShift = interpolate(frame, [0, 420], [8, -20], {
     extrapolateRight: 'clamp',
     easing: Easing.inOut(Easing.quad),
   });
@@ -50,16 +51,19 @@ export const Proof: React.FC = () => {
   const titleY = interpolate(frame, [10, 50], [16, 0], { extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
   const metaOp = interpolate(frame, [40, 75], [0, 1], { extrapolateRight: 'clamp' });
 
-  const illustrationOp = interpolate(frame, [60, 110], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.quad) });
-  const illustrationScale = interpolate(frame, [60, 900], [1.06, 1.14], {
+  const illustrationOp = interpolate(frame, [20, 70], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.quad) });
+  const illustrationScale = interpolate(frame, [20, 420], [1.04, 1.10], {
     extrapolateRight: 'clamp',
     easing: Easing.inOut(Easing.quad),
   });
 
-  // Body paragraphs cadence — each para starts ~3.5s apart so the reader
-  // can follow with the audio. Lines fade in line-by-line within a para.
-  const PARA_STARTS = [120, 360, 660]; // 4s, 12s, 22s
-  const PARA_LINE_STAGGER = 14; // ~0.5s
+  // Body paragraphs land in step with the narration (Proof starts at 18s
+  // global, Seraphina takes the floor 24–31s = frames 180–390 within Proof):
+  //   60   "This one. Seraphina's Final Entry." finishes — drop cap reveals
+  //  180   "Listen." — Seraphina starts; second para reveals as she reads
+  //  300   late in Seraphina — third para reveals
+  const PARA_STARTS = [60, 180, 300];
+  const PARA_LINE_STAGGER = 10;
 
   return (
     <AbsoluteFill style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

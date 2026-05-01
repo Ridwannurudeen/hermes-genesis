@@ -23,11 +23,16 @@ export const Pipeline: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Card reveal timings (in seconds).
+  // Card reveal timings (in seconds within the Pipeline sequence). Pipeline
+  // starts at video 5s; the narration timeline within Part 1 is:
+  //   video 6s    "Hermes-4 decides…"        → card 1 lights at Pipeline+1s
+  //   video 9.5s  "Kimi K2.6 writes…"        → card 2 lights at Pipeline+4.5s
+  //   video 12s   "Hermes critics score…"    → card 3 lights at Pipeline+7s
+  //   video 14s   "Pass — the canon seals."  → critic stamps visible (in card 3)
   const cards = [
-    { startSec: 2, label: 'Hermes-4-70B', stage: 'canon decision' },
-    { startSec: 6, label: 'Kimi-K2.6', stage: 'long-form prose' },
-    { startSec: 10, label: 'Hermes-4-70B', stage: 'anti-slop · fact-check' },
+    { startSec: 1, label: 'Hermes-4-70B', stage: 'canon decision' },
+    { startSec: 4.5, label: 'Kimi-K2.6', stage: 'long-form prose' },
+    { startSec: 7, label: 'Hermes-4-70B', stage: 'anti-slop · fact-check' },
   ];
 
   const titleOpacity = interpolate(frame, [0, 24], [0, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.quad) });

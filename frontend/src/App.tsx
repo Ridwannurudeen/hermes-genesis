@@ -12,6 +12,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const About = lazy(() => import('./pages/About'));
 const Contributors = lazy(() => import('./pages/Contributors'));
 const Glossary = lazy(() => import('./pages/Glossary'));
+const Watch = lazy(() => import('./pages/Watch'));
 const Admin = lazy(() => import('./pages/Admin'));
 const Judge = lazy(() => import('./pages/Judge'));
 
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contributors" element={<Contributors />} />
             <Route path="/glossary" element={<Glossary />} />
+            <Route path="/watch" element={<Watch />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
