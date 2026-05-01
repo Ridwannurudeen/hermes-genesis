@@ -41,7 +41,7 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 ## Live
 
 ```
-960 canonized articles · 4 in-world eras · 65 linguistic eras
+960 canonized articles · 65 linguistic eras · ~506 K words
 ~1 article published every 2 minutes · publishing right now
 ```
 
@@ -167,7 +167,7 @@ npm install && npm run dev
 
 ## Hermes Agent integration
 
-Ships as **9 hermes-agent skills** + an **MCP bridge** with **17 tools** + a **one-command setup**:
+Ships as **9 hermes-agent skills** + an **MCP bridge** with **18 tools** + a **one-command setup**:
 
 ```bash
 ./setup-hermes-agent.sh                                  # local
@@ -187,11 +187,13 @@ Ships as **9 hermes-agent skills** + an **MCP bridge** with **17 tools** + a **o
 MCP bridge auto-discovered by hermes-agent via stdio:
 
 ```
-genesis_create_world      genesis_simulate         genesis_intervene
-genesis_chat              genesis_council          genesis_chronicle
-chronicle_stats           chronicle_list_articles  chronicle_get_article
-chronicle_render_audio    chronicle_render_image   chronicle_control_backlog
-… 5 more
+genesis_create_world      genesis_list_worlds      genesis_get_world
+genesis_simulate          genesis_intervene        genesis_agent_start
+genesis_agent_stop        genesis_agent_status     genesis_chat
+genesis_council           genesis_chronicle        chronicle_stats
+chronicle_list_articles   chronicle_get_article    chronicle_render_audio
+chronicle_render_image    chronicle_control_backlog
+… 1 more
 ```
 
 Source: [`mcp-bridge/server.mjs`](mcp-bridge/server.mjs) · [`hermes-agent-demo.py`](hermes-agent-demo.py).
@@ -209,7 +211,7 @@ Source: [`mcp-bridge/server.mjs`](mcp-bridge/server.mjs) · [`hermes-agent-demo.
 ![Remotion](https://img.shields.io/badge/Remotion-4.0-EF4444?style=flat-square)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-**Backend** — FastAPI · 60+ endpoints · SSE streaming · file-locked atomic JSON store · 71 tests
+**Backend** — FastAPI · 60+ endpoints · SSE streaming · file-locked atomic JSON store · 133 tests
 **Frontend** — React 18 · Source Serif 4 + JetBrains Mono · strict editorial palette · D3 · Framer Motion · 16 tests (vitest)
 **Infra** — Docker Compose (web + canon-runner) · nginx + certbot · GitHub Actions CI
 
@@ -238,15 +240,16 @@ Kimi-K2.6 carries the long-form writing because of its 256 K context — the wri
 $ curl -s https://hermesgenesis.world/api/chronicle/stats
 {
   "article_count":     960,
-  "total_words":       1156842,
-  "era_count":         4,
+  "total_words":       506219,
+  "era_count":         66,
+  "current_era":       "The Cinder Era",
   "linguistic_eras":   65,
-  "subscriber_count":  3,
-  "last_canon_write":  "2026-05-01T11:42:08+00:00"
+  "subscriber_count":  2,
+  "last_canon_write":  "2026-05-01T07:07:28+00:00"
 }
 ```
 
-13 worlds running on the production VPS. The largest (Wellspring Kingdom) is on day 335. All events, all characters, all faction dynamics: autonomous. No scripting.
+3 worlds running on the production VPS. The longest-running (Lunar Epistles) is on day 990. All events, all characters, all faction dynamics: autonomous. No scripting.
 
 ---
 
