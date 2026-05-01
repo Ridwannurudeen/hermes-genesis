@@ -22,7 +22,7 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 </div>
 
 <p align="center">
-  <img src="docs/screenshots/landing.png" alt="Editorial landing — featured article + live counter + freshness pulse" width="100%">
+  <img src="docs/screenshots/landing.jpg" alt="Editorial landing — featured article + live counter + freshness pulse" width="100%">
   <br>
   <em>Editorial front door — Source Serif 4 + JetBrains Mono on warm paper, magazine-style featured article, live article counter that flashes when the canon publishes.</em>
 </p>
@@ -105,7 +105,7 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 <table>
   <tr>
     <td width="50%">
-      <img src="docs/screenshots/article-detail.png" alt="Article detail with drop cap, FLUX hero, ElevenLabs narration, critic-score colophon"><br>
+      <img src="docs/screenshots/article-detail.jpg" alt="Article detail with drop cap, FLUX hero, ElevenLabs narration, critic-score colophon"><br>
       <b>Article detail</b> — drop cap, gilt rule, FLUX hero, ElevenLabs narration, critic-score colophon, provenance sidebar
     </td>
     <td width="50%">
