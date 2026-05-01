@@ -15,10 +15,10 @@ import { auth, chronicle, type AuthStatus } from '../api';
 
 const NAV: Array<{ to: string; label: string }> = [
   { to: '/chronicle', label: 'chronicle' },
-  { to: '/glossary',  label: 'glossary' },
   { to: '/control',   label: 'control' },
+  { to: '/regen',     label: 'regen' },
   { to: '/judge',     label: 'judge' },
-  { to: '/demo',      label: 'demo' },
+  { to: '/about',     label: 'method' },
 ];
 
 function freshnessAgo(iso: string): string {
@@ -89,14 +89,14 @@ export default function Masthead() {
     <>
     <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     <header className="sticky top-0 z-30 backdrop-blur-md bg-paper-50/85 dark:bg-night-950/85 border-b border-subtle">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4 sm:gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4 sm:gap-8">
         {/* Wordmark */}
-        <Link to="/" className="flex items-baseline gap-3 group" aria-label="Chroniclon home">
+        <Link to="/" className="flex items-baseline gap-3 group shrink-0" aria-label="Chroniclon home">
           <span className="font-display text-h3 font-semibold text-heading tracking-[-0.02em] leading-none">
             Chroniclon
           </span>
           <span className="hidden md:inline eyebrow text-faint group-hover:text-dim transition-colors">
-            built on Hermes Genesis
+            Hermes Genesis canon desk
           </span>
         </Link>
 
@@ -138,7 +138,7 @@ export default function Masthead() {
         </nav>
 
         {/* Right rail — search, admin link if session, theme, github */}
-        <div className="ml-auto md:ml-0 flex items-center gap-3 sm:gap-4">
+        <div className="ml-auto md:ml-0 flex shrink-0 items-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
@@ -152,7 +152,7 @@ export default function Masthead() {
             type="button"
             onClick={() => setPaletteOpen(true)}
             aria-label="Search"
-            className="lg:hidden text-faint hover:text-sub font-mono text-eyebrow uppercase tracking-eyebrow"
+            className="hidden sm:inline-flex lg:hidden text-faint hover:text-sub font-mono text-eyebrow uppercase tracking-eyebrow"
           >
             search
           </button>
@@ -164,6 +164,12 @@ export default function Masthead() {
               admin
             </Link>
           )}
+          <Link
+            to="/regen"
+            className="hidden sm:inline-flex items-center h-8 px-3 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 font-ui text-body-sm font-semibold transition-colors"
+          >
+            new world
+          </Link>
           <ThemeToggle />
           <a
             href="https://github.com/Ridwannurudeen/hermes-genesis"

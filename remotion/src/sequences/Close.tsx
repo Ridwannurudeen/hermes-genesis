@@ -95,7 +95,7 @@ export const Close: React.FC = () => {
             letterSpacing: '-0.005em',
           }}
         >
-          a wikipedia for a world that doesn’t exist
+          a civilization that publishes its own canon
         </div>
 
         {/* URL + live dot */}

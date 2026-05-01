@@ -46,11 +46,13 @@ export const colors = {
   },
 } as const;
 
-/** Three-face system: same as the site. Loaded via @remotion/google-fonts. */
+/** Three-face system. Site uses Geist for UI; Remotion uses Inter as the
+ * closest @remotion/google-fonts equivalent (Geist isn't bundled there).
+ * Visually indistinguishable at the small sizes we use it for. */
 export const fonts = {
   display: '"Source Serif 4 Display", "Source Serif 4", Georgia, serif',
   body: '"Source Serif 4", Georgia, serif',
-  ui: '"Geist", system-ui, -apple-system, sans-serif',
+  ui: '"Inter", "Geist", system-ui, -apple-system, sans-serif',
   mono: '"JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace',
 } as const;
 

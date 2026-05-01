@@ -15,10 +15,11 @@ import { colors, fonts } from '../lib/tokens';
 export const ColdOpen: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Word-by-word reveal of "A wikipedia for a world that doesn't exist."
-  const words = ['A', 'wikipedia', 'for', 'a', 'world', 'that', 'doesn’t', 'exist.'];
+  // Word-by-word reveal of "A civilization that publishes its own canon."
+  // Last word italic gilt — that's the editorial accent.
+  const words = ['A', 'civilization', 'that', 'publishes', 'its', 'own', 'canon.'];
   const wordStart = 45; // 1.5s
-  const wordStep = 8;   // ~0.27s per word
+  const wordStep = 9;   // ~0.30s per word — slower so 7 words land in roughly the same time as 8 did
 
   const eyebrowOpacity = interpolate(frame, [0, 30], [0, 1], {
     extrapolateRight: 'clamp',

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2, Play } from 'lucide-react';
+import { ArrowRight, BookOpen, GitBranch, Loader2, Play, Radio, ShieldCheck } from 'lucide-react';
 import InlineAudioButton from '../components/InlineAudioButton';
+import LexiconPreview from '../components/LexiconPreview';
 import Masthead from '../components/Masthead';
 import SubscribeForm from '../components/SubscribeForm';
 import WireTicker from '../components/WireTicker';
@@ -148,6 +149,69 @@ function ProvenanceStrip() {
         </div>
       ))}
     </div>
+  );
+}
+
+function DemoSpine() {
+  const stages = [
+    {
+      title: 'Control Room',
+      label: 'Hermes decides',
+      body: 'Live canonization shows the agent choosing, writing, scoring, revising, linking, rendering, and narrating.',
+      to: '/control',
+      icon: ShieldCheck,
+    },
+    {
+      title: 'Article Proof',
+      label: 'Kimi writes',
+      body: 'Open any entry and inspect writer, voice, critic scores, source events, media, and cross-links.',
+      to: '/chronicle',
+      icon: BookOpen,
+    },
+    {
+      title: 'Language Drift',
+      label: 'eras mutate',
+      body: 'The lexicon changes as the civilization ages, turning a toy world into a durable fictional archive.',
+      to: '/chronicle',
+      icon: Radio,
+    },
+    {
+      title: 'Fresh Regen',
+      label: 'one sentence',
+      body: 'A new seed produces a starter civilization, language sample, and first canon entries without a script.',
+      to: '/regen',
+      icon: GitBranch,
+    },
+  ];
+
+  return (
+    <section className="pb-24">
+      <div className="grid lg:grid-cols-[0.75fr_1.25fr] gap-8 lg:gap-12 items-start">
+        <div className="min-w-0">
+          <div className="eyebrow text-gilt-500 mb-3">submission spine</div>
+          <h2 className="font-display text-h2 sm:text-h1 text-heading tracking-normal leading-tight max-w-[21rem] sm:max-w-none break-words">
+            The agent pipeline is the product.
+          </h2>
+          <p className="mt-4 font-ui text-body-lg text-sub leading-relaxed">
+            Hermes decides, Kimi writes, Hermes critiques, and the archive keeps linking itself.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-px bg-subtle border border-subtle rounded-md overflow-hidden min-w-0">
+          {stages.map(({ title, label, body, to, icon: Icon }) => (
+            <Link key={title} to={to} className="group bg-page p-5 min-h-[180px] hover:bg-hover transition-colors min-w-0">
+              <div className="flex items-start justify-between gap-4 mb-5">
+                <Icon className="w-5 h-5 text-gilt-500" />
+                <span className="eyebrow text-faint group-hover:text-dim">{label}</span>
+              </div>
+              <h3 className="font-display text-h3 text-heading group-hover:text-gilt-500 transition-colors mb-2">
+                {title}
+              </h3>
+              <p className="font-ui text-body text-sub leading-relaxed">{body}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -493,24 +557,23 @@ export default function Landing() {
   }, [worlds]);
 
   return (
-    <div className="min-h-screen bg-page text-page">
+    <div className="min-h-screen bg-page text-page overflow-x-hidden">
       <Masthead />
       <WireTicker />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* ── Hero ─────────────────────────────────────────────────── */}
-        <section className="pt-12 sm:pt-20 pb-16 sm:pb-24 grid lg:grid-cols-[1.4fr_1fr] gap-10 lg:gap-16 items-end">
-          <div>
+        <section className="pt-12 sm:pt-20 pb-16 sm:pb-20 grid lg:grid-cols-[1.25fr_0.75fr] gap-10 lg:gap-16 items-end">
+          <div className="min-w-0">
             <div className="eyebrow text-gilt-500 mb-6 flex items-center gap-2">
               <span className="live-dot" />
               live · written autonomously
             </div>
-            <h1 className="font-display text-display sm:text-display-xl text-heading leading-[0.96] tracking-[-0.04em] mb-8">
-              A wikipedia for a world that <span className="italic text-gilt-500">doesn’t exist.</span>
+            <h1 className="font-display text-[38px] sm:text-display lg:text-display-xl text-heading leading-[1.02] sm:leading-[0.98] tracking-normal mb-8 max-w-[21rem] sm:max-w-5xl break-words">
+              A civilization that publishes its own <span className="italic text-gilt-500">canon.</span>
             </h1>
-            <p className="font-ui text-body-lg text-sub leading-relaxed max-w-xl mb-8">
-              One sentence in. A self-writing encyclopedia out — long-form articles, era-by-era linguistic drift,
-              illustrations, narration. Hermes-4-70B decides what becomes canon. Kimi-K2.6 writes it.
+            <p className="font-ui text-body-lg text-sub leading-relaxed max-w-[21rem] sm:max-w-xl mb-8">
+              One sentence in. A self-writing encyclopedia out. Hermes-4-70B decides what becomes canon. Kimi-K2.6 writes it.
               Hermes critics score it. The civilization keeps publishing after you leave.
             </p>
             <div className="flex items-center gap-6 flex-wrap">
@@ -527,7 +590,7 @@ export default function Landing() {
                   className="inline-flex items-center gap-2 px-5 h-11 rounded-md border border-gilt-500/60 hover:border-gilt-500 hover:bg-gilt-500/10 text-heading font-ui font-semibold text-body transition-colors"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  Watch the canon being written
+                  Watch the canon desk
                 </Link>
               )}
               <Link
@@ -546,10 +609,16 @@ export default function Landing() {
           </div>
 
           {/* Signature moment — live counter */}
-          <div className="lg:border-l border-subtle lg:pl-10 pt-8 lg:pt-0 border-t lg:border-t-0">
+          <div className="lg:border-l border-subtle lg:pl-10 pt-8 lg:pt-0 border-t lg:border-t-0 min-w-0">
             <ArticleCounter stats={stats} />
           </div>
         </section>
+
+        {/* ── Submission spine — agent-pipeline framing ─────────────── */}
+        <DemoSpine />
+
+        {/* ── Lexicon preview — surfaces the conlang differentiator ─── */}
+        <LexiconPreview />
 
         {/* ── Latest canon — lead with the content, NYT-style ──────── */}
         {latest.length > 0 && (
@@ -637,7 +706,7 @@ export default function Landing() {
 
       {/* ── Subscribe band — follow the canon ────────────────────── */}
       <section className="border-t border-subtle bg-surface/40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
           <div>
             <h2 className="font-display text-h2 text-heading tracking-[-0.02em] mb-2">
               Follow the canon.
@@ -653,7 +722,7 @@ export default function Landing() {
 
       {/* ── Footer — restrained editorial colophon ───────────────── */}
       <footer className="border-t border-subtle">
-        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
           <div>
             <div className="eyebrow text-faint mb-2">colophon</div>
             <p className="font-ui text-body-sm text-sub leading-relaxed">
