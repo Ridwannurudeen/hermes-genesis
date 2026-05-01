@@ -150,27 +150,128 @@ function ProvenanceStrip() {
   );
 }
 
-/* ── Latest canon — top N articles as editorial list rows ── */
+/* ── Audio/illustration markers — single source of truth ── */
+function MediaBadges({ a }: { a: ArticleSummary }) {
+  if (!a.audio_url && !a.illustration_url) return null;
+  return (
+    <span className="flex items-center gap-1.5 shrink-0">
+      {a.illustration_url && (
+        <span
+          title="illustrated"
+          className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5"
+        >
+          ill
+        </span>
+      )}
+      {a.audio_url && (
+        <span
+          title="audio narration available"
+          className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5"
+        >
+          audio
+        </span>
+      )}
+    </span>
+  );
+}
+
+/* ── Latest canon — magazine layout: featured illustrated lead + list rows
+ * with thumbs and media badges. Replaces the old text-only row treatment
+ * which buried 159/200 illustrated articles + 1/200 audio articles in
+ * undifferentiated text. ── */
 function LatestCanon({ articles }: { articles: ArticleSummary[] }) {
   const navigate = useNavigate();
+  if (articles.length === 0) return null;
+
+  // Lead: prefer the most-illustrated, audio-bearing recent article.
+  const lead =
+    articles.find((a) => a.audio_url && a.illustration_url) ||
+    articles.find((a) => a.illustration_url) ||
+    articles[0];
+  const rest = articles.filter((a) => a.article_id !== lead.article_id).slice(0, 6);
+
   return (
-    <div className="border-y border-subtle divide-y divide-subtle">
-      {articles.map((a) => (
-        <button
-          key={a.slug}
-          onClick={() => navigate(`/chronicle/${a.slug}`)}
-          className="w-full text-left grid grid-cols-[1fr_auto] sm:grid-cols-[auto_1fr_auto] gap-x-6 gap-y-1 items-baseline px-1 py-4 hover:bg-hover transition-colors group"
-        >
-          <span className="eyebrow text-faint w-20 hidden sm:inline">{a.kind}</span>
-          <span className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors col-span-1 sm:col-auto">
-            <span className="eyebrow text-faint mr-2 sm:hidden">{a.kind}</span>
-            {a.title}
-          </span>
-          <span className="font-mono text-micro text-dim tabular-nums col-span-2 sm:col-auto">
-            year {a.in_world_year} · {a.word_count.toLocaleString()} words
-          </span>
-        </button>
-      ))}
+    <div className="space-y-10">
+      {/* Featured lead — big illustration, eyebrow, headline, dek */}
+      <button
+        onClick={() => navigate(`/chronicle/${lead.slug}`)}
+        className="block w-full text-left group"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-10 items-start">
+          <div className="aspect-[4/3] lg:aspect-[3/2] rounded overflow-hidden border border-subtle bg-elevated">
+            {lead.illustration_url ? (
+              <img
+                src={lead.illustration_url}
+                alt=""
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
+              />
+            ) : (
+              <div className="w-full h-full grid place-items-center font-display text-h2 text-faint italic">
+                {lead.kind}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="eyebrow text-gilt-500 mb-3 flex items-center gap-3 flex-wrap">
+              <span>featured · {lead.kind}</span>
+              <span className="text-faint/60">·</span>
+              <span className="text-faint">year {lead.in_world_year}</span>
+              <MediaBadges a={lead} />
+            </div>
+            <h3 className="font-display text-h1 text-heading group-hover:text-gilt-500 transition-colors leading-[1.1] tracking-[-0.025em] mb-4">
+              {lead.title}
+            </h3>
+            <div className="font-mono text-micro text-dim tabular-nums">
+              {lead.word_count.toLocaleString()} words · {Math.max(1, Math.ceil(lead.word_count / 240))} min read
+              {lead.contributor && (
+                <>
+                  {' · '}
+                  <span className="text-moss-500">via @{lead.contributor}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </button>
+
+      {/* Rest of latest — thumb + title + meta */}
+      {rest.length > 0 && (
+        <div className="border-t border-subtle divide-y divide-subtle">
+          {rest.map((a) => (
+            <button
+              key={a.article_id}
+              onClick={() => navigate(`/chronicle/${a.slug}`)}
+              className="w-full text-left flex gap-4 items-stretch py-4 hover:bg-hover transition-colors group"
+            >
+              {a.illustration_url ? (
+                <img
+                  src={a.illustration_url}
+                  alt=""
+                  loading="lazy"
+                  className="w-20 h-14 sm:w-28 sm:h-20 rounded shrink-0 object-cover border border-subtle bg-elevated"
+                />
+              ) : (
+                <div className="w-20 h-14 sm:w-28 sm:h-20 rounded shrink-0 border border-subtle bg-elevated/40 hidden sm:block" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="eyebrow text-faint mb-1 flex items-center gap-2 flex-wrap">
+                  <span>{a.kind}</span>
+                  <span className="text-faint/60">·</span>
+                  <span>year {a.in_world_year}</span>
+                  <MediaBadges a={a} />
+                </div>
+                <div className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors leading-tight">
+                  {a.title}
+                </div>
+              </div>
+              <span className="font-mono text-micro text-dim tabular-nums shrink-0 self-start hidden sm:inline">
+                {a.word_count.toLocaleString()} words
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -249,17 +350,20 @@ export default function Landing() {
       Promise.all([
         api.listWorlds().catch(() => [] as WorldSummary[]),
         chronicle.stats().catch(() => null),
-        chronicle.listArticles({ limit: 30 }).catch(() => ({ items: [] as ArticleSummary[] })),
+        chronicle.listArticles({ limit: 50 }).catch(() => ({ items: [] as ArticleSummary[] })),
       ]).then(([w, s, a]) => {
         if (cancelled) return;
         setWorlds(w);
         setStats(s);
-        // Curate: prefer articles that already have audio or illustration (full
-        // multimedia showcase) so the front door shows the strongest examples.
-        // Fall back to recency order if not enough media-rich articles.
+        // Curate: lead with the strongest media-rich article, then fill the
+        // list with mostly-illustrated entries. The new LatestCanon layout
+        // surfaces illustration thumbs + audio badges so judges/visitors
+        // can see at a glance which articles have full multimedia treatment.
         const items = a.items ?? [];
-        const featured = items.filter((x) => x.audio_url || x.illustration_url).slice(0, 5);
-        const fallback = items.filter((x) => !featured.includes(x)).slice(0, 5 - featured.length);
+        const seen = new Set<string>();
+        const dedup = items.filter((x) => (seen.has(x.slug) ? false : seen.add(x.slug)));
+        const featured = dedup.filter((x) => x.audio_url || x.illustration_url).slice(0, 7);
+        const fallback = dedup.filter((x) => !featured.includes(x)).slice(0, Math.max(0, 7 - featured.length));
         setLatest([...featured, ...fallback]);
       });
     };
@@ -372,21 +476,10 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ── How it publishes ─────────────────────────────────────── */}
-        <section className="pb-24">
-          <div className="flex items-baseline justify-between mb-6">
-            <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
-              How it publishes
-            </h2>
-            <span className="eyebrow text-faint">three agents · two models</span>
-          </div>
-          <ProvenanceStrip />
-        </section>
-
-        {/* ── Latest canon ─────────────────────────────────────────── */}
+        {/* ── Latest canon — lead with the content, NYT-style ──────── */}
         {latest.length > 0 && (
           <section className="pb-24">
-            <div className="flex items-baseline justify-between mb-6">
+            <div className="flex items-baseline justify-between mb-8 pb-3 border-b border-subtle">
               <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
                 Latest canon
               </h2>
@@ -401,16 +494,42 @@ export default function Landing() {
           </section>
         )}
 
+        {/* ── Worlds — hairline-divided list ───────────────────────── */}
+        {worlds.length > 0 && (
+          <section className="pb-24">
+            <div className="flex items-baseline justify-between mb-6 pb-3 border-b border-subtle">
+              <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
+                Public worlds
+              </h2>
+              <span className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint tabular-nums">
+                {worlds.length} listed
+              </span>
+            </div>
+            <WorldsList worlds={worlds} onDelete={handleDelete} deletingId={deletingId} />
+          </section>
+        )}
+
+        {/* ── How it publishes ─────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="flex items-baseline justify-between mb-6 pb-3 border-b border-subtle">
+            <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
+              How it publishes
+            </h2>
+            <span className="eyebrow text-faint">three agents · two models</span>
+          </div>
+          <ProvenanceStrip />
+        </section>
+
         {/* ── Sandbox: build a fresh world ─────────────────────────── */}
         <section className="pb-24">
-          <div className="flex items-baseline justify-between mb-3">
+          <div className="flex items-baseline justify-between mb-3 pb-3 border-b border-subtle">
             <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
-              Sandbox
+              Build your own
             </h2>
-            <span className="eyebrow text-faint">hermes genesis</span>
+            <span className="eyebrow text-faint">hermes genesis · sandbox</span>
           </div>
-          <p className="font-ui text-body text-sub max-w-2xl mb-6">
-            Skip the wiki and just generate a fresh living world from a single sentence. The agent will
+          <p className="font-ui text-body text-sub max-w-2xl mb-6 mt-4">
+            Skip the wiki and generate a fresh living world from a single sentence. The agent will
             chart geography, breathe in factions, forge characters with genomes, and write the first prophecies.
           </p>
           <div className="border border-subtle rounded-md bg-surface p-1.5 flex gap-1.5 max-w-3xl">
@@ -439,21 +558,6 @@ export default function Landing() {
             </p>
           )}
         </section>
-
-        {/* ── Worlds — hairline-divided list ───────────────────────── */}
-        {worlds.length > 0 && (
-          <section className="pb-32">
-            <div className="flex items-baseline justify-between mb-3">
-              <h2 className="font-display text-h2 text-heading tracking-[-0.02em]">
-                Public worlds
-              </h2>
-              <span className="font-mono text-eyebrow uppercase tracking-eyebrow text-faint tabular-nums">
-                {worlds.length} listed
-              </span>
-            </div>
-            <WorldsList worlds={worlds} onDelete={handleDelete} deletingId={deletingId} />
-          </section>
-        )}
       </main>
 
       {/* ── Subscribe band — follow the canon ────────────────────── */}

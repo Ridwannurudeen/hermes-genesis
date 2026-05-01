@@ -174,6 +174,14 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
         <div className="flex items-baseline justify-between gap-3">
           <div className="font-display text-h4 text-heading group-hover:text-gilt-500 transition-colors leading-tight flex items-center gap-2 truncate">
             <span className="truncate">{a.title}</span>
+            {a.illustration_url ? (
+              <span
+                title="illustrated"
+                className="inline-flex items-center font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5 shrink-0"
+              >
+                ill
+              </span>
+            ) : null}
             {a.audio_url ? (
               <span
                 title="audio narration available"
