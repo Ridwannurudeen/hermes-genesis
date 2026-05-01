@@ -96,6 +96,12 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 
 ## See it
 
+<p align="center">
+  <img src="docs/screenshots/nav-with-freshness.png" alt="Editorial masthead — wordmark, freshness pill, 8-item nav" width="100%">
+  <br>
+  <em>The masthead — wordmark + freshness pulse (live · Nm ago) + 8-item nav (chronicle · watch · glossary · regen · demo · control · judge · method).</em>
+</p>
+
 <table>
   <tr>
     <td width="50%">
@@ -105,6 +111,16 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
     <td width="50%">
       <img src="docs/screenshots/chronicle-home.png" alt="Chronicle archive — magazine list with audio + art badges"><br>
       <b>Chronicle archive</b> — 960 articles, era nav, critic scores, audio + art badges, inline play buttons
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/glossary.png" alt="Glossary — linguistic family tree across in-world eras"><br>
+      <b>Glossary</b> — every English term that has been canonized into a constructed tongue, alphabetized, with the trail across linguistic eras
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/lexicon-preview.png" alt="Lexicon preview on Landing showing morphing English terms"><br>
+      <b>Lexicon preview</b> — the conlang differentiator surfaced on the front door: <code>karim → cherim → cherim-en</code>
     </td>
   </tr>
   <tr>
@@ -119,7 +135,11 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
   </tr>
 </table>
 
-> **Screenshots needing capture** before May 3 submission: `/watch` cinematic mode in editorial palette, `/glossary` linguistic family tree, lexicon-preview section on Landing, the new 8-item nav with freshness pill. The visuals above are post-reskin (Apr 30) but predate the May 1 push that added `/watch`, `/glossary`, and the lexicon preview.
+<p align="center">
+  <img src="docs/screenshots/watch-cinematic.png" alt="The /watch route — opens cinematic mode against the most-active world" width="60%">
+  <br>
+  <em><a href="https://hermesgenesis.world/watch">/watch</a> — picks the liveliest public world and opens cinematic mode against it: full-screen mood-themed scenes, voice narration, ambient sound.</em>
+</p>
 
 ---
 
