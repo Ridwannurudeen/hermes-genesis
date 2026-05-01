@@ -24,7 +24,7 @@ import {
 } from '../api';
 
 function fmt(n: number | null | undefined) {
-  if (n === null || n === undefined || Number.isNaN(n)) return '0';
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return String(n);
@@ -116,9 +116,12 @@ function ProofGrid({ status }: { status: AuthStatus | null }) {
   const rows = [
     ['main track', 'creative autonomous world engine'],
     ['kimi track', 'Kimi-K2.6 long-form article writer'],
-    ['agent surface', '17 MCP tools and 9 skills'],
-    ['operations', status?.auth_required ? 'admin sessions and usage telemetry' : 'local dev mode'],
+    ['agent surface', '18 MCP tools · 9 hermes-agent skills'],
+    ['provenance', 'every article carries writer model + critic scores'],
   ];
+  // `status` is read above to keep the prop contract; the UI itself no longer
+  // exposes operator/auth state to public visitors.
+  void status;
 
   return (
     <div className="grid md:grid-cols-4 gap-px bg-subtle border border-subtle rounded overflow-hidden">
@@ -194,10 +197,8 @@ export default function Judge() {
               <dd className="text-moss-500">present</dd>
               <dt className="text-dim">Nous agent fit</dt>
               <dd className="text-moss-500">present</dd>
-              <dt className="text-dim">Admin auth</dt>
-              <dd className={status?.auth_required ? 'text-moss-500' : 'text-gilt-500'}>
-                {status?.auth_required ? 'enabled' : 'dev mode'}
-              </dd>
+              <dt className="text-dim">Provenance</dt>
+              <dd className="text-moss-500">on every page</dd>
             </dl>
           </div>
         </div>
