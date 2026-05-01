@@ -1,8 +1,0 @@
-node_modules/
-*.mp4
-*.mov
-*.webm
-poster.png
-.cache/
-out/
-.remotion/

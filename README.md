@@ -22,9 +22,9 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 </div>
 
 <p align="center">
-  <img src="docs/screenshots/control-room.png" alt="Canon Control Room — live agentic publishing pipeline" width="100%">
+  <img src="docs/screenshots/landing.png" alt="Editorial landing — featured article + live counter + freshness pulse" width="100%">
   <br>
-  <em>Canon Control Room — every canonization streams live: Hermes-4 decides → Kimi K2.6 writes → Hermes critics score → FLUX illustrates → ElevenLabs narrates.</em>
+  <em>Editorial front door — Source Serif 4 + JetBrains Mono on warm paper, magazine-style featured article, live article counter that flashes when the canon publishes.</em>
 </p>
 
 ---
@@ -99,25 +99,27 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 <table>
   <tr>
     <td width="50%">
-      <img src="docs/screenshots/landing.png" alt="Editorial Landing"><br>
-      <b>Landing</b> — magazine-style featured article + curated latest canon
+      <img src="docs/screenshots/article-detail.png" alt="Article detail with drop cap, FLUX hero, ElevenLabs narration, critic-score colophon"><br>
+      <b>Article detail</b> — drop cap, gilt rule, FLUX hero, ElevenLabs narration, critic-score colophon, provenance sidebar
     </td>
     <td width="50%">
-      <img src="docs/screenshots/article-detail.png" alt="Article detail"><br>
-      <b>Article detail</b> — drop cap, gilt rule, FLUX hero, narration, provenance sidebar
+      <img src="docs/screenshots/chronicle-home.png" alt="Chronicle archive — magazine list with audio + art badges"><br>
+      <b>Chronicle archive</b> — 960 articles, era nav, critic scores, audio + art badges, inline play buttons
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <img src="docs/screenshots/cinematic-mode.gif" alt="Cinematic mode"><br>
-      <b>Cinematic mode</b> — full-screen mood-themed playback with voice + ambient
+      <img src="docs/screenshots/control-room.png" alt="Live canon control room — pipeline streaming"><br>
+      <b>Control Room</b> — every canonization streams live: canon agent → writer → critics → illustrator → narrator
     </td>
     <td width="50%">
-      <img src="docs/screenshots/chronicle-home.png" alt="Chronicle home"><br>
-      <b>Chronicle archive</b> — 960 articles, era nav, critic scores, audio badges
+      <img src="docs/screenshots/regen.png" alt="Regen — SSE-streamed world creation from one sentence"><br>
+      <b>Regen</b> — seed your own civilization, watch it canonize in real time (Kimi-K2.6 ↔ Hermes-4 toggle)
     </td>
   </tr>
 </table>
+
+> **Screenshots needing capture** before May 3 submission: `/watch` cinematic mode in editorial palette, `/glossary` linguistic family tree, lexicon-preview section on Landing, the new 8-item nav with freshness pill. The visuals above are post-reskin (Apr 30) but predate the May 1 push that added `/watch`, `/glossary`, and the lexicon preview.
 
 ---
 
@@ -212,15 +214,7 @@ Source: [`mcp-bridge/server.mjs`](mcp-bridge/server.mjs) · [`hermes-agent-demo.
 
 ## Demo film
 
-A 32-second editorial demo lives in [`remotion/`](remotion/) — programmatic React composition rendered to mp4 via headless Chrome. ElevenLabs Antoni narration over a Kevin MacLeod (CC-BY-3.0) music bed; Seraphina narration takes the floor for 7 seconds during the proof beat.
-
-```bash
-cd remotion
-npm install
-npm run render        # writes demo.mp4
-```
-
-Composition source: [`remotion/src/Demo.tsx`](remotion/src/Demo.tsx) · [`remotion/SCRIPT.md`](remotion/SCRIPT.md).
+A 32-second editorial demo accompanies the [X submission](docs/X_THREAD.md) — programmatic React composition (Remotion) rendered to mp4. ElevenLabs Antoni narration over a Kevin MacLeod (CC-BY-3.0) music bed; Seraphina narration takes the floor for 7 seconds during the proof beat. Video is the canonical artifact; the source composition lives outside this repo.
 
 ---
 
@@ -303,4 +297,4 @@ The world doesn't wait for you. It lives on its own. And when you're ready — y
 
 [MIT](LICENSE).
 
-Music in [`remotion/public/music.mp3`](remotion/public/music.mp3): *Inspired* by Kevin MacLeod ([incompetech.com](https://incompetech.com)) — Creative Commons Attribution 3.0.
+Demo-film music: *Inspired* by Kevin MacLeod ([incompetech.com](https://incompetech.com)) — Creative Commons Attribution 3.0.
