@@ -1,0 +1,262 @@
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
+import CommandPalette from './CommandPalette';
+import { auth, chronicle, type AuthStatus } from '../api';
+
+/* Editorial publication masthead — used on every route.
+ *
+ * Pattern: display-serif wordmark + hairline rule + small-caps mono nav.
+ * Replaces the previous Sparkles/Wifi/GitHub strip.
+ *
+ * Visibility rule: admin link only renders when the user has an admin
+ * session cookie (session-based, not the SPA deploy token).
+ */
+
+const NAV: Array<{ to: string; label: string }> = [
+  { to: '/chronicle', label: 'chronicle' },
+  { to: '/watch',     label: 'watch' },
+  { to: '/glossary',  label: 'glossary' },
+  { to: '/regen',     label: 'regen' },
+  { to: '/demo',      label: 'demo' },
+  { to: '/control',   label: 'control' },
+  { to: '/judge',     label: 'judge' },
+  { to: '/about',     label: 'method' },
+];
+
+function freshnessAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 0 || Number.isNaN(ms)) return '';
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+export default function Masthead() {
+  const { pathname } = useLocation();
+  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [lastCanonWrite, setLastCanonWrite] = useState<string | null>(null);
+
+  useEffect(() => {
+    auth.status().then(setAuthStatus).catch(() => setAuthStatus(null));
+  }, []);
+
+  // Poll the freshness pill — every 60s is plenty since the canon publishes
+  // on the order of minutes, not seconds.
+  useEffect(() => {
+    let cancelled = false;
+    const tick = () => {
+      chronicle.stats().then((s) => {
+        if (!cancelled) setLastCanonWrite(s.last_canon_write ?? null);
+      }).catch(() => {});
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  // Close the mobile nav when route changes.
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  const freshness = lastCanonWrite ? freshnessAgo(lastCanonWrite) : null;
+  const isLive = lastCanonWrite ? Date.now() - new Date(lastCanonWrite).getTime() < 5 * 60_000 : false;
+
+  // Global ⌘K / Ctrl+K shortcut. `/` also opens unless the user is already
+  // typing in an input/textarea — matches NYT and most editorial sites.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const inField =
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setPaletteOpen((p) => !p);
+      } else if (e.key === '/' && !inField) {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  return (
+    <>
+    <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+    <header className="sticky top-0 z-30 backdrop-blur-md bg-paper-50/85 dark:bg-night-950/85 border-b border-subtle">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4 sm:gap-8">
+        {/* Wordmark */}
+        <Link to="/" className="flex items-baseline gap-3 group shrink-0" aria-label="Chroniclon home">
+          <span className="font-display text-h3 font-semibold text-heading tracking-[-0.02em] leading-none">
+            Chroniclon
+          </span>
+          <span className="hidden md:inline eyebrow text-faint group-hover:text-dim transition-colors">
+            Hermes Genesis canon desk
+          </span>
+        </Link>
+
+        {/* Freshness pill — only shown when we have a recent timestamp */}
+        {freshness && (
+          <div
+            className="hidden sm:flex items-center gap-2 font-mono text-eyebrow uppercase tracking-eyebrow text-faint"
+            title={`Last canon write: ${new Date(lastCanonWrite!).toLocaleString()}`}
+          >
+            {isLive && <span className="live-dot" aria-hidden />}
+            <span>{isLive ? 'live' : 'last write'} · {freshness}</span>
+          </div>
+        )}
+
+        {/* Nav — 8 items at lg+, drawer below md. Tighter gap so all
+         * killer surfaces fit on one row at standard laptop widths. */}
+        <nav className="hidden lg:flex flex-1 items-center gap-4 xl:gap-5">
+          {NAV.map((item) => {
+            const active =
+              item.to === '/chronicle'
+                ? pathname.startsWith('/chronicle')
+                : pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`font-mono text-eyebrow uppercase tracking-eyebrow transition-colors relative
+ ${active ? 'text-heading' : 'text-faint hover:text-sub'}`}
+              >
+                {item.label}
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-[15px] left-0 right-0 h-[1.5px] bg-gilt-500"
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right rail — search, admin link if session, theme, github */}
+        <div className="ml-auto md:ml-0 flex shrink-0 items-center gap-3 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            aria-label="Search the canon"
+            className="hidden lg:flex items-center gap-2 px-2.5 h-7 rounded border border-subtle bg-surface/60 hover:bg-surface text-faint hover:text-sub font-mono text-eyebrow uppercase tracking-eyebrow transition-colors"
+          >
+            <span>search</span>
+            <kbd className="font-mono text-[10px] tracking-normal text-faint border border-subtle rounded px-1 py-0">⌘K</kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            aria-label="Search"
+            className="hidden sm:inline-flex lg:hidden text-faint hover:text-sub font-mono text-eyebrow uppercase tracking-eyebrow"
+          >
+            search
+          </button>
+          {authStatus?.admin && (
+            <Link
+              to="/admin"
+              className="hidden sm:inline font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 hover:text-gilt-600 dark:hover:text-gilt-400 transition-colors"
+            >
+              admin
+            </Link>
+          )}
+          <Link
+            to="/regen"
+            className="hidden sm:inline-flex items-center h-8 px-3 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 font-ui text-body-sm font-semibold transition-colors"
+          >
+            new world
+          </Link>
+          <ThemeToggle />
+          <a
+            href="https://github.com/Ridwannurudeen/hermes-genesis"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Source on GitHub"
+            className="hidden sm:inline text-faint hover:text-sub transition-colors text-eyebrow font-mono uppercase tracking-eyebrow"
+          >
+            github
+          </a>
+          {/* Mobile menu toggle — three hairlines, editorial not SaaS. */}
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen((o) => !o)}
+            aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileNavOpen}
+            className="lg:hidden flex flex-col justify-center gap-[3px] w-7 h-7 -mr-1 text-faint hover:text-sub"
+          >
+            <span aria-hidden className={`block h-px w-5 bg-current transition-transform ${mobileNavOpen ? 'translate-y-[4px] rotate-45' : ''}`} />
+            <span aria-hidden className={`block h-px w-5 bg-current transition-opacity ${mobileNavOpen ? 'opacity-0' : ''}`} />
+            <span aria-hidden className={`block h-px w-5 bg-current transition-transform ${mobileNavOpen ? '-translate-y-[4px] -rotate-45' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile drawer — slides down beneath the masthead, paper bg. */}
+      {mobileNavOpen && (
+        <div className="lg:hidden border-t border-subtle bg-paper-50/95 dark:bg-night-950/95 backdrop-blur">
+          <nav className="max-w-6xl mx-auto px-4 py-3 flex flex-col">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavOpen(false);
+                setPaletteOpen(true);
+              }}
+              className="py-3 border-b border-subtle/60 text-left font-mono text-eyebrow uppercase tracking-eyebrow text-faint flex items-center justify-between"
+            >
+              <span>search the canon</span>
+              <kbd className="font-mono text-[10px] tracking-normal text-faint border border-subtle rounded px-1 py-0">⌘K</kbd>
+            </button>
+            {NAV.map((item) => {
+              const active =
+                item.to === '/chronicle'
+                  ? pathname.startsWith('/chronicle')
+                  : pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`py-3 border-b border-subtle/60 last:border-b-0 font-mono text-eyebrow uppercase tracking-eyebrow ${
+                    active ? 'text-heading' : 'text-faint'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+            {authStatus?.admin && (
+              <Link
+                to="/admin"
+                className="py-3 border-t border-subtle font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500"
+              >
+                admin
+              </Link>
+            )}
+            <a
+              href="https://github.com/Ridwannurudeen/hermes-genesis"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-3 border-t border-subtle font-mono text-eyebrow uppercase tracking-eyebrow text-faint"
+            >
+              github
+            </a>
+            {freshness && (
+              <div className="py-3 border-t border-subtle font-mono text-eyebrow uppercase tracking-eyebrow text-faint flex items-center gap-2">
+                {isLive && <span className="live-dot" aria-hidden />}
+                <span>{isLive ? 'live' : 'last write'} · {freshness}</span>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+    </>
+  );
+}

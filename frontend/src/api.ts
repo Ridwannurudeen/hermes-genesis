@@ -12,8 +12,24 @@ import type {
 
 const BASE = '';
 
-async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${url}`, options);
+// Optional API key injected at build time. Backend gates POST/DELETE on this.
+// Wire VITE_GENESIS_API_KEY in the build env (same value as GENESIS_API_KEY on
+// the backend). When unset, we send no header — fine for read-only browsing.
+const API_KEY: string = (import.meta.env.VITE_GENESIS_API_KEY as string | undefined) ?? '';
+
+function withAuth(options?: RequestInit): RequestInit {
+  const next: RequestInit = { ...(options ?? {}), credentials: 'same-origin' };
+  if (!API_KEY) return next;
+  const method = (next.method || 'GET').toUpperCase();
+  // Reads (GET) don't need the key; only mutating routes do.
+  if (method === 'GET') return next;
+  const headers = new Headers(next.headers || {});
+  headers.set('X-API-Key', API_KEY);
+  return { ...next, headers };
+}
+
+export async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${url}`, withAuth(options));
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }
@@ -26,14 +42,69 @@ type SSEHandler = {
   onError?: (error: Error) => void;
 };
 
+export function authHeaders(method: string = 'POST'): Record<string, string> {
+  const h: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (API_KEY && method.toUpperCase() !== 'GET') h['X-API-Key'] = API_KEY;
+  return h;
+}
+
+export type AuthStatus = {
+  auth_required: boolean;
+  admin: boolean;
+  session_ttl_seconds: number;
+};
+
+export type UsageEndpointRow = {
+  requests: number;
+  failures: number;
+  estimated_model_units: number;
+  avg_ms: number;
+  last_status: number | null;
+};
+
+export type UsageDayRow = {
+  requests: number;
+  failures: number;
+  estimated_model_units: number;
+};
+
+export type UsageSnapshot = {
+  started_at: string;
+  updated_at: string | null;
+  total_requests: number;
+  total_failures: number;
+  estimated_model_units: number;
+  by_endpoint: Record<string, UsageEndpointRow>;
+  by_day: Record<string, UsageDayRow>;
+};
+
+export const auth = {
+  status: () => fetchJson<AuthStatus>('/api/auth/status'),
+
+  login: (apiKey: string) =>
+    fetchJson<{ admin: boolean; session_ttl_seconds: number }>('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey }),
+    }),
+
+  logout: () =>
+    fetchJson<{ admin: boolean }>('/api/auth/logout', {
+      method: 'POST',
+    }),
+
+  usage: () => fetchJson<UsageSnapshot>('/api/admin/usage'),
+};
+
 function streamSSE(url: string, body: Record<string, unknown>, handlers: SSEHandler): () => void {
   const controller = new AbortController();
 
   fetch(`${BASE}${url}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders('POST'),
     body: JSON.stringify(body),
     signal: controller.signal,
+    credentials: 'same-origin',
   })
     .then(async (response) => {
       if (!response.ok) throw new Error(`API error: ${response.status}`);
@@ -129,7 +200,7 @@ export const api = {
   },
 
   exportWorld: async (id: string) => {
-    const res = await fetch(`${BASE}/api/worlds/${id}/export`);
+    const res = await fetch(`${BASE}/api/worlds/${id}/export`, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Export failed');
     const text = await res.text();
     const disposition = res.headers.get('Content-Disposition') || '';
@@ -285,4 +356,147 @@ export const api = {
 
   simulateStream: (id: string, days: number, handlers: SSEHandler) =>
     streamSSE(`/api/worlds/${id}/simulate/stream?days=${days}`, {}, handlers),
+};
+
+// =============================================================================
+// Chroniclon — civilizational canon engine
+// =============================================================================
+
+export type ChronicleStats = {
+  article_count: number;
+  total_words: number;
+  era_count: number;
+  current_era: string | null;
+  linguistic_eras: number;
+  contributor_count: number;
+  subscriber_count?: number;
+  last_canon_write?: string | null;
+};
+
+export type ArticleKind =
+  | 'event' | 'person' | 'faction' | 'place'
+  | 'language' | 'concept' | 'artifact' | 'prophecy';
+
+export type VoiceTone =
+  | 'scholarly' | 'diary' | 'newspaper' | 'scripture' | 'court';
+
+export type ArticleSummary = {
+  article_id: string;
+  slug: string;
+  title: string;
+  kind: ArticleKind;
+  era_id: string;
+  in_world_year: number;
+  voice: VoiceTone;
+  word_count: number;
+  contributor: string | null;
+  audio_url: string | null;
+  illustration_url?: string | null;
+  anti_slop_score?: number | null;
+  fact_check_score?: number | null;
+  updated_at: string;
+};
+
+export type Article = ArticleSummary & {
+  body_md: string;
+  backlinks: string[];
+  inbound: string[];
+  sources_cited: string[];
+  illustration_url: string | null;
+  audio_url: string | null;
+  anti_slop_score: number | null;
+  fact_check_score: number | null;
+  critic_passes: number;
+  written_year: number | null;
+  created_at: string;
+};
+
+export type EraSummary = {
+  era_id: string;
+  name: string;
+  ordinal: number;
+  start_year: number;
+  end_year: number | null;
+  summary: string;
+  art_style: string;
+  dominant_factions: string[];
+};
+
+export const chronicle = {
+  stats: () => fetchJson<ChronicleStats>('/api/chronicle/stats'),
+
+  listArticles: (params: { era_id?: string; kind?: ArticleKind; limit?: number; offset?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.era_id) qs.set('era_id', params.era_id);
+    if (params.kind) qs.set('kind', params.kind);
+    if (params.limit !== undefined) qs.set('limit', String(params.limit));
+    if (params.offset !== undefined) qs.set('offset', String(params.offset));
+    const q = qs.toString();
+    return fetchJson<{ items: ArticleSummary[] }>(
+      `/api/chronicle/articles${q ? `?${q}` : ''}`
+    );
+  },
+
+  getArticle: (slug: string) => fetchJson<Article>(`/api/chronicle/articles/${slug}`),
+
+  search: (q: string, limit: number = 20) => {
+    const qs = new URLSearchParams({ q, limit: String(limit) });
+    return fetchJson<{
+      items: { slug: string; title: string; kind: ArticleKind; in_world_year: number; voice: string; snippet: string }[];
+      query: string;
+    }>(`/api/chronicle/search?${qs.toString()}`);
+  },
+
+  subscribe: (email: string, source?: string) =>
+    fetchJson<{ status: 'subscribed' | 'already_subscribed'; unsubscribe_token: string }>(
+      '/api/chronicle/subscribe',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source }),
+      },
+    ),
+
+  listEras: () => fetchJson<{ items: EraSummary[] }>('/api/chronicle/eras'),
+
+  lexicon: () =>
+    fetchJson<{
+      items: {
+        era_id: string;
+        era_name: string;
+        in_world_year: number;
+        parent_era: string | null;
+        phonology_notes: string;
+        phonological_rules?: { from_sound: string; to_sound: string; context: string }[];
+        morphology?: {
+          plural_marker?: string;
+          honorific_prefix?: string;
+          place_name_suffix?: string;
+          diminutive?: string;
+          notes?: string;
+        };
+        sample_lexicon: Record<string, string>;
+        sample_text: string;
+        inscriptions?: { in_world_text: string; translation: string; context: string }[];
+      }[];
+    }>('/api/chronicle/lexicon'),
+
+  submit: (contributor_handle: string, seed_text: string) =>
+    fetchJson<{
+      submission_id: string;
+      status: 'canonized' | 'rejected' | 'approved_but_skipped' | string;
+      reason?: string;
+      contributor?: string;
+      article?: {
+        slug: string;
+        title: string;
+        kind: string;
+        voice: string;
+        word_count: number;
+      };
+    }>('/api/chronicle/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contributor_handle, seed_text }),
+    }),
 };

@@ -51,7 +51,7 @@ export default function CharacterList({
   return (
     <div>
       {/* Filters */}
-      <div className="glass rounded-xl p-4 flex flex-wrap items-center gap-3 mb-6">
+      <div className="bg-surface border border-subtle rounded-xl p-4 flex flex-wrap items-center gap-3 mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dim" />
           <input
@@ -59,7 +59,7 @@ export default function CharacterList({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search characters..."
-            className="glass-input rounded-lg pl-9 pr-4 py-2 text-sm text-input placeholder-faint focus:outline-none w-56 transition-all"
+            className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg pl-9 pr-4 py-2 text-sm text-input placeholder-faint focus:outline-none w-56"
           />
         </div>
 
@@ -70,7 +70,7 @@ export default function CharacterList({
         <select
           value={factionFilter}
           onChange={(e) => setFactionFilter(e.target.value)}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Factions</option>
           {factions.map((f) => (
@@ -83,7 +83,7 @@ export default function CharacterList({
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Roles</option>
           {roles.map((r) => (
@@ -96,7 +96,7 @@ export default function CharacterList({
         <select
           value={aliveFilter}
           onChange={(e) => setAliveFilter(e.target.value)}
-          className="glass-input rounded-lg px-3 py-2 text-sm text-sub focus:outline-none transition-all"
+          className="bg-surface border border-subtle focus:border-gilt-500/60 transition-colors rounded-lg px-3 py-2 text-sm text-sub focus:outline-none"
         >
           <option value="all">All Status</option>
           <option value="alive">Alive</option>

@@ -851,7 +851,7 @@ export default function WorldMap({
                   };
                 })
               }
-              className="w-8 h-8 bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded text-gray-300 hover:bg-gray-700/80 hover:border-gray-500/50 flex items-center justify-center text-lg transition-all"
+              className="w-8 h-8 bg-ink-900/80 backdrop-blur-sm border border-ink-700/50 rounded text-vellum-300 hover:bg-ink-700/80 hover:border-ink-500/50 flex items-center justify-center text-lg transition-all"
             >
               +
             </button>
@@ -869,7 +869,7 @@ export default function WorldMap({
                   };
                 })
               }
-              className="w-8 h-8 bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded text-gray-300 hover:bg-gray-700/80 hover:border-gray-500/50 flex items-center justify-center text-lg transition-all"
+              className="w-8 h-8 bg-ink-900/80 backdrop-blur-sm border border-ink-700/50 rounded text-vellum-300 hover:bg-ink-700/80 hover:border-ink-500/50 flex items-center justify-center text-lg transition-all"
             >
               -
             </button>
@@ -877,14 +877,14 @@ export default function WorldMap({
               onClick={() =>
                 setViewBox({ x: 0, y: 0, w: SVG_SIZE, h: SVG_SIZE })
               }
-              className="w-8 h-8 bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded text-gray-300 hover:bg-gray-700/80 hover:border-gray-500/50 flex items-center justify-center text-xs transition-all"
+              className="w-8 h-8 bg-ink-900/80 backdrop-blur-sm border border-ink-700/50 rounded text-vellum-300 hover:bg-ink-700/80 hover:border-ink-500/50 flex items-center justify-center text-xs transition-all"
             >
               R
             </button>
           </div>
 
           {/* Legend */}
-          <div className="absolute top-4 left-4 bg-page/80 backdrop-blur-md border border-gray-700/30 rounded-lg p-3 shadow-2xl">
+          <div className="absolute top-4 left-4 bg-page/80 backdrop-blur-md border border-ink-700/30 rounded-lg p-3 shadow-2xl">
             <p className="text-[10px] text-dim uppercase tracking-widest mb-2 font-semibold">
               Factions
             </p>

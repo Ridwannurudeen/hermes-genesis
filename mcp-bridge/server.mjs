@@ -18,11 +18,25 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 const API = process.env.GENESIS_API_URL || "http://localhost:8003";
+const API_KEY = process.env.GENESIS_API_KEY || "";
+
+function seg(value) {
+  return encodeURIComponent(String(value || ""));
+}
 
 async function api(method, path, body) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
+  const headers = { "Content-Type": "application/json" };
+  // Forward API key on mutating routes when configured. Reads (GET) are public.
+  if (API_KEY && method !== "GET") {
+    headers["X-API-Key"] = API_KEY;
+  }
+  const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(`${API}${path}`, opts);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API ${method} ${path} → ${res.status}: ${detail.slice(0, 200)}`);
+  }
   return res.json();
 }
 
@@ -144,14 +158,13 @@ const TOOLS = [
   {
     name: "genesis_council",
     description:
-      "Hold a faction council — all leaders debate a topic based on their positions and dynamics.",
+      "Hold a faction council — all leaders debate the world's current tensions based on their positions and dynamics.",
     inputSchema: {
       type: "object",
       properties: {
         world_id: { type: "string", description: "World ID" },
-        topic: { type: "string", description: "Topic for the council to debate" },
       },
-      required: ["world_id", "topic"],
+      required: ["world_id"],
     },
   },
   {
@@ -164,6 +177,77 @@ const TOOLS = [
         world_id: { type: "string", description: "World ID" },
       },
       required: ["world_id"],
+    },
+  },
+  // ─── Chroniclon (the autonomous wiki engine) ──────────────────────────
+  {
+    name: "chronicle_stats",
+    description:
+      "Snapshot of the autonomous canon: article_count, total_words, era_count, current_era, linguistic_eras, contributor_count.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "chronicle_list_articles",
+    description:
+      "List wiki articles in the canon, optionally filtered by era_id or kind. Useful to find slugs before fetching full bodies.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        era_id: { type: "string", description: "Filter by era (e.g. 'era_1')" },
+        kind: {
+          type: "string",
+          description: "Filter by kind: event, person, faction, place, language, concept, artifact, prophecy",
+        },
+        limit: { type: "number", description: "Max articles to return (default 50, max 500)" },
+        offset: { type: "number", description: "Pagination offset" },
+      },
+    },
+  },
+  {
+    name: "chronicle_get_article",
+    description:
+      "Fetch one article by slug — full body markdown, kind, voice, scores, backlinks, audio_url.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string", description: "Article slug (e.g. 'the-lunar-epistle')" },
+      },
+      required: ["slug"],
+    },
+  },
+  {
+    name: "chronicle_render_audio",
+    description:
+      "Render TTS audio for an article (genome-aware archetype). Requires TTS_PROVIDER configured on the backend. Returns audio_url, archetype, char_count.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string", description: "Article slug" },
+      },
+      required: ["slug"],
+    },
+  },
+  {
+    name: "chronicle_render_image",
+    description:
+      "Render a hero image for an article — grounded in the article's era art style and character genome. Requires IMAGE_API_KEY on the backend. Returns url, prompt summary, byte_size.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string", description: "Article slug" },
+      },
+      required: ["slug"],
+    },
+  },
+  {
+    name: "chronicle_control_backlog",
+    description:
+      "Recent canonization phase events from the Control Room — useful for debugging the agent pipeline (decision/writing/critic/crosslink/publish/audio per pipeline_id).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: { type: "number", description: "Max events to return (default 50, max 80)" },
+      },
     },
   },
 ];
@@ -185,7 +269,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     switch (name) {
       case "genesis_create_world":
-        result = await api("POST", "/api/worlds/generate", {
+        // Backend route is POST /api/worlds (not /api/worlds/generate).
+        result = await api("POST", "/api/worlds", {
           seed: args.seed,
         });
         break;
@@ -195,20 +280,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
 
       case "genesis_get_world":
-        result = await api("GET", `/api/worlds/${args.world_id}`);
+        result = await api("GET", `/api/worlds/${seg(args.world_id)}`);
         break;
 
       case "genesis_simulate":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/simulate`
+          `/api/worlds/${seg(args.world_id)}/simulate`
         );
         break;
 
       case "genesis_intervene":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/intervene`,
+          `/api/worlds/${seg(args.world_id)}/intervene`,
           { command: args.command }
         );
         break;
@@ -216,47 +301,82 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "genesis_agent_start":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/agent/start`,
-          { interval: args.interval || 120 }
+          `/api/worlds/${seg(args.world_id)}/agent/start?interval=${seg(args.interval || 120)}`
         );
         break;
 
       case "genesis_agent_stop":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/agent/stop`
+          `/api/worlds/${seg(args.world_id)}/agent/stop`
         );
         break;
 
       case "genesis_agent_status":
         result = await api(
           "GET",
-          `/api/worlds/${args.world_id}/agent/status`
+          `/api/worlds/${seg(args.world_id)}/agent/status`
         );
         break;
 
       case "genesis_chat":
+        // Backend route is /characters/{char_id}/chat — character_id goes in the URL,
+        // body carries only the message.
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/chat`,
-          { character_id: args.character_id, message: args.message }
+          `/api/worlds/${seg(args.world_id)}/characters/${seg(args.character_id)}/chat`,
+          { message: args.message }
         );
         break;
 
       case "genesis_council":
+        // Backend council takes no topic — it debates current world tensions.
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/council`,
-          { topic: args.topic }
+          `/api/worlds/${seg(args.world_id)}/council`
         );
         break;
 
       case "genesis_chronicle":
         result = await api(
           "POST",
-          `/api/worlds/${args.world_id}/chronicle`
+          `/api/worlds/${seg(args.world_id)}/chronicle`
         );
         break;
+
+      // ─── Chroniclon ──────────────────────────────────────────────────
+      case "chronicle_stats":
+        result = await api("GET", "/api/chronicle/stats");
+        break;
+
+      case "chronicle_list_articles": {
+        const params = new URLSearchParams();
+        if (args.era_id) params.set("era_id", args.era_id);
+        if (args.kind) params.set("kind", args.kind);
+        if (args.limit !== undefined) params.set("limit", String(args.limit));
+        if (args.offset !== undefined) params.set("offset", String(args.offset));
+        const qs = params.toString();
+        result = await api("GET", `/api/chronicle/articles${qs ? `?${qs}` : ""}`);
+        break;
+      }
+
+      case "chronicle_get_article":
+        result = await api("GET", `/api/chronicle/articles/${seg(args.slug)}`);
+        break;
+
+      case "chronicle_render_audio":
+        result = await api("POST", "/api/chronicle/audio/render", { slug: args.slug });
+        break;
+
+      case "chronicle_render_image":
+        result = await api("POST", "/api/chronicle/images/render", { slug: args.slug });
+        break;
+
+      case "chronicle_control_backlog": {
+        const limit = args.limit !== undefined ? `?limit=${seg(args.limit)}` : "";
+        result = await api("GET", `/api/chronicle/control/backlog${limit}`);
+        break;
+      }
 
       default:
         return {

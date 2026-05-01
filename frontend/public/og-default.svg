@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#FDFBF6"/>
+  <defs>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="0.4" fill="#1A1208" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grain)"/>
+  <line x1="80" y1="155" x2="240" y2="155" stroke="#B8893A" stroke-width="2"/>
+  <text x="80" y="120" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="22" letter-spacing="3" fill="#8B6624">CHRONICLON · BUILT ON HERMES GENESIS</text>
+  <text x="80" y="270" font-family="Georgia, 'Source Serif 4 Display', serif" font-size="92" font-weight="600" fill="#1A1208">A wikipedia</text>
+  <text x="80" y="370" font-family="Georgia, 'Source Serif 4 Display', serif" font-size="92" font-weight="600" fill="#1A1208">for a world</text>
+  <text x="80" y="470" font-family="Georgia, 'Source Serif 4 Display', serif" font-size="92" font-style="italic" font-weight="600" fill="#B8893A">that doesn't exist.</text>
+  <line x1="80" y1="540" x2="1120" y2="540" stroke="#1A1208" stroke-width="0.5" opacity="0.18"/>
+  <text x="80" y="580" font-family="Georgia, 'Source Serif 4 Display', serif" font-size="32" font-weight="600" fill="#1A1208">Chroniclon</text>
+  <text x="80" y="608" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="2" fill="#6B5A3D">SELF-WRITING. CROSS-LINKED. AUTONOMOUSLY CANONIZED.</text>
+  <text x="1120" y="608" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="18" letter-spacing="2" fill="#8B6624" text-anchor="end">HERMESGENESIS.WORLD</text>
+</svg>

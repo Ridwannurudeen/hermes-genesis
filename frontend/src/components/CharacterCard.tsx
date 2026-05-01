@@ -25,13 +25,13 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
           <div className="flex items-center gap-2 mb-1">
             <span
               className={`font-semibold truncate ${
-                character.alive ? 'text-heading' : 'text-dim line-through'
-              }`}
+ character.alive ? 'text-heading' : 'text-dim line-through'
+ }`}
             >
               {character.name}
             </span>
             {!character.alive && (
-              <Skull className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+              <Skull className="w-3.5 h-3.5 text-crimson-500 flex-shrink-0" />
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -63,10 +63,10 @@ export default function CharacterCard({ character, faction, onClick }: Props) {
 
       {/* Fitness */}
       <div className="flex items-center gap-2">
-        <Activity className="w-3 h-3 text-genesis-500" />
+        <Activity className="w-3 h-3 text-gilt-500" />
         <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
           <div
-            className="h-full rounded-full bg-genesis-500"
+            className="h-full rounded-full bg-gilt-500"
             style={{ width: `${Math.max(2, character.fitness * 100)}%` }}
           />
         </div>

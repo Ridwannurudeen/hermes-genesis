@@ -1,9 +1,12 @@
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
+from typing import Literal
 from .geography import Geography
 from .faction import Faction
 from .character import Character
 from .event import Event
+
+WorldVisibility = Literal["private", "unlisted", "public"]
 
 class Prophecy(BaseModel):
     id: str
@@ -34,5 +37,9 @@ class World(BaseModel):
     rules: WorldRules = Field(default_factory=WorldRules)
     prophecies: list[Prophecy] = Field(default_factory=list)
     status: str = "generating"
+    # visibility: "public" → appears in /api/worlds with full seed (curated demos);
+    # "unlisted" → not in public list, accessible via direct URL (default);
+    # "private" → only admin (X-API-Key) can list/access via the explicit admin path.
+    visibility: WorldVisibility = "unlisted"
     faction_snapshots: list[dict] = Field(default_factory=list)
     agent_logs: list[dict] = Field(default_factory=list)

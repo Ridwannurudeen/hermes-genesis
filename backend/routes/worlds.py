@@ -1,6 +1,9 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from typing import Literal
+from fastapi import APIRouter, Cookie, Header, HTTPException, Query
 from pydantic import BaseModel, Field
+import config
+from auth import is_admin_credentials
 from store import list_worlds, load_world, save_world, delete_world, get_lock, cleanup_lock, creation_semaphore
 from generator import generate_world
 from models.genome import TRAITS
@@ -17,15 +20,54 @@ from simulation import repair_leadership
 
 router = APIRouter(prefix="/api/worlds", tags=["worlds"])
 
+
+def _is_admin(x_api_key: str | None, admin_session: str | None = None) -> bool:
+    """True if X-API-Key matches GENESIS_API_KEY. When no API key is configured
+    (dev/test mode), treat everyone as admin so local workflows aren't blocked.
+    Reads config at call time so tests can rebind it."""
+    return is_admin_credentials(x_api_key, admin_session)
+
+
+def _load_visible_world(
+    world_id: str,
+    x_api_key: str | None = None,
+    admin_session: str | None = None,
+):
+    """Load a world while enforcing public/unlisted/private visibility.
+
+    Unlisted worlds remain direct-link shareable. Private worlds require the
+    admin API key even when the caller knows the ID.
+    """
+    world = load_world(world_id)
+    if not world:
+        raise HTTPException(404, "World not found")
+    if world.visibility == "private" and not _is_admin(x_api_key, admin_session):
+        raise HTTPException(404, "World not found")
+    return world
+
+
 class CreateWorldRequest(BaseModel):
     seed: str = Field(..., min_length=3, max_length=500)
     num_regions: int = Field(default=4, ge=3, le=12)
     num_factions: int = Field(default=3, ge=2, le=8)
     num_characters: int = Field(default=8, ge=4, le=30)
+    # Default unlisted: world is reachable by direct URL but not advertised in
+    # the public list. Set "public" only for curated showcase worlds.
+    visibility: Literal["private", "unlisted", "public"] = "unlisted"
+
 
 @router.get("")
-async def get_worlds():
-    return list_worlds()
+async def get_worlds(
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    """Public list returns only worlds with visibility=public. Admin (with
+    X-API-Key) sees every world including private/unlisted entries."""
+    worlds = list_worlds()
+    if _is_admin(x_api_key, admin_session):
+        return worlds
+    return [w for w in worlds if w.get("visibility") == "public"]
+
 
 @router.post("")
 async def create_world(req: CreateWorldRequest):
@@ -38,13 +80,42 @@ async def create_world(req: CreateWorldRequest):
         if len(list_worlds()) >= MAX_WORLDS:
             raise HTTPException(429, f"Maximum {MAX_WORLDS} worlds reached. Delete old worlds first.")
         world = await generate_world(req.seed, req.num_regions, req.num_factions, req.num_characters)
-    return {"id": world.id, "name": world.name, "status": world.status}
+        world.visibility = req.visibility
+        save_world(world)
+    return {"id": world.id, "name": world.name, "status": world.status, "visibility": world.visibility}
+
+
+class VisibilityRequest(BaseModel):
+    visibility: Literal["private", "unlisted", "public"]
+
+
+@router.patch("/{world_id}/visibility")
+async def set_visibility(
+    world_id: str,
+    req: VisibilityRequest,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    """Admin-only — promote/demote a world's visibility (e.g., to feature a
+    curated demo on the public list)."""
+    if not _is_admin(x_api_key, admin_session):
+        raise HTTPException(403, "admin auth required")
+    lock = get_lock(world_id)
+    async with lock:
+        world = load_world(world_id)
+        if not world:
+            raise HTTPException(404, "World not found")
+        world.visibility = req.visibility
+        save_world(world)
+    return {"id": world.id, "visibility": world.visibility}
 
 @router.get("/{world_id}")
-async def get_world(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_world(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     data = world.model_dump()
     # Exclude heavy fields — fetched via dedicated endpoints
     data.pop("events", None)
@@ -52,42 +123,56 @@ async def get_world(world_id: str):
     return data
 
 @router.get("/{world_id}/map")
-async def get_map(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_map(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     factions = {f.id: {"name": f.name, "color": f.color} for f in world.factions}
     return {"geography": world.geography.model_dump(), "factions": factions}
 
 @router.get("/{world_id}/factions")
-async def get_factions(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_factions(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     return [f.model_dump() for f in world.factions]
 
 @router.get("/{world_id}/characters")
-async def get_characters(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_characters(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     return [c.model_dump() for c in world.characters]
 
 @router.get("/{world_id}/characters/{char_id}")
-async def get_character(world_id: str, char_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_character(
+    world_id: str,
+    char_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     char = next((c for c in world.characters if c.id == char_id), None)
     if not char:
         raise HTTPException(404, "Character not found")
     return char.model_dump()
 
 @router.get("/{world_id}/events")
-async def get_events(world_id: str, day: int | None = None, limit: int = 50, offset: int = 0):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_events(
+    world_id: str,
+    day: int | None = None,
+    limit: int = Query(default=50, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     events = world.events
     if day is not None:
         events = [e for e in events if e.day == day]
@@ -98,19 +183,23 @@ async def get_events(world_id: str, day: int | None = None, limit: int = 50, off
     return {"events": [e.model_dump() for e in events], "total": total}
 
 @router.get("/{world_id}/prophecies")
-async def get_prophecies(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_prophecies(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     return [p.model_dump() for p in world.prophecies]
 
 @router.get("/{world_id}/export")
-async def export_world(world_id: str):
+async def export_world(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
     """Export full world as formatted Markdown for TTRPG, writing, or education use."""
     from fastapi.responses import PlainTextResponse
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+    world = _load_visible_world(world_id, x_api_key, admin_session)
 
     faction_map = {f.id: f.name for f in world.factions}
     char_map = {c.id: c.name for c in world.characters}
@@ -210,10 +299,12 @@ async def export_world(world_id: str):
 
 
 @router.get("/{world_id}/evolution")
-async def get_evolution(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_evolution(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     gen_stats = {}
     for c in world.characters:
         gen = c.lineage.generation
@@ -232,10 +323,12 @@ async def get_evolution(world_id: str):
     return result
 
 @router.get("/{world_id}/faction-timeline")
-async def get_faction_timeline(world_id: str):
-    world = load_world(world_id)
-    if not world:
-        raise HTTPException(404, "World not found")
+async def get_faction_timeline(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     return world.faction_snapshots
 
 @router.post("/{world_id}/chronicle")
@@ -485,7 +578,12 @@ async def stop_world_agent(world_id: str):
     return {"stopped": True, "world_id": world_id}
 
 @router.get("/{world_id}/agent/status")
-async def agent_status(world_id: str):
+async def agent_status(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    _load_visible_world(world_id, x_api_key, admin_session)
     return {
         "running": is_agent_running(world_id),
         "world_id": world_id,
@@ -493,15 +591,16 @@ async def agent_status(world_id: str):
     }
 
 @router.get("/{world_id}/agent/logs")
-async def agent_logs(world_id: str):
+async def agent_logs(
+    world_id: str,
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
+):
+    world = _load_visible_world(world_id, x_api_key, admin_session)
     # Get in-memory logs (may be newer than persisted)
     in_memory = get_agent_logs(world_id)
 
     # Load persisted logs from world data
-    world = load_world(world_id)
-    if not world:
-        return in_memory
-
     persisted = world.agent_logs or []
 
     # If no in-memory logs, return persisted

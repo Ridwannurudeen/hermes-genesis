@@ -1,0 +1,74 @@
+{
+  "results": [
+    {
+      "surface": "landing",
+      "screenshot": "C:\\Users\\HP\\Desktop\\Github files\\hermes-genesis\\docs\\ui-audit\\01-landing.png",
+      "checks": {
+        "chroniclon_banner_visible": false,
+        "hermes_genesis_hero_visible": false,
+        "describe_subtitle": false,
+        "kimi_mention_in_banner": true,
+        "control_room_link": false,
+        "browse_canon_cta": false,
+        "powered_by_hermes_4": true
+      }
+    },
+    {
+      "surface": "chronicle_home",
+      "screenshot": "C:\\Users\\HP\\Desktop\\Github files\\hermes-genesis\\docs\\ui-audit\\02-chronicle-home.png",
+      "checks": {
+        "h1_chroniclon": true,
+        "stats_banner_articles": true,
+        "search_input": true,
+        "control_room_button": true,
+        "regen_button": true,
+        "contribute_button": true,
+        "image_badge_count": 0,
+        "audio_badge_count": 0
+      }
+    },
+    {
+      "surface": "article_detail",
+      "screenshot": "C:\\Users\\HP\\Desktop\\Github files\\hermes-genesis\\docs\\ui-audit\\03-article-detail.png",
+      "slug": "roor-quillbanes-final-epistle",
+      "checks": {
+        "hero_image_rendered": true,
+        "audio_player_present": true,
+        "back_to_all_link": true,
+        "crosslinks_present": true
+      }
+    },
+    {
+      "surface": "control_room",
+      "screenshot": "C:\\Users\\HP\\Desktop\\Github files\\hermes-genesis\\docs\\ui-audit\\04-control-room.png",
+      "checks": {
+        "h1_canon_control_room": true,
+        "live_indicator_present": true,
+        "active_pipelines_section": true,
+        "stage_decision": false,
+        "stage_writing": false,
+        "stage_antislop": false,
+        "stage_factcheck": false,
+        "stage_crosslink": true,
+        "stage_image": false,
+        "stage_audio": false,
+        "model_badge_hermes": true,
+        "model_badge_kimi": true,
+        "backlog_count": 0,
+        "backlog_sample": []
+      }
+    },
+    {
+      "surface": "regen",
+      "screenshot": "C:\\Users\\HP\\Desktop\\Github files\\hermes-genesis\\docs\\ui-audit\\05-regen.png",
+      "checks": {
+        "h1_live_regen": true,
+        "kimi_toggle_button": true,
+        "hermes_toggle_button": true,
+        "regenerate_button": true,
+        "writer_label": true,
+        "seed_textarea": true
+      }
+    }
+  ]
+}

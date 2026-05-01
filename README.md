@@ -1,8 +1,63 @@
+# Chroniclon — Hermes Agent Creative Hackathon entry
+
+**One sentence in. A civilization's encyclopedia out.**
+
+Chroniclon turns a Hermes Genesis world into a self-writing wiki: long-form
+articles cross-linked across eras, with a language that drifts as the
+civilization ages. Hermes-4 runs the canon agent and the adversarial critic
+loop; Kimi writes the prose.
+
+> **[Live](https://hermesgenesis.world/chronicle)** ·
+> **[Skill](skills/chroniclon/SKILL.md)** ·
+> **[Backend module](backend/chroniclon/)** ·
+> **[Deploy runbook](deploy/chroniclon.md)** ·
+> **[Demo script](deploy/demo-script.md)**
+
+### What Chroniclon adds to Hermes Genesis
+
+| Layer | Role | Model |
+|---|---|---|
+| Canon agent | Decides if event → article, picks kind/voice/title | Hermes-4 |
+| Article writer | Long-form, in-world, cross-linked | Kimi (Moonshot) |
+| Anti-slop critic | Rejects formulaic prose, fourth-wall breaks | Hermes-4 |
+| Fact-check critic | Scores against canon, flags hard contradictions | Hermes-4 |
+| Cross-link agent | Inserts `[[slug]]` references at first occurrence | Hermes-4 |
+| Era ticker | Closes eras at thresholds, opens next | Hermes-4 |
+| Linguistic drift | Phonology + lexicon evolution at era boundaries | Hermes-4 |
+| Moon X persona | Persona-driven X presence with safety gate | Kimi + Hermes-4 |
+
+Ships as a vanilla Hermes Agent skill at `skills/chroniclon/`. The runner is
+a separate Compose service so a 144-hour LLM loop cannot crash the demo
+web service.
+
+### Quick start
+
+```bash
+# 1. Generate a world (Genesis pipeline, unchanged)
+curl -X POST http://localhost:8003/api/worlds \
+  -H "Content-Type: application/json" \
+  -d '{"seed":"A world where the moon is sentient and writes letters to the queen."}'
+# → world_id
+
+# 2. Inspect Chroniclon stats
+curl http://localhost:8003/api/chronicle/stats
+
+# 3. Run the canon agent (autonomous, restartable)
+docker compose --profile canon up -d chroniclon-runner
+
+# 4. Browse the wiki
+open https://hermesgenesis.world/chronicle
+```
+
+The full deploy runbook is at [`deploy/chroniclon.md`](deploy/chroniclon.md).
+
+---
+
 # HERMES GENESIS
 
 **Describe a world. Watch it live. Watch it die.**
 
-> **[Try the Live Demo](https://hermesgenesis.world)** | **[Watch the Demo Video](https://youtu.be/FLgX_k4wtPM)** | **[Hermes Agent Skills](skills/)** | **[MCP Bridge](mcp-bridge/)**
+> **[Try the Live Demo](https://hermesgenesis.world)** | **[Judge Mode](https://hermesgenesis.world/judge)** | **[Canon Control Room](https://hermesgenesis.world/control)** | **[Admin Ops](https://hermesgenesis.world/admin)** | **[Hermes Agent Skills](skills/)** | **[MCP Bridge](mcp-bridge/)**
 
 ---
 
@@ -12,26 +67,65 @@
 |---|---|
 | **Model** | Hermes-4-70B via [Nous Inference API](https://inference-api.nousresearch.com) |
 | **Agent** | Autonomous World Master — observe &rarr; reason &rarr; act loop ([source](backend/autonomous_agent.py)) |
-| **Skills** | 5 custom [hermes-agent skills](skills/) — world creation, simulation, chat, chronicle, intervention |
-| **MCP Bridge** | [11 tools](mcp-bridge/server.mjs) auto-discovered by hermes-agent via Model Context Protocol |
+| **Skills** | 9 repo-local [hermes-agent skills](skills/) for world creation, simulation, chat, chronicle, intervention, MCP setup, and autonomous operation |
+| **MCP Bridge** | [17 tools](mcp-bridge/server.mjs) auto-discovered by hermes-agent via Model Context Protocol: 11 Genesis + 6 Chroniclon (`chronicle_stats`, `chronicle_list_articles`, `chronicle_get_article`, `chronicle_render_audio`, `chronicle_render_image`, `chronicle_control_backlog`) |
 | **Demo** | [`hermes-agent-demo.py`](hermes-agent-demo.py) — Hermes-native tool calling, zero human prompting |
 | **Setup** | [`./setup-hermes-agent.sh`](setup-hermes-agent.sh) — one command installs hermes-agent + MCP + skills |
+| **Ops** | Browser admin session auth, private world controls, production config guard, and usage/model-unit telemetry |
 
 ---
 
 <p align="center">
-  <img src="docs/screenshots/cinematic-mode.png" alt="Cinematic Mode — fullscreen immersive replay with AI-generated scenes" width="100%">
+  <img src="docs/screenshots/control-room.png" alt="Canon Control Room — live agentic pipeline" width="100%">
   <br>
-  <em>Cinematic Mode — fullscreen AI-generated scenes with procedural ambient sound and voice narration</em>
+  <em>Canon Control Room — every canonization streams live: Hermes-4-70B decides → Kimi-K2.6 writes → Hermes critics → FLUX hero image → ElevenLabs/OpenAI TTS narration</em>
 </p>
 
-An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself. No scripting. No prompting. The world just... lives.
+An autonomous living world engine. Type one sentence — the AI builds a complete civilization with regions, factions, characters carrying DNA, and ancient prophecies. Then the world runs itself, **and writes its own encyclopedia**. No scripting. No prompting. The world just... lives.
 
 **Prep a D&D campaign in 60 seconds.** Generate a novel's worth of consistent lore. Teach geopolitics through live simulation. Download everything as Markdown — drop it into Obsidian, Notion, or Google Docs and start using it immediately.
 
 ---
 
 ## See It In Action
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/landing.png" alt="Chroniclon Landing">
+      <br>
+      <b>Landing</b> — CHRONICLON hero with model provenance pills (Hermes-4 / Kimi-K2.6 / FLUX / ElevenLabs)
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/article-detail.png" alt="Article Detail">
+      <br>
+      <b>Article detail</b> — era-art-style + character-genome grounded FLUX hero, multi-archetype TTS, [[crosslinked]] court prose
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/chronicle-home.png" alt="Chronicle home">
+      <br>
+      <b>Chronicle home</b> — live stats banner, era nav, illustrated rows across the canon
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/regen.png" alt="Live regen">
+      <br>
+      <b>Live regen</b> — Kimi-K2.6 ↔ Hermes-4 toggle, SSE-streamed canonization on any seed
+    </td>
+  </tr>
+</table>
+
+---
+
+## Demo Video
+
+> [!NOTE]
+> A new ~75-second demo video is being recorded for the Hermes Agent Creative Hackathon submission — opens on the Control Room above, walks through a fresh canonization, and lands on the article detail page. Until then, the live demo at [`hermesgenesis.world`](https://hermesgenesis.world) is the canonical artifact.
+
+---
+
+### Underlying world simulation (built on Hermes Genesis)
 
 <table>
   <tr>
@@ -43,54 +137,19 @@ An autonomous living world engine. Type one sentence — the AI builds a complet
     <td width="50%">
       <img src="docs/screenshots/cinematic-mode.gif" alt="Cinematic Mode">
       <br>
-      <b>Cinematic Mode</b> — Fullscreen immersive replay with AI-generated art and ambient sound
+      <b>Cinematic Mode</b> — Fullscreen replay with AI-generated art and ambient sound
     </td>
   </tr>
   <tr>
     <td width="50%">
       <img src="docs/screenshots/world-gen.gif" alt="World Generation">
       <br>
-      <b>World Generation</b> — One sentence creates regions, factions, characters with DNA, prophecies
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/prophecy.gif" alt="Prophecy Fulfilled">
-      <br>
-      <b>Prophecy System</b> — Ancient prophecies resolve autonomously through simulation events
-    </td>
-  </tr>
-</table>
-
----
-
-## Demo Video
-
-[![Demo Video](https://img.youtube.com/vi/FLgX_k4wtPM/maxresdefault.jpg)](https://youtu.be/FLgX_k4wtPM)
-
----
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/landing.png" alt="Landing Page">
-      <br>
-      <b>Landing Page</b> — One-sentence world creation with live generation status
+      <b>World generation</b> — one sentence creates regions, factions, characters with DNA, prophecies
     </td>
     <td width="50%">
       <img src="docs/screenshots/map-view.png" alt="World Map">
       <br>
-      <b>World Map</b> — SVG regions, faction territories, prophecy tracking
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/network-graph.png" alt="Network Graph">
-      <br>
-      <b>Relationship Graph</b> — D3 force-directed network across 146 characters
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/chronicle-view.png" alt="Chronicle">
-      <br>
-      <b>Chronicle</b> — 941 events across 322 days of autonomous history
+      <b>World map</b> — SVG regions, faction territories, prophecy tracking
     </td>
   </tr>
 </table>
@@ -107,7 +166,7 @@ An autonomous living world engine. Type one sentence — the AI builds a complet
 - **Download World** &mdash; export everything as structured Markdown for Obsidian, Notion, wikis, or TTRPG prep
 - **Campaign Kit / Session Prep** &mdash; AI-generated encounter tables, plot hooks, and GM session plans
 - Light/Dark mode &mdash; warm parchment light theme, dark leather dark theme, persists via localStorage
-- **5 Hermes Agent Skills** + **MCP bridge** with 11 tools for [hermes-agent](https://github.com/NousResearch/hermes-agent) integration
+- **9 Hermes Agent skills** + **MCP bridge** with 17 tools (Genesis + Chroniclon) for [hermes-agent](https://github.com/NousResearch/hermes-agent) integration
 
 ---
 
@@ -141,7 +200,7 @@ This project exists because of capabilities unique to Hermes:
 
 ## Hermes Agent Integration
 
-Hermes Genesis ships with **5 custom hermes-agent skills**, an **MCP bridge server** (11 tools), and a **one-command setup script**. [Hermes Agent v0.2.0](https://github.com/NousResearch/hermes-agent) is **installed and running on our production VPS**, orchestrating worlds through its native tool system.
+Hermes Genesis ships with **9 repo-local hermes-agent skills**, an **MCP bridge server** (17 tools), and a **one-command setup script**. [Hermes Agent v0.11.0](https://github.com/NousResearch/hermes-agent) is **installed and running on our production VPS**, orchestrating worlds through its native tool system.
 
 ### Hermes-4-70B Powers Everything — Orchestration AND Simulation
 
@@ -177,7 +236,7 @@ In the world of Crossroads of Hermes, day 324 unfolded:
 ============================================================
 ```
 
-hermes-agent v0.2.0 also connects via MCP bridge, discovering all 11 Genesis tools automatically:
+hermes-agent v0.11.0 also connects via MCP bridge, discovering the Genesis tools automatically:
 
 ```
 $ hermes chat -q "Use genesis MCP tools to list all worlds"
@@ -197,7 +256,7 @@ $ hermes chat -q "Use genesis MCP tools to list all worlds"
 ./setup-hermes-agent.sh https://hermesgenesis.world  # remote VPS
 ```
 
-This installs hermes-agent, the MCP bridge, and 5 custom skills in one command.
+This installs hermes-agent, the MCP bridge, and all repo-local skills in one command.
 
 ### Custom Skills ([`skills/`](skills/))
 
@@ -211,25 +270,30 @@ This installs hermes-agent, the MCP bridge, and 5 custom skills in one command.
 
 ### MCP Bridge ([`mcp-bridge/`](mcp-bridge/))
 
-11 tools exposed via Model Context Protocol — hermes-agent auto-discovers them:
+16 tools exposed via Model Context Protocol — hermes-agent auto-discovers them:
 
 ```
+# Genesis world API
 genesis_create_world    genesis_simulate      genesis_intervene
 genesis_get_world       genesis_list_worlds   genesis_chat
 genesis_council         genesis_chronicle     genesis_agent_start
 genesis_agent_stop      genesis_agent_status
+
+# Chroniclon — autonomous wiki engine
+chronicle_stats         chronicle_list_articles    chronicle_get_article
+chronicle_render_audio  chronicle_control_backlog
 ```
 
 ### Architecture: How It Fits Together
 
 ```
-  hermes-agent v0.2.0 (installed on VPS)
+  hermes-agent v0.11.0 (installed on VPS)
          |
     MCP Protocol (stdio)
          |
   +----- v --------+
   | MCP Bridge     |  mcp-bridge/server.mjs
-  | (11 tools)     |  genesis_create_world, genesis_simulate, ...
+  | (16 tools)     |  genesis_*, chronicle_*
   +----- | --------+
          |
     REST API (HTTP)
@@ -292,7 +356,7 @@ Event breakdown:
 |---|---|
 | **Core Simulation** | World generation from natural language, genome-based character evolution, 13 event types, causality chains, prophecy tracking + fulfillment |
 | **Autonomous Agent** | World Master AI with observe-reason-act loop, narrative arc planning, autonomous intervention, prophecy chasing ([source](backend/autonomous_agent.py)) |
-| **Hermes Agent Skills** | 5 custom skills for hermes-agent framework + MCP bridge with 11 tools ([skills](skills/), [mcp-bridge](mcp-bridge/)) |
+| **Hermes Agent Skills** | 9 repo-local skills for hermes-agent framework + MCP bridge with 17 tools ([skills](skills/), [mcp-bridge](mcp-bridge/)) |
 | **Theater Mode** | Dramatic stage with curtains, spotlights, character sprites, faction-aware positioning, speech bubbles, AI scene images, auto-play scrubber |
 | **Cinematic Mode** | Fullscreen world map overlay, live auto-simulation, history replay/documentary mode, event title cards with Ken Burns zoom |
 | **Audio** | Procedural ambient sound via Web Audio API — 13 mood profiles with oscillators, noise layers, LFO tremolo, crossfade transitions ([source](frontend/src/hooks/useAmbientSound.ts)); voice narration via Web Speech API |
@@ -495,7 +559,7 @@ npm install && npm run dev
 
 ## Built for the NousResearch Hermes Agent Hackathon
 
-Hermes Genesis demonstrates what Hermes Agent can do when given full creative control over a living world. The World Master implements hermes-agent's observe→reason→act pattern, 5 custom skills integrate with the hermes-agent framework, and an MCP bridge connects the entire simulation to hermes-agent's tool ecosystem.
+Hermes Genesis demonstrates what Hermes Agent can do when given full creative control over a living world. The World Master implements hermes-agent's observe→reason→act pattern, repo-local skills integrate with the hermes-agent framework, and an MCP bridge connects the entire simulation to hermes-agent's tool ecosystem.
 
 Every character decision, every faction power shift, every prophecy fulfilled — all driven by Hermes-4-70B reasoning over structured world state through the agent framework.
 

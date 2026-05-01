@@ -25,10 +25,10 @@ interface Props {
 }
 
 const STANCE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  supportive: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/40' },
-  opposed: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/40' },
-  neutral: { bg: 'bg-gray-500/20', text: 'text-gray-400', border: 'border-gray-500/40' },
-  cautious: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/40' },
+  supportive: { bg: 'bg-moss-500/20', text: 'text-moss-400', border: 'border-moss-500/40' },
+  opposed: { bg: 'bg-crimson-500/20', text: 'text-crimson-400', border: 'border-crimson-500/40' },
+  neutral: { bg: 'bg-ink-500/20', text: 'text-vellum-400', border: 'border-ink-500/40' },
+  cautious: { bg: 'bg-gilt-500/20', text: 'text-gilt-400', border: 'border-gilt-500/40' },
 };
 
 const EMOTION_LABELS: Record<string, string> = {
@@ -103,8 +103,8 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-subtle shrink-0">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/30">
-                <Swords className="w-5 h-5 text-amber-400" />
+              <div className="p-2 bg-gilt-500/10 rounded-lg border border-gilt-500/30">
+                <Swords className="w-5 h-5 text-gilt-400" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-heading">Faction Council</h2>
@@ -125,7 +125,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
           <div className="flex-1 overflow-y-auto px-6 py-6">
             {loading && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+                <Loader2 className="w-8 h-8 text-gilt-400 animate-spin" />
                 <p className="text-sub text-sm">The council is convening...</p>
                 <p className="text-faint text-xs">Leaders are gathering their thoughts</p>
               </div>
@@ -133,7 +133,7 @@ export default function CouncilModal({ worldId, factions, onClose }: Props) {
 
             {error && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-crimson-400 text-sm">{error}</p>
                 <button
                   onClick={onClose}
                   className="text-sm text-sub hover:text-heading transition-colors"

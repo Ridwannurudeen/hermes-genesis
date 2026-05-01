@@ -75,6 +75,13 @@ def load_world(world_id: str) -> World | None:
 
 
 def list_worlds() -> list[dict]:
+    """Return summaries for every world on disk. The route layer filters by
+    visibility for the public surface — this is the unfiltered view used by
+    admin endpoints and migrations.
+
+    Worlds saved before the visibility field existed default to "unlisted":
+    accessible via direct URL but not appearing in the public list.
+    """
     d = Path(DATA_DIR)
     if not d.exists():
         return []
@@ -82,7 +89,16 @@ def list_worlds() -> list[dict]:
     for f in sorted(d.glob("world_*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
         try:
             w = json.loads(f.read_text(encoding="utf-8"))
-            worlds.append({"id": w["id"], "name": w["name"], "seed": w["seed"], "theme": w.get("theme", ""), "current_day": w.get("current_day", 0), "status": w.get("status", "ready"), "created_at": w.get("created_at", "")})
+            worlds.append({
+                "id": w["id"],
+                "name": w["name"],
+                "seed": w["seed"],
+                "theme": w.get("theme", ""),
+                "current_day": w.get("current_day", 0),
+                "status": w.get("status", "ready"),
+                "created_at": w.get("created_at", ""),
+                "visibility": w.get("visibility", "unlisted"),
+            })
         except Exception:
             continue
     return worlds

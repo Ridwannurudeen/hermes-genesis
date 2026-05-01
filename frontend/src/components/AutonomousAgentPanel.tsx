@@ -37,23 +37,23 @@ interface Props {
 }
 
 const URGENCY_COLORS: Record<string, string> = {
-  low: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  high: 'bg-red-500/10 text-red-400 border-red-500/20',
+  low: 'bg-moss-500/10 text-moss-400 border-moss-500/20',
+  medium: 'bg-gilt-500/10 text-gilt-400 border-gilt-500/20',
+  high: 'bg-crimson-500/10 text-crimson-400 border-crimson-500/20',
 };
 
 const ACTION_BADGES: Record<string, { label: string; className: string }> = {
   simulate: {
     label: 'SIMULATE',
-    className: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
+    className: 'bg-ink-500/10 text-vellum-400 border-ink-500/30',
   },
   intervene: {
     label: 'INTERVENE',
-    className: 'bg-red-500/15 text-red-400 border-red-500/30',
+    className: 'bg-crimson-500/15 text-crimson-400 border-crimson-500/30',
   },
   focus: {
     label: 'FOCUS',
-    className: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    className: 'bg-ink-500/15 text-vellum-400 border-ink-500/30',
   },
 };
 
@@ -163,10 +163,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
   return (
     <div
       className={`bg-white/[0.02] backdrop-blur-sm rounded-xl overflow-hidden transition-all duration-500 ${
-        running
-          ? 'border-2 border-genesis-500/40 shadow-lg shadow-genesis-500/10'
-          : 'border border-subtle'
-      }`}
+ running
+ ? 'border-2 border-gilt-500/40 shadow-lg shadow-gilt-500/10'
+ : 'border border-subtle'
+ }`}
     >
       {/* Header */}
       <div className="p-4 border-b border-subtle">
@@ -176,20 +176,20 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
             <div className="relative">
               <div
                 className={`p-2.5 rounded-xl transition-all duration-500 ${
-                  running
-                    ? 'bg-genesis-500/10 border border-genesis-500/30'
-                    : 'bg-white/[0.04] border border-subtle'
-                }`}
+ running
+ ? 'bg-gilt-500/10 border border-gilt-500/30'
+ : 'bg-white/[0.04] border border-subtle'
+ }`}
               >
                 <Brain
                   className={`w-6 h-6 ${
-                    running ? 'text-genesis-400' : 'text-dim'
-                  }`}
+ running ? 'text-gilt-500' : 'text-dim'
+ }`}
                 />
               </div>
               {running && (
                 <motion.div
-                  className="absolute inset-0 rounded-xl border-2 border-genesis-400/50"
+                  className="absolute inset-0 rounded-xl border-2 border-gilt-500/50"
                   animate={{
                     scale: [1, 1.3, 1],
                     opacity: [0.5, 0, 0.5],
@@ -205,7 +205,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
             <div>
               <h3 className="text-sm font-bold tracking-wide">
                 {running ? (
-                  <span className="text-genesis-400">WORLD MASTER ACTIVE</span>
+                  <span className="text-gilt-500">WORLD MASTER ACTIVE</span>
                 ) : (
                   <span className="text-sub">World Master Agent</span>
                 )}
@@ -228,10 +228,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     key={opt.value}
                     onClick={() => setInterval_(opt.value)}
                     className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                      interval === opt.value
-                        ? 'bg-genesis-500/15 text-genesis-400 border border-genesis-500/30'
-                        : 'text-dim hover:text-sub border border-subtle hover:border-white/[0.15]'
-                    }`}
+ interval === opt.value
+ ? 'bg-gilt-500/15 text-gilt-500 border border-gilt-500/30'
+ : 'text-dim hover:text-sub border border-subtle hover:border-white/[0.15]'
+ }`}
                   >
                     {opt.label}
                   </button>
@@ -244,10 +244,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
               onClick={handleToggle}
               disabled={loading}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                running
-                  ? 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20'
-                  : 'bg-genesis-500/10 border border-genesis-500/30 text-genesis-400 hover:bg-genesis-500/20 hover:shadow-lg hover:shadow-genesis-500/10'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+ running
+ ? 'bg-crimson-500/10 border border-crimson-500/30 text-crimson-400 hover:bg-crimson-500/20'
+ : 'bg-gilt-500/10 border border-gilt-500/30 text-gilt-500 hover:bg-gilt-500/20 hover:shadow-lg hover:shadow-gilt-500/10'
+ } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -264,7 +264,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
           <motion.div
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            className="mt-3 h-0.5 bg-gradient-to-r from-genesis-500/0 via-genesis-500/60 to-genesis-500/0 rounded-full origin-left"
+            className="mt-3 h-0.5 bg-gradient-to-r from-gilt-500/0 via-gilt-500/60 to-gilt-500/0 rounded-full origin-left"
           />
         )}
 
@@ -277,7 +277,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
               exit={{ opacity: 0, height: 0 }}
               className="mt-3"
             >
-              <div className="flex items-center gap-2 text-red-400 text-xs bg-red-950/50 border border-red-500/20 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2 text-crimson-400 text-xs bg-crimson-600/50 border border-crimson-500/20 rounded-lg px-3 py-2">
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                 {error}
               </div>
@@ -307,16 +307,16 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   initial={i === 0 ? { opacity: 0, y: -10 } : false}
                   animate={{ opacity: 1, y: 0 }}
                   className={`p-4 text-sm transition-colors hover:bg-hover ${
-                    log.action === 'intervene'
-                      ? 'border-l-2 border-l-red-500/60'
-                      : log.action === 'focus'
-                      ? 'border-l-2 border-l-blue-500/50'
-                      : log.urgency === 'high'
-                      ? 'border-l-2 border-l-amber-500/40'
-                      : log.urgency === 'low'
-                      ? 'border-l-2 border-l-emerald-500/30'
-                      : ''
-                  }`}
+ log.action === 'intervene'
+ ? 'border-l-2 border-l-crimson-500/60'
+ : log.action === 'focus'
+ ? 'border-l-2 border-l-ink-500/50'
+ : log.urgency === 'high'
+ ? 'border-l-2 border-l-gilt-500/40'
+ : log.urgency === 'low'
+ ? 'border-l-2 border-l-moss-500/30'
+ : ''
+ }`}
                 >
                   {/* Header row */}
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -339,8 +339,8 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     {log.urgency && (
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold uppercase tracking-wider ${
-                          URGENCY_COLORS[log.urgency] || URGENCY_COLORS.medium
-                        }`}
+ URGENCY_COLORS[log.urgency] || URGENCY_COLORS.medium
+ }`}
                       >
                         {log.urgency}
                       </span>
@@ -363,7 +363,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                   {/* Decision */}
                   {log.decision && (
-                    <p className="text-genesis-400/80 text-xs mb-1">
+                    <p className="text-gilt-500/80 text-xs mb-1">
                       <span className="text-dim font-medium">Decision:</span>{' '}
                       {log.decision}
                     </p>
@@ -371,7 +371,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                   {/* Intervention command (only for intervene actions) */}
                   {log.action === 'intervene' && log.intervention_command && (
-                    <p className="text-red-400/70 text-xs mb-1">
+                    <p className="text-crimson-400/70 text-xs mb-1">
                       <span className="text-dim font-medium">Command:</span>{' '}
                       <span className="italic">{log.intervention_command}</span>
                     </p>
@@ -379,7 +379,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                   {/* Focus target (only for focus actions) */}
                   {log.action === 'focus' && (log.focus_faction || log.focus_character) && (
-                    <p className="text-blue-400/70 text-xs mb-1">
+                    <p className="text-vellum-400/70 text-xs mb-1">
                       <span className="text-dim font-medium">Focus:</span>{' '}
                       {log.focus_faction && (
                         <span>Faction: {log.focus_faction}</span>
@@ -404,15 +404,15 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                     <div className="flex items-center gap-1.5 mt-2">
                       {log.events_generated > 0 ? (
                         <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400/80 text-xs font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-moss-400" />
+                          <span className="text-moss-400/80 text-xs font-medium">
                             Intervention succeeded — {log.events_generated} event{log.events_generated !== 1 ? 's' : ''} generated
                           </span>
                         </>
                       ) : (
                         <>
-                          <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-                          <span className="text-amber-400/80 text-xs font-medium">
+                          <AlertCircle className="w-3.5 h-3.5 text-gilt-400" />
+                          <span className="text-gilt-400/80 text-xs font-medium">
                             No events resulted from this intervention
                           </span>
                         </>
@@ -424,7 +424,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                   {(log.reasoning || log.decision || (log.event_titles && log.event_titles.length > 0)) && (
                     <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px]">
                       {log.reasoning && (
-                        <span className="px-2 py-0.5 rounded bg-genesis-800/60 text-sub border border-gray-700/50 max-w-[200px] truncate" title={log.reasoning}>
+                        <span className="px-2 py-0.5 rounded bg-ink-800/60 text-sub border border-ink-700/50 max-w-[200px] truncate" title={log.reasoning}>
                           Intent: {log.reasoning.split('.')[0]}
                         </span>
                       )}
@@ -433,10 +433,10 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                       )}
                       {log.action && (
                         <span className={`px-2 py-0.5 rounded border font-medium ${
-                          log.action === 'intervene' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
-                          log.action === 'focus' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                          'bg-genesis-800/60 text-sub border-gray-700/50'
-                        }`}>
+ log.action === 'intervene' ? 'bg-crimson-500/10 text-crimson-400 border-crimson-500/30' :
+ log.action === 'focus' ? 'bg-ink-500/10 text-vellum-400 border-ink-500/30' :
+ 'bg-ink-800/60 text-sub border-ink-700/50'
+ }`}>
                           {log.action === 'intervene' ? 'Intervened' : log.action === 'focus' ? 'Focused' : 'Simulated'}
                         </span>
                       )}
@@ -444,7 +444,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                         <ArrowRight className="w-3 h-3 text-faint flex-shrink-0" />
                       )}
                       {log.event_titles && log.event_titles.length > 0 && (
-                        <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        <span className="px-2 py-0.5 rounded bg-gilt-500/10 text-gilt-400 border border-gilt-500/30">
                           {log.event_titles.length} event{log.event_titles.length !== 1 ? 's' : ''} resulted
                         </span>
                       )}
@@ -453,9 +453,9 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                   {/* Event titles */}
                   {log.event_titles && log.event_titles.length > 0 && (
-                    <div className="mt-2 pl-2 border-l border-genesis-800">
+                    <div className="mt-2 pl-2 border-l border-ink-800">
                       {log.event_titles.map((title, j) => (
-                        <p key={j} className="text-amber-400/60 text-xs">
+                        <p key={j} className="text-gilt-400/60 text-xs">
                           {title}
                         </p>
                       ))}
@@ -488,7 +488,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-1.5 pl-2 border-l border-genesis-500/30 space-y-1">
+                            <div className="mt-1.5 pl-2 border-l border-gilt-500/30 space-y-1">
                               {log.consequences.events.map((ce, k) => (
                                 <p key={k} className="text-xs text-sub">
                                   <span className="mr-1">{EVENT_TYPE_ICONS[ce.type] || '\u26A0\uFE0F'}</span>
@@ -498,7 +498,7 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                               {/* Territory changes from consequences */}
                               {log.consequences.territory_changes && Object.keys(log.consequences.territory_changes).length > 0 && (
-                                <div className="mt-1 pt-1 border-t border-genesis-800/50">
+                                <div className="mt-1 pt-1 border-t border-ink-800/50">
                                   <span className="text-[10px] text-faint uppercase tracking-wider font-medium">Territory</span>
                                   {Object.entries(log.consequences.territory_changes).map(([region, owner]) => (
                                     <p key={region} className="text-xs text-dim">
@@ -510,12 +510,12 @@ export default function AutonomousAgentPanel({ worldId, onRefresh }: Props) {
 
                               {/* Morale changes from consequences */}
                               {log.consequences.morale_changes && Object.keys(log.consequences.morale_changes).length > 0 && (
-                                <div className="mt-1 pt-1 border-t border-genesis-800/50">
+                                <div className="mt-1 pt-1 border-t border-ink-800/50">
                                   <span className="text-[10px] text-faint uppercase tracking-wider font-medium">Morale</span>
                                   {Object.entries(log.consequences.morale_changes).map(([fid, change]) => (
                                     <p
                                       key={fid}
-                                      className={`text-xs ${change > 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}
+                                      className={`text-xs ${change > 0 ? 'text-moss-400/70' : 'text-crimson-400/70'}`}
                                     >
                                       {fid}: {change > 0 ? '+' : ''}{change}
                                     </p>

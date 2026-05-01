@@ -1,9 +1,17 @@
 services:
   genesis:
-    build: .
+    build:
+      context: .
+      args:
+        # Forward the public deploy token into the SPA build so the bundled
+        # frontend can call mutating backend routes once GENESIS_API_KEY is
+        # required. Treat as a shared deploy token, not a hard secret.
+        VITE_GENESIS_API_KEY: ${GENESIS_API_KEY:-}
     container_name: genesis-api
     ports:
-      - "8003:8003"
+      # Bind to loopback only — public traffic must go through nginx + TLS.
+      # Override to "0.0.0.0:8003:8003" only for local dev where nginx is absent.
+      - "127.0.0.1:8003:8003"
     volumes:
       - /opt/genesis/data:/app/data
     env_file:
@@ -14,3 +22,30 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # Chroniclon autonomous canon runner — same image, separate process so
+  # a 144-hour LLM loop cannot crash the demo web service.
+  # Reads worlds from the shared /app/data volume, writes articles into
+  # /app/data/chroniclon/ via the cursor-file pattern (idempotent restart).
+  # Disabled by default until CHRONICLON_WORLD_ID is set in .env — Compose
+  # will refuse to start the service with an empty arg, which is intentional.
+  chroniclon-runner:
+    build: .
+    container_name: chroniclon-runner
+    command: python -m chroniclon.runner --world-id ${CHRONICLON_WORLD_ID:-set-in-env-first}
+    depends_on:
+      genesis:
+        condition: service_healthy
+    volumes:
+      - /opt/genesis/data:/app/data
+    env_file:
+      - .env
+    environment:
+      - DATA_DIR=/app/data/worlds
+      - CHRONICLON_DIR=/app/data/chroniclon
+      # Fan-out canonization phase events to the API container's broker so
+      # the Control Room SSE feed sees runner-driven canonizations live.
+      # CONTROL_EMIT_KEY is read from .env automatically (GENESIS_API_KEY).
+      - CONTROL_EMIT_URL=http://genesis-api:8003/api/chronicle/control/ingest
+    restart: unless-stopped
+    profiles: ["canon"]   # only starts when invoked: docker compose --profile canon up -d

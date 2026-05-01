@@ -53,6 +53,7 @@ echo ""
 echo "[3/4] Installing Genesis skills..."
 SKILLS_SRC="$SCRIPT_DIR/skills"
 SKILLS_DST="$HERMES_HOME/skills"
+mkdir -p "$SKILLS_DST"
 
 for skill_dir in "$SKILLS_SRC"/*/; do
     skill_name=$(basename "$skill_dir")
@@ -65,28 +66,32 @@ echo "[✓] Skills installed"
 echo ""
 echo "[4/4] Configuring MCP bridge..."
 MCP_SERVER_PATH="$SCRIPT_DIR/mcp-bridge/server.mjs"
+export MCP_SERVER_PATH GENESIS_API GENESIS_API_KEY
 
-python3 -c "
+python3 <<'PY'
 import yaml, os
 
 config_path = os.path.expanduser('~/.hermes/config.yaml')
 with open(config_path) as f:
     config = yaml.safe_load(f) or {}
 
-if 'mcp_servers' not in config:
-    config['mcp_servers'] = {}
+config.setdefault('mcp_servers', {})
+
+env = {'GENESIS_API_URL': os.environ['GENESIS_API']}
+if os.environ.get('GENESIS_API_KEY'):
+    env['GENESIS_API_KEY'] = os.environ['GENESIS_API_KEY']
 
 config['mcp_servers']['genesis'] = {
     'command': 'node',
-    'args': ['$MCP_SERVER_PATH'],
-    'env': {'GENESIS_API_URL': '$GENESIS_API'}
+    'args': [os.environ['MCP_SERVER_PATH']],
+    'env': env,
 }
 
 with open(config_path, 'w') as f:
     yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
 print('[✓] MCP bridge configured in ~/.hermes/config.yaml')
-"
+PY
 
 echo ""
 echo "=== Setup Complete ==="

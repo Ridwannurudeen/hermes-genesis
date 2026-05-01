@@ -32,11 +32,11 @@ function RelationshipBadge({
 }) {
   const bgColor =
     type === 'enemy' || type === 'rival'
-      ? 'bg-red-900/30 border-red-800/40 text-red-400'
+      ? 'bg-crimson-600/30 border-crimson-600/40 text-crimson-400'
       : type === 'ally' || type === 'friend'
-      ? 'bg-green-900/30 border-green-800/40 text-green-400'
+      ? 'bg-moss-500/30 border-moss-500/40 text-moss-400'
       : type === 'love' || type === 'family'
-      ? 'bg-pink-900/30 border-pink-800/40 text-pink-400'
+      ? 'bg-crimson-600/30 border-crimson-600/40 text-crimson-400'
       : 'bg-white/[0.06] border-subtle text-sub';
 
   return (
@@ -88,14 +88,14 @@ export default function CharacterDetail({
             <div className="flex items-center gap-3 mb-1">
               <h2
                 className={`text-2xl font-bold ${
-                  character.alive
-                    ? 'text-heading'
-                    : 'text-dim line-through'
-                }`}
+ character.alive
+ ? 'text-heading'
+ : 'text-dim line-through'
+ }`}
               >
                 {character.name}
               </h2>
-              {!character.alive && <Skull className="w-5 h-5 text-red-500" />}
+              {!character.alive && <Skull className="w-5 h-5 text-crimson-500" />}
             </div>
             <div className="flex items-center gap-3 text-sm">
               <span className="px-2.5 py-0.5 bg-white/[0.06] text-sub rounded capitalize">
@@ -118,7 +118,7 @@ export default function CharacterDetail({
               <button
                 onClick={() => setShowChat(true)}
                 title={`Chat with ${character.name}`}
-                className="p-1.5 text-dim hover:text-genesis-400 transition-colors rounded-lg hover:bg-hover"
+                className="p-1.5 text-dim hover:text-gilt-500 transition-colors rounded-lg hover:bg-hover"
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
@@ -136,7 +136,7 @@ export default function CharacterDetail({
           {/* Genome Radar */}
           <div>
             <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
-              <Dna className="w-4 h-4 text-genesis-400" />
+              <Dna className="w-4 h-4 text-gilt-500" />
               Genome
             </h3>
             <div className="bg-white/[0.03] rounded-xl p-4">
@@ -151,7 +151,7 @@ export default function CharacterDetail({
           {/* Fitness */}
           <div>
             <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-genesis-400" />
+              <Activity className="w-4 h-4 text-gilt-500" />
               Fitness Score
             </h3>
             <div className="flex items-center gap-3">
@@ -162,10 +162,10 @@ export default function CharacterDetail({
                     width: `${Math.max(2, character.fitness * 100)}%`,
                   }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="h-full rounded-full bg-gradient-to-r from-genesis-600 to-genesis-400"
+                  className="h-full rounded-full bg-gradient-to-r from-gilt-600 to-gilt-500"
                 />
               </div>
-              <span className="text-lg font-mono font-bold text-genesis-400">
+              <span className="text-lg font-mono font-bold text-gilt-500">
                 {(character.fitness * 100).toFixed(1)}
               </span>
             </div>
@@ -187,7 +187,7 @@ export default function CharacterDetail({
           {character.goals.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
-                <Target className="w-4 h-4 text-amber-400" />
+                <Target className="w-4 h-4 text-gilt-400" />
                 Goals
               </h3>
               <ul className="space-y-1.5">
@@ -196,7 +196,7 @@ export default function CharacterDetail({
                     key={i}
                     className="flex items-start gap-2 text-sm text-sub"
                   >
-                    <span className="text-amber-500 mt-0.5">-</span>
+                    <span className="text-gilt-500 mt-0.5">-</span>
                     {goal}
                   </li>
                 ))}
@@ -208,7 +208,7 @@ export default function CharacterDetail({
           {character.relationships.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-sub mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-400" />
+                <Users className="w-4 h-4 text-vellum-400" />
                 Relationships
               </h3>
               <div className="space-y-2">
@@ -228,7 +228,7 @@ export default function CharacterDetail({
                           intensity={rel.intensity}
                         />
                       </div>
-                      <div className="w-20 h-1.5 bg-genesis-800 rounded-full overflow-hidden">
+                      <div className="w-20 h-1.5 bg-ink-800 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -254,7 +254,7 @@ export default function CharacterDetail({
           {/* Lineage */}
           <div>
             <h3 className="text-sm font-medium text-sub mb-2 flex items-center gap-2">
-              <GitBranch className="w-4 h-4 text-genesis-400" />
+              <GitBranch className="w-4 h-4 text-gilt-500" />
               Lineage
             </h3>
             <div className="bg-white/[0.03] rounded-lg p-4 space-y-2">
@@ -275,7 +275,7 @@ export default function CharacterDetail({
                     {parents.map((p) => (
                       <span
                         key={p.id}
-                        className="px-2 py-0.5 bg-genesis-800/50 text-genesis-200 rounded text-xs"
+                        className="px-2 py-0.5 bg-ink-800/50 text-gilt-400 rounded text-xs"
                       >
                         {p.name}
                       </span>
@@ -292,7 +292,7 @@ export default function CharacterDetail({
                     {character.lineage.mutations.map((m, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 bg-genesis-900/30 border border-genesis-800/40 text-genesis-400 rounded text-xs capitalize"
+                        className="px-2 py-0.5 bg-ink-900/30 border border-ink-800/40 text-gilt-500 rounded text-xs capitalize"
                       >
                         {m}
                       </span>

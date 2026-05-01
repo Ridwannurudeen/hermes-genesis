@@ -129,8 +129,8 @@ export default function RegionDetail({
                     />
                     <span
                       className={`text-sm ${
-                        c.alive ? 'text-heading' : 'text-dim line-through'
-                      }`}
+ c.alive ? 'text-heading' : 'text-dim line-through'
+ }`}
                     >
                       {c.name}
                     </span>

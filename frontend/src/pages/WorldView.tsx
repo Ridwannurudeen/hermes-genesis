@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Map, Network, ScrollText, TrendingUp,
   BookOpen, Zap, Swords, Brain, Scroll, Download,
   Play, Sparkles, History, Theater, BarChart3,
-  Music, Music2,
+  Music, Music2, MoreHorizontal,
 } from 'lucide-react';
 import { api } from '../api';
 import type {
@@ -140,6 +140,8 @@ function SkeletonBlock({ className }: { className?: string }) {
 
 export default function WorldView() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const autoCinematic = searchParams.get('cinematic') === '1';
   const [world, setWorld] = useState<World | null>(null);
   const [factions, setFactions] = useState<Faction[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -167,10 +169,43 @@ export default function WorldView() {
   const [showCampaignKit, setShowCampaignKit] = useState(false);
   const [showCinematic, setShowCinematic] = useState(false);
   const [showReplay, setShowReplay] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const cinematicAutoOpenedRef = useRef(false);
+  const toolsRef = useRef<HTMLDivElement>(null);
+
+  // Close the tools menu on outside click + Escape.
+  useEffect(() => {
+    if (!toolsOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
+        setToolsOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setToolsOpen(false);
+    };
+    window.addEventListener('mousedown', onClick);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onClick);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [toolsOpen]);
   const [showSessionPrep, setShowSessionPrep] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
+
+  // ?cinematic=1 in the URL auto-opens CinematicMode once world data + map are
+  // loaded. Used by Landing's "Watch the canon being written" entry point so
+  // judges can hit the cinematic playback in one click from the front door.
+  useEffect(() => {
+    if (!autoCinematic || cinematicAutoOpenedRef.current) return;
+    if (world && mapData && !showCinematic) {
+      cinematicAutoOpenedRef.current = true;
+      setShowCinematic(true);
+    }
+  }, [autoCinematic, world, mapData, showCinematic]);
 
   const factionMap = useMemo(() => {
     const m: Record<string, Faction> = {};
@@ -352,7 +387,7 @@ export default function WorldView() {
       <div className="min-h-screen bg-page flex items-center justify-center">
         <div className="text-center">
           <p className="text-sub text-lg mb-4">World not found</p>
-          <Link to="/" className="text-genesis-400 hover:text-genesis-body transition-colors">
+          <Link to="/" className="text-gilt-500 hover:text-genesis-body transition-colors">
             Back to home
           </Link>
         </div>
@@ -363,11 +398,11 @@ export default function WorldView() {
   return (
     <div className="min-h-screen bg-page">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b border-genesis-300/10 bg-page/80 backdrop-blur-xl sticky top-0 z-30">
+      <div className="border-b border-gilt-400/10 bg-page/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/" className="text-dim hover:text-genesis-400 transition-colors">
+              <Link to="/" className="text-dim hover:text-gilt-500 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
@@ -378,68 +413,87 @@ export default function WorldView() {
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-xs text-dim uppercase tracking-wider">Day</p>
-                <p className="text-2xl font-mono font-bold text-genesis-400">{world.current_day}</p>
+                <p className="text-2xl font-mono font-bold text-gilt-500">{world.current_day}</p>
               </div>
               <VoiceNarrationButton active={voiceEnabled} narrationState={narrationState} onToggle={() => setVoiceEnabled((p) => !p)} onPause={pause} onResume={resume} onStop={stop} disabled={loading} />
               <button onClick={() => setAmbientEnabled((p) => !p)} title={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} aria-label={ambientEnabled ? 'Disable Ambient Sound' : 'Enable Ambient Sound'} disabled={loading}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-                  ambientEnabled ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30' : 'text-sub hover:text-emerald-400 hover:bg-hover'
-                }`}>
+ ambientEnabled ? 'text-moss-500 bg-moss-500/10 border border-moss-500/30' : 'text-sub hover:text-moss-500 hover:bg-hover'
+ }`}>
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
               </button>
-              <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent" aria-label="World Master Agent"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  showAgent ? 'text-genesis-400 bg-genesis-500/10 border border-genesis-500/30' : 'text-sub hover:text-genesis-400 hover:bg-hover'
-                }`}>
-                <Brain className="w-5 h-5" />
-                <span className="hidden sm:inline">Agent</span>
+              <button onClick={() => setShowCinematic(true)} title="Cinematic mode — live narrated playback" aria-label="Cinematic mode" className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-sub hover:text-gilt-500 hover:bg-hover transition-all">
+                <Play className="w-4 h-4" />
+                <span className="hidden sm:inline">Cinematic</span>
               </button>
-              <button onClick={() => setGodMode((p) => !p)} title="God Mode" aria-label="God Mode"
-                className={`p-2 rounded-lg transition-all ${
-                  godMode ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30' : 'text-sub hover:text-amber-400 hover:bg-hover'
-                }`}>
-                <Zap className="w-5 h-5" />
+              <button onClick={() => setShowReplay(true)} title="Theater — replay this world's history" aria-label="Theater replay" disabled={events.length === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-sub hover:text-gilt-500 hover:bg-hover transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                <Theater className="w-4 h-4" />
+                <span className="hidden sm:inline">Theater</span>
               </button>
-              <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
-                <Swords className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" aria-label="Generate Chronicle" className="p-2 text-sub hover:text-genesis-400 hover:bg-hover rounded-lg transition-all">
-                <BookOpen className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-rose-400 hover:bg-hover rounded-lg transition-all">
-                <Play className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowReplay(true)} title="Replay History" aria-label="Replay History" disabled={events.length === 0}
-                className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                <History className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" aria-label="Session Prep" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
-                <Sparkles className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" aria-label="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-amber-400 hover:bg-hover rounded-lg transition-all">
-                <Scroll className="w-5 h-5" />
-              </button>
-              <button
-                onClick={async () => {
-                  if (!id) return;
-                  try {
-                    const { text, filename } = await api.exportWorld(id);
-                    const blob = new Blob([text], { type: 'text/markdown' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  } catch { /* ignore */ }
-                }}
-                title="Download World (Markdown)"
-                aria-label="Download World (Markdown)"
-                className="p-2 text-sub hover:text-emerald-400 hover:bg-hover rounded-lg transition-all"
-              >
-                <Download className="w-5 h-5" />
-              </button>
+              {/* Tools overflow — secondary actions in a dropdown to keep
+               * primary actions (cinematic, theater, voice/ambient, theme,
+               * autoplay, simulate) visible without cluttering the bar. */}
+              <div ref={toolsRef} className="relative">
+                <button
+                  onClick={() => setToolsOpen((p) => !p)}
+                  title="More tools"
+                  aria-label="More tools"
+                  aria-expanded={toolsOpen}
+                  className={`p-2 rounded-lg transition-all ${
+                    toolsOpen ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
+                  }`}
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+                {toolsOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-1 w-56 bg-page border border-subtle rounded-md shadow-2xl py-1 z-40"
+                  >
+                    <button role="menuitem" onClick={() => { setShowAgent((p) => !p); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Brain className="w-4 h-4 shrink-0" /> {showAgent ? 'Hide agent' : 'World master agent'}
+                    </button>
+                    <button role="menuitem" onClick={() => { setGodMode((p) => !p); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Zap className="w-4 h-4 shrink-0" /> {godMode ? 'Disable god mode' : 'God mode'}
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowCouncil(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Swords className="w-4 h-4 shrink-0" /> Faction council
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowChronicle(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <BookOpen className="w-4 h-4 shrink-0" /> Generate chronicle
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowSessionPrep(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Sparkles className="w-4 h-4 shrink-0" /> Session prep
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowCampaignKit(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Scroll className="w-4 h-4 shrink-0" /> Campaign kit (TTRPG)
+                    </button>
+                    <div className="border-t border-subtle my-1" />
+                    <button
+                      role="menuitem"
+                      onClick={async () => {
+                        setToolsOpen(false);
+                        if (!id) return;
+                        try {
+                          const { text, filename } = await api.exportWorld(id);
+                          const blob = new Blob([text], { type: 'text/markdown' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = filename;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        } catch { /* ignore */ }
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors"
+                    >
+                      <Download className="w-4 h-4 shrink-0" /> Download world (markdown)
+                    </button>
+                  </div>
+                )}
+              </div>
               <ThemeToggle />
               <AutoPlayButton active={autoPlay} onToggle={toggleAutoPlay} disabled={loading} />
               <SimulateButton onSimulate={handleSimulate} loading={simulating || autoPlay} />
@@ -449,7 +503,7 @@ export default function WorldView() {
       </div>
 
       {/* ── View Mode Selector ─────────────────────────────── */}
-      <div className="border-b border-genesis-300/10">
+      <div className="border-b border-gilt-400/10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-1 py-1">
             {VIEW_MODES.map((vm) => {
@@ -459,22 +513,22 @@ export default function WorldView() {
                   key={vm.key}
                   onClick={() => setViewMode(vm.key)}
                   className={`group flex items-center gap-2.5 px-5 py-3 text-sm font-medium rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-genesis-600/15 text-genesis-400 border border-genesis-500/30'
-                      : 'text-dim hover:text-heading hover:bg-white/[0.04] border border-transparent'
-                  }`}
+ isActive
+ ? 'bg-gilt-600/15 text-gilt-500 border border-gilt-500/30'
+ : 'text-dim hover:text-heading hover:bg-white/[0.04] border border-transparent'
+ }`}
                 >
-                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-genesis-400' : 'text-faint group-hover:text-sub'}`} />
+                  <vm.icon className={`w-4.5 h-4.5 ${isActive ? 'text-gilt-500' : 'text-faint group-hover:text-sub'}`} />
                   <div className="text-left">
                     <div className="flex items-center gap-1.5">
                       {vm.label}
                       {vm.key === 'network' && characters.length > 0 && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-moss-500/15 text-moss-400 border border-moss-500/30">
                           {characters.filter(c => c.alive).length}
                         </span>
                       )}
                     </div>
-                    <div className={`text-[10px] ${isActive ? 'text-genesis-500/70' : 'text-faint'}`}>
+                    <div className={`text-[10px] ${isActive ? 'text-gilt-500/70' : 'text-faint'}`}>
                       {vm.desc}
                     </div>
                   </div>
@@ -487,10 +541,10 @@ export default function WorldView() {
               <button
                 onClick={() => setAnalyticsOpen((p) => !p)}
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${
-                  analyticsOpen
-                    ? 'text-genesis-400 bg-genesis-600/10 border border-genesis-500/20'
-                    : 'text-dim hover:text-heading border border-subtle hover:border-subtle hover:bg-white/[0.04]'
-                }`}
+ analyticsOpen
+ ? 'text-gilt-500 bg-gilt-600/10 border border-gilt-500/20'
+ : 'text-dim hover:text-heading border border-subtle hover:border-subtle hover:bg-white/[0.04]'
+ }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
                 Analytics

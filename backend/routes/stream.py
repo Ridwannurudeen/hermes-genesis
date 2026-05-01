@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Literal
 from fastapi import APIRouter, HTTPException, Query
 from sse_starlette.sse import EventSourceResponse
 from pydantic import BaseModel, Field
@@ -19,6 +20,7 @@ class CreateWorldStreamRequest(BaseModel):
     num_regions: int = Field(default=4, ge=3, le=12)
     num_factions: int = Field(default=3, ge=2, le=8)
     num_characters: int = Field(default=8, ge=4, le=30)
+    visibility: Literal["private", "unlisted", "public"] = "unlisted"
 
 
 @router.post("/stream")
@@ -36,6 +38,12 @@ async def create_world_stream(req: CreateWorldStreamRequest):
     async def event_generator():
         await creation_semaphore.acquire()
         try:
+            if len(list_worlds()) >= MAX_WORLDS:
+                yield {
+                    "event": "error",
+                    "data": json.dumps({"message": f"Maximum {MAX_WORLDS} worlds reached. Delete old worlds first."}),
+                }
+                return
             task = asyncio.create_task(
                 generate_world(
                     req.seed,
@@ -60,6 +68,8 @@ async def create_world_stream(req: CreateWorldStreamRequest):
             except Exception as e:
                 yield {"event": "error", "data": json.dumps({"message": str(e)})}
                 return
+            world.visibility = req.visibility
+            save_world(world)
             yield {
                 "event": "complete",
                 "data": json.dumps(

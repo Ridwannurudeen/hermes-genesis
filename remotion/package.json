@@ -1,0 +1,26 @@
+{
+  "name": "hermes-genesis-remotion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Editorial demo film for Hermes Genesis / Chroniclon. Programmatic 90-second composition rendered to mp4.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render src/index.ts Demo demo.mp4 --concurrency=1 --crf=18",
+    "still": "remotion still src/index.ts Demo poster.png --frame=240"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.226",
+    "@remotion/google-fonts": "4.0.226",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.226"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "typescript": "5.5.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -30,20 +30,20 @@ export default function VoiceNarrationButton({
         onClick={onToggle}
         disabled={disabled}
         className={`flex items-center gap-2 px-3 py-2.5 font-medium text-sm rounded-lg transition-all ${
-          active
-            ? 'bg-genesis-600/20 border border-genesis-500/50 text-genesis-400 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
-            : 'bg-white/[0.04] border border-subtle text-sub hover:text-heading hover:border-white/[0.15]'
-        } disabled:opacity-40 disabled:cursor-not-allowed`}
+ active
+ ? 'bg-gilt-600/20 border border-gilt-500/50 text-gilt-500 shadow-[0_0_15px_rgba(201,168,76,0.15)]'
+ : 'bg-white/[0.04] border border-subtle text-sub hover:text-heading hover:border-white/[0.15]'
+ } disabled:opacity-40 disabled:cursor-not-allowed`}
       >
         {active ? (
           <>
             <span className="relative flex h-2.5 w-2.5">
               <span
-                className={`absolute inline-flex h-full w-full rounded-full bg-genesis-400 ${
-                  narrationState === 'speaking' ? 'animate-ping opacity-75' : 'opacity-40'
-                }`}
+                className={`absolute inline-flex h-full w-full rounded-full bg-gilt-500 ${
+ narrationState === 'speaking' ? 'animate-ping opacity-75' : 'opacity-40'
+ }`}
               />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-genesis-500" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gilt-500" />
             </span>
             <span className="hidden sm:inline">
               {narrationState === 'speaking' ? 'VOICE' : narrationState === 'paused' ? 'PAUSED' : 'VOICE'}
@@ -72,7 +72,7 @@ export default function VoiceNarrationButton({
             <button
               onClick={narrationState === 'paused' ? onResume : onPause}
               title={narrationState === 'paused' ? 'Resume narration' : 'Pause narration'}
-              className="p-2 rounded-lg text-genesis-400 hover:bg-genesis-500/15 transition-all"
+              className="p-2 rounded-lg text-gilt-500 hover:bg-gilt-500/15 transition-all"
             >
               {narrationState === 'paused' ? (
                 <Play className="w-4 h-4" />
@@ -85,7 +85,7 @@ export default function VoiceNarrationButton({
             <button
               onClick={onStop}
               title="Stop narration"
-              className="p-2 rounded-lg text-red-400 hover:bg-red-500/15 transition-all"
+              className="p-2 rounded-lg text-crimson-400 hover:bg-crimson-500/15 transition-all"
             >
               <Square className="w-3.5 h-3.5" />
             </button>

@@ -131,7 +131,7 @@ export default function FactionCard({ faction, leader }: Props) {
                 {faction.alliances.map((a, i) => (
                   <span
                     key={i}
-                    className="px-2 py-0.5 bg-green-900/30 border border-green-800/40 text-green-400 rounded text-xs"
+                    className="px-2 py-0.5 bg-moss-500/30 border border-moss-500/40 text-moss-400 rounded text-xs"
                   >
                     {a}
                   </span>
@@ -148,7 +148,7 @@ export default function FactionCard({ faction, leader }: Props) {
                 {faction.enemies.map((e, i) => (
                   <span
                     key={i}
-                    className="px-2 py-0.5 bg-red-900/30 border border-red-800/40 text-red-400 rounded text-xs"
+                    className="px-2 py-0.5 bg-crimson-600/30 border border-crimson-600/40 text-crimson-400 rounded text-xs"
                   >
                     {e}
                   </span>

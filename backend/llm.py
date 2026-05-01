@@ -2,25 +2,53 @@ import re
 import httpx
 import json
 import logging
-from config import NOUS_API_KEY, NOUS_BASE_URL, NOUS_MODEL
+from config import NOUS_API_KEY, NOUS_BASE_URL, NOUS_MODEL, KIMI_API_KEY, KIMI_BASE_URL, KIMI_MODEL
 
 logger = logging.getLogger(__name__)
 
-# Shared client — reused across calls to avoid connection overhead
-_client: httpx.AsyncClient | None = None
+# Per-provider client pool — reused across calls to avoid connection overhead
+_clients: dict[str, httpx.AsyncClient] = {}
+
+_PROVIDERS = {
+    "nous": {"key": NOUS_API_KEY, "base": NOUS_BASE_URL, "model": NOUS_MODEL, "timeout": 120.0},
+    "kimi": {"key": KIMI_API_KEY, "base": KIMI_BASE_URL, "model": KIMI_MODEL, "timeout": 300.0},
+}
 
 
-def _get_client() -> httpx.AsyncClient:
-    global _client
-    if _client is None or _client.is_closed:
-        _client = httpx.AsyncClient(
-            timeout=120.0,
+def _get_client(provider: str = "nous") -> httpx.AsyncClient:
+    cfg = _PROVIDERS[provider]
+    client = _clients.get(provider)
+    if client is None or client.is_closed:
+        client = httpx.AsyncClient(
+            timeout=cfg["timeout"],
             headers={
-                "Authorization": f"Bearer {NOUS_API_KEY}",
+                "Authorization": f"Bearer {cfg['key']}",
                 "Content-Type": "application/json",
             },
         )
-    return _client
+        _clients[provider] = client
+    return client
+
+
+def _coerce_temperature(provider: str, model: str, temperature: float) -> float:
+    """Moonshot's Kimi K2.x line (K2.5, K2.6, …) only accepts temperature=1.
+    Coerce silently rather than fail on the API's 400.
+    """
+    if provider == "kimi" and "k2." in model.lower():
+        return 1.0
+    return temperature
+
+
+def _coerce_max_tokens(provider: str, model: str, max_tokens: int) -> int:
+    """Both K2.5 and K2.6 emit hidden reasoning tokens BEFORE the final
+    content. Empirically: a 200-word output uses ~2000 tokens of reasoning.
+    A small max_tokens budget gets entirely consumed by reasoning, leaving
+    content empty or truncated. Add 2048 tokens of reasoning headroom on
+    top of whatever the caller asked for, with a floor of 3000.
+    """
+    if provider == "kimi" and "k2." in model.lower():
+        return max(max_tokens + 2048, 3000)
+    return max_tokens
 
 
 async def chat_completion(
@@ -29,38 +57,77 @@ async def chat_completion(
     temperature: float = 0.9,
     max_tokens: int = 4000,
     retries: int = 2,
+    provider: str = "nous",
+    model: str | None = None,
 ) -> str:
-    client = _get_client()
+    cfg = _PROVIDERS[provider]
+    if provider == "kimi" and not cfg["key"]:
+        logger.warning("KIMI_API_KEY missing — falling back to Nous Hermes")
+        provider, cfg = "nous", _PROVIDERS["nous"]
+    client = _get_client(provider)
+    chosen_model = model or cfg["model"]
+    chosen_temp = _coerce_temperature(provider, chosen_model, temperature)
+    chosen_max = _coerce_max_tokens(provider, chosen_model, max_tokens)
+    import asyncio, random
     last_err = None
+    backoff = 1.5
     for attempt in range(retries + 1):
         try:
             resp = await client.post(
-                f"{NOUS_BASE_URL}/chat/completions",
+                f"{cfg['base']}/chat/completions",
                 json={
-                    "model": NOUS_MODEL,
+                    "model": chosen_model,
                     "messages": [
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    "temperature": temperature,
-                    "max_tokens": max_tokens,
+                    "temperature": chosen_temp,
+                    "max_tokens": chosen_max,
                 },
             )
+            # 429 / 5xx: respect Retry-After when present, else exponential
+            # backoff with jitter. Without this, the canon runner crashes on
+            # the first transient rate-limit and stops publishing.
+            if resp.status_code == 429 or resp.status_code >= 500:
+                if attempt < retries:
+                    retry_after = resp.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        wait = float(retry_after)
+                    else:
+                        wait = backoff + random.uniform(0, backoff * 0.3)
+                        backoff *= 1.8
+                    logger.warning(
+                        f"LLM {resp.status_code} from {provider} — sleeping {wait:.1f}s "
+                        f"(attempt {attempt + 1}/{retries + 1})"
+                    )
+                    await asyncio.sleep(wait)
+                    continue
             resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"]
+            payload = resp.json()
+            msg = payload["choices"][0]["message"]
+            content = (msg.get("content") or "").strip()
+            if not content and msg.get("reasoning_content"):
+                # Reasoning model produced no final answer — likely budget ran out
+                # mid-reasoning. Surface the partial reasoning so the caller can
+                # log/skip rather than silently return empty.
+                logger.warning(
+                    f"empty content from {chosen_model}; reasoning consumed budget "
+                    f"({chosen_max} tokens). Bump max_tokens or shorten prompt."
+                )
+            return content
         except Exception as e:
             last_err = e
             if attempt < retries:
-                logger.warning(f"LLM call failed (attempt {attempt + 1}), retrying: {e}")
+                logger.warning(f"LLM call failed (provider={provider}, attempt {attempt + 1}): {e}")
             else:
                 raise last_err
 
 
 async def close_client():
-    global _client
-    if _client and not _client.is_closed:
-        await _client.aclose()
-        _client = None
+    for client in _clients.values():
+        if not client.is_closed:
+            await client.aclose()
+    _clients.clear()
 
 
 def _repair_json(text: str) -> str:
@@ -92,6 +159,104 @@ def _truncate_at_last_complete(text: str) -> str:
         candidate += "}" * max(0, opens)
         return candidate
     return text
+
+
+_TOOL_CALL_RE = re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>", re.DOTALL)
+
+
+def extract_tool_call_args(raw: str, tool_name: str) -> dict | None:
+    """Parse a Hermes-native ``<tool_call>{...}</tool_call>`` envelope and
+    return the arguments dict if it matches *tool_name*. Otherwise returns
+    None so callers can fall back to the JSON repair path.
+
+    The model is expected to emit a single tool call. We tolerate prose
+    around it; the regex finds the first envelope.
+    """
+    if not raw:
+        return None
+    match = _TOOL_CALL_RE.search(raw)
+    if not match:
+        return None
+    try:
+        envelope = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(envelope, dict):
+        return None
+    if envelope.get("name") != tool_name:
+        return None
+    args = envelope.get("arguments")
+    return args if isinstance(args, dict) else None
+
+
+async def call_with_tool(
+    *,
+    system: str,
+    user: str,
+    tool_name: str,
+    tool_description: str,
+    parameters_schema: dict,
+    temperature: float = 0.3,
+    max_tokens: int = 1000,
+    retries: int = 2,
+    provider: str = "nous",
+    model: str | None = None,
+    fallback_to_json: bool = True,
+) -> dict:
+    """High-reliability structured output via Hermes-native ``<tool_call>``.
+
+    Wraps `chat_completion`: appends a `<tools>` block + a strict instruction
+    to the system prompt so Hermes-4-70B emits a single tool call whose
+    arguments object IS the structured answer. Empirically this is far more
+    reliable than asking the model for "STRICT JSON ONLY" — it eliminates the
+    trailing-comma / unquoted-keys / truncation problems that drove the
+    4-tier repair tower in `extract_json`.
+
+    On failure (no tool_call found, malformed envelope), optionally falls
+    back to the JSON repair path on the raw response so existing prompts
+    that already produced bare JSON keep working.
+    """
+    tool_def = {
+        "type": "function",
+        "function": {
+            "name": tool_name,
+            "description": tool_description,
+            "parameters": parameters_schema,
+        },
+    }
+    augmented_system = (
+        f"{system}\n\n"
+        f"<tools>\n{json.dumps([tool_def], indent=2)}\n</tools>\n\n"
+        "Respond with EXACTLY ONE tool call in this format and nothing else:\n"
+        f"<tool_call>{{\"name\": \"{tool_name}\", \"arguments\": {{ ... }}}}</tool_call>\n"
+        "The arguments object IS your answer. Do not add prose before or after."
+    )
+
+    raw = await chat_completion(
+        system=augmented_system,
+        user=user,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        retries=retries,
+        provider=provider,
+        model=model,
+    )
+
+    args = extract_tool_call_args(raw, tool_name)
+    if args is not None:
+        return args
+
+    if fallback_to_json:
+        try:
+            data = extract_json(raw)
+            if isinstance(data, dict):
+                logger.info(f"call_with_tool '{tool_name}': fell back to JSON repair")
+                return data
+        except Exception:
+            pass
+
+    logger.warning(f"call_with_tool '{tool_name}': no parseable response (raw len={len(raw)})")
+    return {}
 
 
 def extract_json(text: str) -> dict | list:
