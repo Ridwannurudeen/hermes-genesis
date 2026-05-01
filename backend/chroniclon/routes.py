@@ -11,9 +11,8 @@ from datetime import datetime, timezone
 from email.utils import format_datetime
 from pathlib import Path
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Query, Request
-from fastapi.responses import FileResponse, PlainTextResponse, Response
+from fastapi.responses import FileResponse, PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
-from sse_starlette.sse import EventSourceResponse
 
 import config
 from auth import is_admin_credentials
@@ -24,6 +23,16 @@ from chroniclon.regen import stream_regen
 
 
 router = APIRouter(prefix="/api/chronicle", tags=["chronicle"])
+
+
+# SSE response headers — disable proxy buffering and cache so events flush
+# in real time. The X-Accel-Buffering header is honored by nginx; the rest
+# protect against shared caches and Cloudflare-class CDN buffering.
+_SSE_HEADERS = {
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no",
+    "Connection": "keep-alive",
+}
 
 
 def _chronicle_dir() -> Path:
@@ -821,7 +830,7 @@ async def control_event_stream():
         finally:
             control_stream.unsubscribe(q)
 
-    return EventSourceResponse(gen())
+    return StreamingResponse(gen(), media_type="text/event-stream", headers=_SSE_HEADERS)
 
 
 @router.post("/regen/stream")
@@ -838,7 +847,7 @@ async def regen_stream(req: RegenRequest):
 
     async def gen():
         async for chunk in stream_regen(seed, days, writer_provider=provider):
-            # sse-starlette accepts dicts or already-formatted strings; we hand it our raw frames
+            # _sse_event already formats `event: <name>\ndata: <body>\n\n` — pass through.
             yield chunk
 
-    return EventSourceResponse(gen())
+    return StreamingResponse(gen(), media_type="text/event-stream", headers=_SSE_HEADERS)
