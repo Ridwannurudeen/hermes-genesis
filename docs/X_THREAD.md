@@ -8,7 +8,7 @@ Replace `[YOUR HANDLE]` with your X handle before posting.
 
 ## Tweet 1 · the hook + video
 
-**Attach: `demo.mp4` (32s)**
+**Attach: `demo.mp4` (75s · local at `C:\Users\HP\Music\demo.mp4`)**
 
 ```
 Built a hermes-agent skill that publishes a fictional Wikipedia.
