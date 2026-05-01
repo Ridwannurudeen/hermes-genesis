@@ -5,7 +5,7 @@ import {
   ArrowLeft, Map, Network, ScrollText, TrendingUp,
   BookOpen, Zap, Swords, Brain, Scroll, Download,
   Play, Sparkles, History, Theater, BarChart3,
-  Music, Music2,
+  Music, Music2, MoreHorizontal,
 } from 'lucide-react';
 import { api } from '../api';
 import type {
@@ -169,7 +169,28 @@ export default function WorldView() {
   const [showCampaignKit, setShowCampaignKit] = useState(false);
   const [showCinematic, setShowCinematic] = useState(false);
   const [showReplay, setShowReplay] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const cinematicAutoOpenedRef = useRef(false);
+  const toolsRef = useRef<HTMLDivElement>(null);
+
+  // Close the tools menu on outside click + Escape.
+  useEffect(() => {
+    if (!toolsOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
+        setToolsOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setToolsOpen(false);
+    };
+    window.addEventListener('mousedown', onClick);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onClick);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [toolsOpen]);
   const [showSessionPrep, setShowSessionPrep] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlayActiveRef = useRef(false);
@@ -402,58 +423,74 @@ export default function WorldView() {
                 {ambientEnabled ? <Music2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
                 <span className="hidden sm:inline">{ambientEnabled ? 'Ambient' : 'Ambient'}</span>
               </button>
-              <button onClick={() => setShowAgent((p) => !p)} title="World Master Agent" aria-label="World Master Agent"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
- showAgent ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
- }`}>
-                <Brain className="w-5 h-5" />
-                <span className="hidden sm:inline">Agent</span>
-              </button>
-              <button onClick={() => setGodMode((p) => !p)} title="God Mode" aria-label="God Mode"
-                className={`p-2 rounded-lg transition-all ${
- godMode ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
- }`}>
-                <Zap className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowCouncil(true)} title="Faction Council" aria-label="Faction Council" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
-                <Swords className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowChronicle(true)} title="Generate Chronicle" aria-label="Generate Chronicle" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
-                <BookOpen className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-crimson-500 hover:bg-hover rounded-lg transition-all">
+              <button onClick={() => setShowCinematic(true)} title="Cinematic Mode (Live)" aria-label="Cinematic Mode (Live)" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
                 <Play className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowReplay(true)} title="Replay History" aria-label="Replay History" disabled={events.length === 0}
-                className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                <History className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowSessionPrep(true)} title="Session Prep" aria-label="Session Prep" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
-                <Sparkles className="w-5 h-5" />
-              </button>
-              <button onClick={() => setShowCampaignKit(true)} title="Campaign Kit (TTRPG)" aria-label="Campaign Kit (TTRPG)" className="p-2 text-sub hover:text-gilt-500 hover:bg-hover rounded-lg transition-all">
-                <Scroll className="w-5 h-5" />
-              </button>
-              <button
-                onClick={async () => {
-                  if (!id) return;
-                  try {
-                    const { text, filename } = await api.exportWorld(id);
-                    const blob = new Blob([text], { type: 'text/markdown' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  } catch { /* ignore */ }
-                }}
-                title="Download World (Markdown)"
-                aria-label="Download World (Markdown)"
-                className="p-2 text-sub hover:text-moss-500 hover:bg-hover rounded-lg transition-all"
-              >
-                <Download className="w-5 h-5" />
-              </button>
+              {/* Tools overflow — secondary actions moved into a dropdown to
+               * cut the 14-button density. Primary actions (cinematic,
+               * voice/ambient, theme, autoplay, simulate) stay visible. */}
+              <div ref={toolsRef} className="relative">
+                <button
+                  onClick={() => setToolsOpen((p) => !p)}
+                  title="More tools"
+                  aria-label="More tools"
+                  aria-expanded={toolsOpen}
+                  className={`p-2 rounded-lg transition-all ${
+                    toolsOpen ? 'text-gilt-500 bg-gilt-500/10 border border-gilt-500/30' : 'text-sub hover:text-gilt-500 hover:bg-hover'
+                  }`}
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+                {toolsOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-1 w-56 bg-page border border-subtle rounded-md shadow-2xl py-1 z-40"
+                  >
+                    <button role="menuitem" onClick={() => { setShowAgent((p) => !p); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Brain className="w-4 h-4 shrink-0" /> {showAgent ? 'Hide agent' : 'World master agent'}
+                    </button>
+                    <button role="menuitem" onClick={() => { setGodMode((p) => !p); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Zap className="w-4 h-4 shrink-0" /> {godMode ? 'Disable god mode' : 'God mode'}
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowCouncil(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Swords className="w-4 h-4 shrink-0" /> Faction council
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowChronicle(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <BookOpen className="w-4 h-4 shrink-0" /> Generate chronicle
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowReplay(true); setToolsOpen(false); }} disabled={events.length === 0} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <History className="w-4 h-4 shrink-0" /> Replay history
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowSessionPrep(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Sparkles className="w-4 h-4 shrink-0" /> Session prep
+                    </button>
+                    <button role="menuitem" onClick={() => { setShowCampaignKit(true); setToolsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors">
+                      <Scroll className="w-4 h-4 shrink-0" /> Campaign kit (TTRPG)
+                    </button>
+                    <div className="border-t border-subtle my-1" />
+                    <button
+                      role="menuitem"
+                      onClick={async () => {
+                        setToolsOpen(false);
+                        if (!id) return;
+                        try {
+                          const { text, filename } = await api.exportWorld(id);
+                          const blob = new Blob([text], { type: 'text/markdown' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = filename;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        } catch { /* ignore */ }
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-sub hover:bg-hover hover:text-heading text-left transition-colors"
+                    >
+                      <Download className="w-4 h-4 shrink-0" /> Download world (markdown)
+                    </button>
+                  </div>
+                )}
+              </div>
               <ThemeToggle />
               <AutoPlayButton active={autoPlay} onToggle={toggleAutoPlay} disabled={loading} />
               <SimulateButton onSimulate={handleSimulate} loading={simulating || autoPlay} />

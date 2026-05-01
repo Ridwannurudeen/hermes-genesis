@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Autopsy from '../components/Autopsy';
 import ContributeModal from '../components/ContributeModal';
 import EraCeremony from '../components/EraCeremony';
+import InlineAudioButton from '../components/InlineAudioButton';
 import LanguageTree from '../components/LanguageTree';
 import Masthead from '../components/Masthead';
 import Provenance from '../components/Provenance';
@@ -183,12 +184,7 @@ function ArticleListRow({ a, onOpen }: { a: ArticleSummary; onOpen: (slug: strin
               </span>
             ) : null}
             {a.audio_url ? (
-              <span
-                title="audio narration available"
-                className="inline-flex items-center font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5 shrink-0"
-              >
-                audio
-              </span>
+              <InlineAudioButton src={a.audio_url} label={a.title} />
             ) : null}
           </div>
           <div className="shrink-0 font-mono text-micro text-faint tabular-nums flex items-center gap-3">

@@ -421,6 +421,68 @@ def _subscriber_unsubscribe_token(email: str) -> str:
     return hashlib.sha256(f"{email.strip().lower()}::{secret}".encode("utf-8")).hexdigest()[:32]
 
 
+def archive_duplicate_slugs(dry_run: bool = True) -> dict:
+    """One-shot cleanup for the 255 duplicate slugs in the live store. Groups
+    articles by slug; for each group of N≥2 it keeps the highest-scoring
+    (anti_slop + fact_check, with mtime as tiebreaker) and moves the rest
+    into articles/_archive/. The archive subdir is excluded from glob
+    by living below the articles dir, so list/search/article-detail will
+    silently lose visibility of the dupes."""
+    d = _base_dir() / _ARTICLES
+    if not d.exists():
+        return {"groups": 0, "archived": 0, "kept": 0}
+    archive_dir = d / "_archive"
+    if not dry_run:
+        archive_dir.mkdir(parents=True, exist_ok=True)
+    groups: dict[str, list[tuple[float, float, Path]]] = {}
+    for f in d.glob("*.json"):
+        if f.name.startswith("."):
+            continue
+        try:
+            a = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        slug = a.get("slug")
+        if not slug:
+            continue
+        slop = (a.get("anti_slop_score") or 0)
+        fact = (a.get("fact_check_score") or 0)
+        try:
+            mtime = f.stat().st_mtime
+        except OSError:
+            mtime = 0.0
+        groups.setdefault(slug, []).append((slop + fact, mtime, f))
+    archived = 0
+    kept = 0
+    multi_groups = 0
+    for slug, members in groups.items():
+        if len(members) < 2:
+            kept += 1
+            continue
+        multi_groups += 1
+        # Highest combined score wins; ties broken by newest mtime.
+        members.sort(reverse=True)
+        members[0]  # keep first (best score, then newest)
+        kept += 1
+        for _, _, f in members[1:]:
+            if dry_run:
+                archived += 1
+                continue
+            target = archive_dir / f.name
+            try:
+                f.rename(target)
+                archived += 1
+            except OSError:
+                pass
+    return {
+        "groups_total": len(groups),
+        "multi_groups": multi_groups,
+        "kept": kept,
+        "archived": archived,
+        "dry_run": dry_run,
+    }
+
+
 def remove_subscriber_by_token(token: str) -> str | None:
     """Remove the subscriber whose unsubscribe token matches. Returns the
     email that was removed, or None if no match."""

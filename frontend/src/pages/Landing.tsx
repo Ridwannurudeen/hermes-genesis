@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2, Play } from 'lucide-react';
+import InlineAudioButton from '../components/InlineAudioButton';
 import Masthead from '../components/Masthead';
 import SubscribeForm from '../components/SubscribeForm';
 import WireTicker from '../components/WireTicker';
@@ -166,12 +167,7 @@ function MediaBadges({ a }: { a: ArticleSummary }) {
         </span>
       )}
       {a.audio_url && (
-        <span
-          title="audio narration available"
-          className="font-mono text-eyebrow uppercase tracking-eyebrow text-gilt-500 border border-gilt-500/40 rounded px-1.5 py-0.5"
-        >
-          audio
-        </span>
+        <InlineAudioButton src={a.audio_url} label={a.title} />
       )}
       {hasScores && (
         <span
