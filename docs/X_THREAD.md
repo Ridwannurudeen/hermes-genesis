@@ -11,16 +11,16 @@ Replace `[YOUR HANDLE]` with your X handle before posting.
 **Attach: `demo.mp4` (32s)**
 
 ```
-Built an autonomous fiction engine.
+Built a hermes-agent skill that publishes a fictional Wikipedia.
 
-One sentence in. A self-writing canon out.
+One sentence in. A self-writing canon out — articles, illustrations,
+narration, era-by-era linguistic drift. The civilization keeps
+publishing whether anyone's watching.
 
-Three AI agents publish a fictional Wikipedia — they decide what becomes
-canon, write the long-form articles, score them for slop, illustrate
-them, and narrate them. Indefinitely.
+@NousResearch · @Kimi_Moonshot · #HermesAgent
 ```
 
-> 269 chars · video does most of the work
+> 269 chars · leads with the agent-framework hook · @Kimi tagged in tweet 1 for the Kimi Track · video carries the proof
 
 ---
 
