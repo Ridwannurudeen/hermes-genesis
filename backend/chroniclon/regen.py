@@ -131,29 +131,53 @@ async def stream_regen(
     # ---- canonize a curated subset ----
     yield _sse_event("progress", {"stage": "canonizing", "detail": f"writing up to {REGEN_MAX_ARTICLES} articles"})
     written = 0
+    fallback_used = False
+    active_writer = writer_provider
     notes = linguistic_notes_for_era(era)
     for ev in world.events:
         if written >= REGEN_MAX_ARTICLES:
             break
         ed = ev.model_dump(mode="json") if hasattr(ev, "model_dump") else ev
-        try:
-            article = await canonize_event(
-                world_name=world.name,
-                seed=world.seed,
-                era_id=era.era_id,
-                era_name=era.name,
-                in_world_year=int(ed.get("day", 0)),
-                event=ed,
-                linguistic_notes=notes,
-                writer_provider=writer_provider,
-                world_id=world.id,
-            )
-        except Exception as e:
-            logger.exception(f"canonize {ed.get('id','?')} failed")
-            continue
+        article = None
+        last_err: Exception | None = None
+        # Try the chosen writer; if it 429s or fails, fall back to the
+        # other model for the rest of the run so the demo doesn't go
+        # silent during a Kimi rate-limit spike. Surface the switch.
+        for try_provider in ([active_writer] if active_writer != writer_provider else [writer_provider, "nous" if writer_provider == "kimi" else "kimi"]):
+            try:
+                article = await canonize_event(
+                    world_name=world.name,
+                    seed=world.seed,
+                    era_id=era.era_id,
+                    era_name=era.name,
+                    in_world_year=int(ed.get("day", 0)),
+                    event=ed,
+                    linguistic_notes=notes,
+                    writer_provider=try_provider,
+                    world_id=world.id,
+                )
+                if article is not None:
+                    if try_provider != writer_provider and not fallback_used:
+                        fallback_used = True
+                        active_writer = try_provider
+                        yield _sse_event(
+                            "progress",
+                            {
+                                "stage": "writer_fallback",
+                                "detail": f"{writer_provider} rate-limited, switched to {try_provider}",
+                            },
+                        )
+                    break
+            except Exception as e:
+                last_err = e
+                logger.warning(f"canonize {ed.get('id','?')} failed with {try_provider}: {e}")
+                continue
         if article is None:
+            if last_err is not None:
+                logger.exception(f"canonize {ed.get('id','?')} exhausted both providers")
             continue
         written += 1
+        used = active_writer
         yield _sse_event(
             "article_canonized",
             {
@@ -163,10 +187,8 @@ async def stream_regen(
                 "voice": article.voice,
                 "word_count": article.word_count,
                 "in_world_year": article.in_world_year,
-                # Make model provenance visible in the regen UI for the
-                # Kimi-track demo. Backend → frontend pass-through.
-                "writer": writer_provider,
-                "writer_label": "Kimi-K2.6" if writer_provider == "kimi" else "Hermes-4-70B",
+                "writer": used,
+                "writer_label": "Kimi-K2.6" if used == "kimi" else "Hermes-4-70B",
             },
         )
 
