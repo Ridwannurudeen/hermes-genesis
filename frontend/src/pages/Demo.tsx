@@ -296,8 +296,34 @@ export default function Demo() {
         )}
 
         {error && (
-          <div className="font-ui text-body text-crimson-500 border border-crimson-500/30 bg-crimson-500/10 rounded p-4">
-            {error} — try refreshing.
+          <div className="border border-crimson-500/40 bg-crimson-500/10 rounded p-4">
+            <div className="eyebrow text-crimson-400 mb-2">demo paused</div>
+            {/^HTTP 429/.test(error) ? (
+              <div className="font-ui text-body text-sub">
+                You've hit the per-minute demo rate limit. Wait ~60 seconds, then
+                try again — or skip the live demo and{' '}
+                <button
+                  type="button"
+                  onClick={() => nav('/chronicle')}
+                  className="text-gilt-500 underline underline-offset-4 hover:text-gilt-600 dark:hover:text-gilt-400"
+                >
+                  read the existing canon
+                </button>{' '}
+                while you wait.
+              </div>
+            ) : (
+              <div className="font-ui text-body text-sub">
+                {error} — refresh to retry, or{' '}
+                <button
+                  type="button"
+                  onClick={() => nav('/chronicle')}
+                  className="text-gilt-500 underline underline-offset-4 hover:text-gilt-600 dark:hover:text-gilt-400"
+                >
+                  read the existing canon
+                </button>
+                .
+              </div>
+            )}
           </div>
         )}
       </main>
