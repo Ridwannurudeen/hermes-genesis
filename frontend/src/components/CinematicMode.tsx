@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { api } from '../api';
@@ -7,6 +7,47 @@ import { EVENT_TYPE_ICONS } from '../types';
 import { useVoiceNarration } from '../hooks/useVoiceNarration';
 import { useAmbientSound } from '../hooks/useAmbientSound';
 import WorldMap from './WorldMap';
+
+/** Build a one-line narration from event fields when `narrative` is empty.
+ *  Reads actor names + outcome so each scene tells you something specific
+ *  instead of repeating the event title verbatim. */
+function buildNarration(
+  ev: WorldEvent,
+  charById: Record<string, Character>,
+  factionMap: Record<string, { name: string; color: string }>,
+): string {
+  const actorNames = (ev.actors || [])
+    .slice(0, 2)
+    .map((id) => charById[id]?.name)
+    .filter(Boolean) as string[];
+  const factionName =
+    (ev.factions_involved || [])
+      .map((fid) => factionMap[fid]?.name)
+      .filter(Boolean)[0] || '';
+  const verb: Record<string, string> = {
+    military_conflict: 'clashed with',
+    betrayal: 'betrayed',
+    alliance: 'forged a pact with',
+    succession: 'succeeded',
+    political_intrigue: 'moved against',
+    cultural_shift: 'changed the way of',
+    natural_disaster: 'witnessed disaster at',
+    death: 'fell',
+    birth: 'came into the world',
+    divine_intervention: 'was visited by the divine',
+    discovery: 'uncovered',
+    agent_intervention: 'were touched by an unseen hand',
+    prophecy_fulfilled: 'fulfilled the prophecy',
+  };
+  const v = verb[ev.type] || 'were marked by';
+  if (ev.type === 'birth' && actorNames[0]) return `${actorNames[0]} came into the world.`;
+  if (ev.type === 'death' && actorNames[0]) return `${actorNames[0]} fell.`;
+  if (actorNames.length === 2) return `${actorNames[0]} ${v} ${actorNames[1]}.`;
+  if (actorNames.length === 1 && factionName) return `${actorNames[0]} of ${factionName} ${v} the era.`;
+  if (actorNames.length === 1) return `${actorNames[0]} ${v} the era.`;
+  if (factionName) return `${factionName} ${v} the world.`;
+  return ev.title;
+}
 
 /** CSS gradient fallbacks per event type — shown while AI image loads or when unavailable */
 const SCENE_GRADIENTS: Record<string, string> = {
@@ -153,8 +194,11 @@ export default function CinematicMode({
     // Pre-fetch the NEXT image while this one is being displayed
     prefetchNext();
 
-    // Narrate the event (after image loads so they appear together)
-    const text = next.narrative || next.title;
+    // Narrate the event. The simulator stores `narrative` as an empty
+    // string for most events, so we synthesize a one-line narration from
+    // the structured fields (actor names, type, outcome) so the audio
+    // doesn't repeat the title verbatim.
+    const text = next.narrative?.trim() || buildNarration(next, charById, factionMap);
     if (text) speak(text);
 
     // NOW start the 7s display timer — image is already visible
@@ -169,11 +213,13 @@ export default function CinematicMode({
     }, 7000);
   }, [speak, playAmbient, fetchSceneImage, prefetchNext]);
 
-  // REPLAY MODE: play through all past events
+  // REPLAY MODE: play through all past events from day 1 forward.
   useEffect(() => {
     if (mode !== 'replay' || events.length === 0) return;
 
-    // Group events by day
+    // Group events by day. Defensive: don't trust upstream order — the API
+    // can return desc for the feed and asc for the cinematic; either way we
+    // re-sort the day buckets ascending so the user starts at day 1.
     const byDay = new Map<number, WorldEvent[]>();
     for (const ev of events) {
       const d = ev.day || 0;
@@ -182,6 +228,13 @@ export default function CinematicMode({
     }
     const sortedDays = [...byDay.keys()].sort((a, b) => a - b);
     setReplayTotal(events.length);
+
+    // Pin the day counter to the first day BEFORE the playback timer fires —
+    // otherwise the user sees "DAY 0" for the 1.5 s intro pause, then a jump
+    // to the real first day, which reads as "the cinematic is broken".
+    if (sortedDays.length > 0) {
+      setDay(sortedDays[0]);
+    }
 
     let eventIndex = 0;
     let dayIndex = 0;
@@ -195,12 +248,10 @@ export default function CinematicMode({
       const dayEvents = byDay.get(currentDayNum) || [];
       setDay(currentDayNum);
 
-      // Queue all events for this day
       eventQueueRef.current.push(...dayEvents);
       eventIndex += dayEvents.length;
       setReplayProgress(eventIndex);
 
-      // When all events for this day are done, advance to next day
       onQueueDrainRef.current = () => {
         dayIndex++;
         playNextDay();
@@ -209,7 +260,6 @@ export default function CinematicMode({
       processQueue();
     };
 
-    // Start replay after brief intro pause
     const startTimer = setTimeout(playNextDay, 1500);
     return () => {
       clearTimeout(startTimer);
@@ -271,6 +321,62 @@ export default function CinematicMode({
     ? EVENT_TYPE_ICONS[displayedEvent.type] || '\u2728'
     : '';
 
+  // Resolve actor IDs to character objects so the scene card can show real
+  // names + faction colors \u2014 previously the actors[] array was loaded but
+  // never rendered, so users saw event titles with no living creatures
+  // attached to them.
+  const charById = useMemo(() => {
+    const m: Record<string, Character> = {};
+    for (const c of characters) m[c.id] = c;
+    return m;
+  }, [characters]);
+
+  const eventActors = useMemo(() => {
+    if (!displayedEvent || !displayedEvent.actors) return [];
+    return displayedEvent.actors
+      .slice(0, 4)
+      .map((id) => charById[id])
+      .filter(Boolean) as Character[];
+  }, [displayedEvent, charById]);
+
+  // Faction colors for the thread rail + actor chips.
+  const factionForChar = (c: Character | undefined): string | undefined => {
+    if (!c) return undefined;
+    const fid = c.faction_id;
+    return fid ? factionMap[fid]?.color : undefined;
+  };
+
+  // Group all events by primary faction so the thread rail can show parallel
+  // storylines. An event without factions_involved goes to a synthetic
+  // "world" thread so divine-intervention / natural-disaster types are still
+  // visible.
+  const threads = useMemo(() => {
+    type Thread = { id: string; name: string; color: string; count: number };
+    const m = new Map<string, Thread>();
+    for (const ev of events) {
+      const fid = (ev.factions_involved && ev.factions_involved[0]) || '__world';
+      const f = factionMap[fid];
+      const existing = m.get(fid);
+      if (existing) existing.count += 1;
+      else
+        m.set(fid, {
+          id: fid,
+          name: f?.name || (fid === '__world' ? 'World events' : fid),
+          color: f?.color || '#8C7B5A',
+          count: 1,
+        });
+    }
+    return [...m.values()].sort((a, b) => b.count - a.count);
+  }, [events, factionMap]);
+
+  const activeThreadId = displayedEvent
+    ? (displayedEvent.factions_involved && displayedEvent.factions_involved[0]) || '__world'
+    : null;
+  const crossoverFactionIds =
+    displayedEvent?.factions_involved && displayedEvent.factions_involved.length > 1
+      ? displayedEvent.factions_involved.slice(1)
+      : [];
+
   return (
     <div className="fixed inset-0 z-50 bg-black">
       {/* Fullscreen map */}
@@ -307,6 +413,52 @@ export default function CinematicMode({
           {worldName}
         </p>
       </div>
+
+      {/* Storyline rail — left edge, replay mode only. Each card is one
+          faction's thread of events; the active card pulses gilt while
+          its event is on screen, secondary factions in a multi-faction
+          event also flash to visualize the diplomatic crossover. */}
+      {mode === 'replay' && threads.length > 1 && (
+        <div className="hidden md:flex absolute top-24 left-6 z-10 flex-col gap-2 max-w-[220px]">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-white/35 mb-1">
+            storylines · {threads.length} woven
+          </p>
+          {threads.slice(0, 6).map((th) => {
+            const isActive = th.id === activeThreadId;
+            const isCrossover = crossoverFactionIds.includes(th.id);
+            const lit = isActive || isCrossover;
+            return (
+              <div
+                key={th.id}
+                className={`px-3 py-2 rounded border backdrop-blur-md transition-all duration-300 ${
+                  lit ? 'bg-black/55' : 'bg-black/30'
+                }`}
+                style={{
+                  borderColor: lit ? `${th.color}cc` : `${th.color}33`,
+                  boxShadow: isActive ? `0 0 18px ${th.color}55` : undefined,
+                  opacity: lit ? 1 : 0.45,
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-block w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: th.color,
+                      boxShadow: isActive ? `0 0 8px ${th.color}` : undefined,
+                    }}
+                  />
+                  <span className="text-[11px] uppercase tracking-[0.16em] text-white/70 truncate">
+                    {th.name}
+                  </span>
+                </div>
+                <div className="mt-1 font-mono text-[10px] tabular-nums text-white/40">
+                  {th.count} events
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Day counter — top right */}
       <div className="absolute top-6 right-16 z-10 text-right">
@@ -415,22 +567,54 @@ export default function CinematicMode({
                 {displayedEvent.title}
               </motion.h2>
 
-              {/* Event narrative snippet */}
-              {displayedEvent.narrative && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  className="mt-6 text-xl text-white/70 italic max-w-2xl mx-auto leading-relaxed"
-                  style={{
-                    textShadow: '0 2px 16px rgba(0,0,0,0.95), 0 0 40px rgba(0,0,0,0.5)',
-                  }}
+              {/* Actor chips — names + faction colors. Renders only when
+                  the event has resolvable actors. Without this, the user
+                  saw "no living creature on display" for every scene. */}
+              {eventActors.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35, duration: 0.5 }}
+                  className="mt-5 flex items-center justify-center gap-2 flex-wrap"
                 >
-                  {displayedEvent.narrative.length > 200
-                    ? displayedEvent.narrative.slice(0, 200) + '...'
-                    : displayedEvent.narrative}
-                </motion.p>
+                  {eventActors.map((c) => {
+                    const color = factionForChar(c) || '#B8893A';
+                    return (
+                      <span
+                        key={c.id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border text-sm text-white/90"
+                        style={{
+                          borderColor: `${color}88`,
+                          textShadow: '0 1px 8px rgba(0,0,0,0.8)',
+                        }}
+                      >
+                        <span
+                          className="inline-block w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
+                        {c.name}
+                      </span>
+                    );
+                  })}
+                </motion.div>
               )}
+
+              {/* Event narrative — use the structured one if present, else
+                  synthesize from the actor/outcome fields so the user gets
+                  a real story line per scene instead of just the title. */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="mt-6 text-xl text-white/75 italic max-w-2xl mx-auto leading-relaxed"
+                style={{
+                  textShadow: '0 2px 16px rgba(0,0,0,0.95), 0 0 40px rgba(0,0,0,0.5)',
+                }}
+              >
+                {(displayedEvent.narrative?.trim()) ||
+                  buildNarration(displayedEvent, charById, factionMap)}
+              </motion.p>
+              {displayedEvent.narrative && displayedEvent.narrative.length > 200 && null}
 
               {/* Event type label */}
               <motion.div

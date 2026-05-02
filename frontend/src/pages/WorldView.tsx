@@ -196,19 +196,29 @@ export default function WorldView() {
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
 
-  // ?cinematic=1 in the URL auto-opens replay mode (the cinematic playback
-  // sorted from day 1 → present). Previously this opened "live" mode, which
-  // showed only currently-arriving events and felt like the playback was
-  // skipping random days — user-reported on May 2. Replay is the right
-  // default for the /watch entry point: a judge clicking through wants to see
-  // the world's history unfold from the beginning, not catch events mid-air.
+  // ?cinematic=1 in the URL auto-opens REPLAY mode and fetches the WHOLE
+  // event history ascending so playback starts at day 1, not the last 100
+  // days the feed-style endpoint defaults to. The feed call (descending,
+  // limit 100) is fine for the timeline panels but unsuitable for replay —
+  // for a world on day 1853 it gave us days 1803-1853 only, so the replay
+  // could never see the beginning of the world.
   useEffect(() => {
     if (!autoCinematic || cinematicAutoOpenedRef.current) return;
-    if (world && mapData && !showReplay && events.length > 0) {
-      cinematicAutoOpenedRef.current = true;
-      setShowReplay(true);
-    }
-  }, [autoCinematic, world, mapData, showReplay, events.length]);
+    if (!(world && mapData)) return;
+    cinematicAutoOpenedRef.current = true;
+    setShowCinematic(false);
+    api
+      .getAllEventsAsc(world.id)
+      .then((allEvents) => {
+        if (allEvents.length > 0) setEvents(allEvents);
+        setShowReplay(true);
+      })
+      .catch(() => {
+        // Fall back to whatever's already loaded so the user still sees
+        // *something* if the full-history fetch is rate-limited.
+        if (events.length > 0) setShowReplay(true);
+      });
+  }, [autoCinematic, world, mapData, events.length]);
 
   const factionMap = useMemo(() => {
     const m: Record<string, Faction> = {};
