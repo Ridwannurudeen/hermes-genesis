@@ -28,7 +28,10 @@ logger = logging.getLogger(__name__)
 
 
 REGEN_DEFAULT_DAYS = 5
-REGEN_MAX_ARTICLES = 6
+# 3 articles per regen run instead of 6 — halves demo wall-time without
+# losing the "watch the canon assemble itself" effect, and keeps both
+# providers' rate limits comfortable when Kimi is the writer.
+REGEN_MAX_ARTICLES = 3
 # Default writer for live regen demos. Defaults to Kimi so the Kimi track has a
 # demonstrable interactive surface; callers can override via the API.
 REGEN_DEFAULT_WRITER = "kimi"

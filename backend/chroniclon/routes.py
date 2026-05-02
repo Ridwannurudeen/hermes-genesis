@@ -112,10 +112,23 @@ async def rss_feed(request: Request) -> Response:
     return Response(content=xml, media_type="application/rss+xml; charset=utf-8")
 
 
+# /stats is hit by the Masthead (every 60s), Landing's ArticleCounter,
+# Chronicle's stats poll (every 8s), Judge, and the regen UI. A single
+# in-memory cache with a short TTL keeps every page snappy without making
+# the counter feel stale — the canon publishes on the order of minutes.
+_STATS_CACHE: dict = {"value": None, "expires_at": 0.0}
+_STATS_TTL_SECONDS = 5.0
+
+
 @router.get("/stats")
 async def stats() -> dict:
+    import time as _time
+    now = _time.monotonic()
+    cached = _STATS_CACHE["value"]
+    if cached is not None and now < _STATS_CACHE["expires_at"]:
+        return cached
     eras = store.list_eras()
-    return {
+    payload = {
         "article_count": store.article_count(),
         "total_words": store.total_word_count(),
         "era_count": len(eras),
@@ -125,6 +138,9 @@ async def stats() -> dict:
         "subscriber_count": store.subscriber_count(),
         "last_canon_write": store.last_article_mtime_iso(),
     }
+    _STATS_CACHE["value"] = payload
+    _STATS_CACHE["expires_at"] = now + _STATS_TTL_SECONDS
+    return payload
 
 
 @router.get("/articles")
