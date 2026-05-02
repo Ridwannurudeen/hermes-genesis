@@ -16,7 +16,6 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 [**Live →**](https://hermesgenesis.world) ·
 [**Watch →**](https://hermesgenesis.world/watch) ·
 [**Glossary →**](https://hermesgenesis.world/glossary) ·
-[**Demo film (75 s)**](docs/X_THREAD.md) ·
 [**AI usage**](AI_USAGE.md) ·
 [**Paper outline**](docs/PAPER_OUTLINE.md)
 
@@ -219,7 +218,7 @@ Source: [`mcp-bridge/server.mjs`](mcp-bridge/server.mjs) · [`hermes-agent-demo.
 
 ## Demo film
 
-A 75-second editorial demo accompanies the [X submission](docs/X_THREAD.md) — programmatic React composition (Remotion) rendered to mp4. ElevenLabs Antoni narration over a Kevin MacLeod (CC-BY-3.0) music bed; Seraphina narration takes the floor for 7 seconds during the proof beat. Video is the canonical artifact; source composition lives outside this repo.
+A 100-second editorial demo accompanies the X submission — programmatic React composition (Remotion) rendered to mp4. Live counter cold-open, three-agent pipeline visualisation, real-history seed test, full-screen cinematic mode showcase, hermes-agent skill grid, and a closing counter to prove autonomy. ElevenLabs Antoni narration over a Kevin MacLeod (CC-BY-3.0) music bed; Seraphina takes the floor for 20 seconds during the cinematic beat. Video is the canonical artifact; source composition lives outside this repo.
 
 ---
 
@@ -277,7 +276,7 @@ The category as we frame it: *autonomous publishing of fictional canon with cros
 | Linguistic drift module | ✅ Live |
 | Hermes-agent skills + MCP bridge | ✅ Live |
 | Editorial reskin + 8-route nav | ✅ Live |
-| 75s programmatic demo film | ✅ Shipped |
+| 100s programmatic demo film | ✅ Shipped |
 | Workshop paper (NeurIPS Creative AI) | 🔧 Drafting |
 | Multiplayer worlds (shared persistence) | 📋 Planned |
 | Voice-to-world (speak your world into existence) | 📋 Planned |
