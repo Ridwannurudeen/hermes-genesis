@@ -512,7 +512,10 @@ export default function Chronicle() {
       <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
         <div className="col-span-12 md:col-span-3">
           <EraNav
-            eras={eras}
+            // Hide eras with zero canonized articles. Regen runs that hit
+            // Kimi 429s spawn an era but never write articles into it; that
+            // debris pollutes the sidebar without informing the reader.
+            eras={eras.filter((e) => (e.article_count ?? 1) > 0)}
             active={activeEra}
             onSelect={(id) => {
               // If we're currently viewing an article (slug in URL), an era

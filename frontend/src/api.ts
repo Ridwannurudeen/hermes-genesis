@@ -420,6 +420,7 @@ export type EraSummary = {
   summary: string;
   art_style: string;
   dominant_factions: string[];
+  article_count?: number;
 };
 
 export const chronicle = {

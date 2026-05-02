@@ -291,7 +291,15 @@ async def get_article(slug: str) -> WikiArticle:
 
 @router.get("/eras")
 async def list_eras() -> dict:
-    return {"items": [e.model_dump() for e in store.list_eras()]}
+    # Surface article_count per era so the chronicle sidebar can hide regen
+    # eras that ended with zero canonized articles (Kimi 429 spikes leave
+    # those as debris).
+    out = []
+    for e in store.list_eras():
+        d = e.model_dump()
+        d["article_count"] = store.article_count(era_id=e.era_id)
+        out.append(d)
+    return {"items": out}
 
 
 @router.get("/audio/{slug}")
@@ -701,7 +709,12 @@ async def article_autopsy(slug: str) -> dict:
 @router.get("/eras")
 async def list_eras_endpoint() -> dict:
     """All eras the canon has lived through. Used by the era ceremony picker."""
-    return {"items": [e.model_dump() for e in store.list_eras()]}
+    out = []
+    for e in store.list_eras():
+        d = e.model_dump()
+        d["article_count"] = store.article_count(era_id=e.era_id)
+        out.append(d)
+    return {"items": out}
 
 
 @router.get("/era-transition/{era_id}")
