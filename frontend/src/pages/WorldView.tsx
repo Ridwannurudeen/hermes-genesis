@@ -196,16 +196,19 @@ export default function WorldView() {
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
 
-  // ?cinematic=1 in the URL auto-opens CinematicMode once world data + map are
-  // loaded. Used by Landing's "Watch the canon being written" entry point so
-  // judges can hit the cinematic playback in one click from the front door.
+  // ?cinematic=1 in the URL auto-opens replay mode (the cinematic playback
+  // sorted from day 1 → present). Previously this opened "live" mode, which
+  // showed only currently-arriving events and felt like the playback was
+  // skipping random days — user-reported on May 2. Replay is the right
+  // default for the /watch entry point: a judge clicking through wants to see
+  // the world's history unfold from the beginning, not catch events mid-air.
   useEffect(() => {
     if (!autoCinematic || cinematicAutoOpenedRef.current) return;
-    if (world && mapData && !showCinematic) {
+    if (world && mapData && !showReplay && events.length > 0) {
       cinematicAutoOpenedRef.current = true;
-      setShowCinematic(true);
+      setShowReplay(true);
     }
-  }, [autoCinematic, world, mapData, showCinematic]);
+  }, [autoCinematic, world, mapData, showReplay, events.length]);
 
   const factionMap = useMemo(() => {
     const m: Record<string, Faction> = {};

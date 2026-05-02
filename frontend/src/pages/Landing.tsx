@@ -507,6 +507,27 @@ export default function Landing() {
 
   useEffect(() => () => abortRef.current?.(), []);
 
+  /* Prefetch the bundles for routes a Landing visitor is most likely to
+   * click into (Regen, Chronicle, Watch). Runs after the browser is idle so
+   * it never competes with above-the-fold paint. Vite handles the import as
+   * a lazy chunk, so this just warms the network + parser ahead of click. */
+  useEffect(() => {
+    const ric: (cb: () => void) => number =
+      // requestIdleCallback isn't on Safari yet — fall back to a setTimeout.
+      (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback ??
+      ((cb: () => void) => window.setTimeout(cb, 1500));
+    const id = ric(() => {
+      void import('./Regen');
+      void import('./Chronicle');
+      void import('./Watch');
+    });
+    return () => {
+      const cic = (window as unknown as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+      if (cic) cic(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+
   const handleGenerate = useCallback(async () => {
     const trimmed = seed.trim();
     if (!trimmed) return;

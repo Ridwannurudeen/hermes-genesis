@@ -511,7 +511,22 @@ export default function Chronicle() {
 
       <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
         <div className="col-span-12 md:col-span-3">
-          <EraNav eras={eras} active={activeEra} onSelect={setActiveEra} onCeremony={setCeremonyEra} />
+          <EraNav
+            // Hide eras with zero canonized articles. Regen runs that hit
+            // Kimi 429s spawn an era but never write articles into it; that
+            // debris pollutes the sidebar without informing the reader.
+            eras={eras.filter((e) => (e.article_count ?? 1) > 0)}
+            active={activeEra}
+            onSelect={(id) => {
+              // If we're currently viewing an article (slug in URL), an era
+              // click on the sidebar should drop the article and surface the
+              // filtered list. Without this, the page stays on the article
+              // and the era filter is invisible.
+              setActiveEra(id);
+              if (slug) nav('/chronicle');
+            }}
+            onCeremony={setCeremonyEra}
+          />
           <div className="mt-8 text-sm">
             <div className="text-[11px] uppercase tracking-widest text-ink-500 mb-2">Browse by kind</div>
             <div className="flex flex-wrap gap-1.5">

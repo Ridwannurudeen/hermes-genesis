@@ -9,7 +9,7 @@ from rate_limit import _limit_for_path
 def test_rate_limit_covers_expensive_generation_routes():
     assert _limit_for_path("/api/worlds") == 6
     assert _limit_for_path("/api/worlds/stream") == 6
-    assert _limit_for_path("/api/chronicle/regen/stream") == 3
+    assert _limit_for_path("/api/chronicle/regen/stream") == 8
     assert _limit_for_path("/api/chronicle/submit") == 6
 
 

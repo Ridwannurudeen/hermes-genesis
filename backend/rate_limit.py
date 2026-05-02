@@ -15,7 +15,11 @@ _TRUSTED_PROXY_IPS = {ip.strip() for ip in os.getenv("TRUSTED_PROXY_IPS", "127.0
 LLM_ENDPOINT_LIMITS = {
     "/worlds": 6,
     "/worlds/stream": 6,
-    "/regen/stream": 3,
+    # /regen/stream is the live demo route. Was 3/min — too tight, judges
+    # clicking through the /demo and /regen pages burned through it before
+    # they finished evaluating. Bumped to 8/min: still deters abuse, but
+    # comfortably accommodates a curious judge testing a few seeds.
+    "/regen/stream": 8,
     "/submit": 6,
     "/simulate": 12,
     "/simulate/stream": 12,
