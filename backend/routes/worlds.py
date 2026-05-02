@@ -169,16 +169,26 @@ async def get_events(
     day: int | None = None,
     limit: int = Query(default=50, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
+    order: Literal["asc", "desc"] = Query(default="desc"),
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     admin_session: str | None = Cookie(default=None, alias=config.ADMIN_SESSION_COOKIE),
 ):
+    """Paginated event list.
+
+    `order=desc` (default): most-recent-first, for feed-style UIs.
+    `order=asc`: chronological from day 1, for the cinematic /watch replay.
+
+    Without `order=asc`, the cinematic could only ever see the last `limit`
+    events of the world (e.g. days 1803-1853 for a world on day 1853), so
+    "play from the beginning" was structurally impossible.
+    """
     world = _load_visible_world(world_id, x_api_key, admin_session)
     events = world.events
     if day is not None:
         events = [e for e in events if e.day == day]
     total = len(events)
-    # Most recent first
-    events = list(reversed(events))
+    if order == "desc":
+        events = list(reversed(events))
     events = events[offset:offset + limit]
     return {"events": [e.model_dump() for e in events], "total": total}
 

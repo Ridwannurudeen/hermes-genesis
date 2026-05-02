@@ -187,16 +187,48 @@ export const api = {
   getCharacter: (id: string, charId: string) =>
     fetchJson<Character>(`/api/worlds/${id}/characters/${charId}`),
 
-  getEvents: async (id: string, day?: number, limit?: number, offset?: number) => {
+  getEvents: async (
+    id: string,
+    day?: number,
+    limit?: number,
+    offset?: number,
+    order: 'asc' | 'desc' = 'desc',
+  ) => {
     const params = new URLSearchParams();
     if (day !== undefined) params.set('day', String(day));
     if (limit !== undefined) params.set('limit', String(limit));
     if (offset !== undefined) params.set('offset', String(offset));
+    if (order !== 'desc') params.set('order', order);
     const qs = params.toString();
     const res = await fetchJson<{ events: WorldEvent[]; total: number }>(
       `/api/worlds/${id}/events${qs ? `?${qs}` : ''}`
     );
     return res;
+  },
+
+  /** Fetch up to 1500 events in chronological order — plenty for the
+   * cinematic /watch replay (each event displays for ~7 s, so 1500 events
+   * is several hours of playback). Capping the page count keeps the payload
+   * under ~3 MB even on the longest worlds. */
+  getAllEventsAsc: async (id: string): Promise<WorldEvent[]> => {
+    const PAGE = 500;
+    const MAX_EVENTS = 1500;
+    const out: WorldEvent[] = [];
+    let offset = 0;
+    while (out.length < MAX_EVENTS) {
+      const params = new URLSearchParams({
+        limit: String(PAGE),
+        offset: String(offset),
+        order: 'asc',
+      });
+      const res = await fetchJson<{ events: WorldEvent[]; total: number }>(
+        `/api/worlds/${id}/events?${params}`
+      );
+      out.push(...res.events);
+      if (res.events.length < PAGE) break;
+      offset += PAGE;
+    }
+    return out.slice(0, MAX_EVENTS);
   },
 
   exportWorld: async (id: string) => {
