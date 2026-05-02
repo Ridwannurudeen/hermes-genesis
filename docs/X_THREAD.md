@@ -1,56 +1,72 @@
-# Hermes Genesis · X thread
+# Hermes Genesis · X submission thread
 
-8-tweet narrative thread to ship with `demo.mp4` attached to tweet 1. Voice: first-person dev, editorial register, no emojis, no `🚀🔥🧵`, no marketing-speak. Lead with concrete numbers.
+8-tweet thread for the **NousResearch Hermes Agent Creative Hackathon** (deadline May 3, 2026 EOD).
 
-Replace `[YOUR HANDLE]` with your X handle before posting.
+Every tweet below is **copy-paste ready** — no placeholders, no edits required. Each one specifies exactly which file to attach. Voice: first-person dev, editorial register. No emojis, no thread numerals, no marketing-speak. Lead with concrete numbers.
+
+---
+
+## Pre-flight — assets you'll need
+
+Open File Explorer to these two folders before you start:
+
+| What | Path |
+|---|---|
+| **The video** (Tweet 1) | `C:\Users\HP\Music\demo.mp4` (21.5 MB · 100 s) |
+| **The screenshots** (Tweets 3–7) | `C:\Users\HP\Desktop\Github files\hermes-genesis\docs\screenshots\` |
+
+The 6 screenshots in that folder map 1-to-1 to the tweets below. You'll attach them in order.
+
+**Account check:** post from your personal X account (not @shieldbot_). Make sure you're logged in before opening the compose page.
+
+**Best timing:** Tuesday–Thursday, 9–11am Pacific (16:00–18:00 UTC). AI Twitter peaks in that window. If you're posting Friday May 2, **morning Pacific** (= afternoon Lagos) lands before the weekend judging cycle.
 
 ---
 
 ## Tweet 1 · the hook + video
 
-**Attach: `demo.mp4` (75s · local at `C:\Users\HP\Music\demo.mp4`)**
+**Attach:** `C:\Users\HP\Music\demo.mp4`
 
 ```
 Built a hermes-agent skill that publishes a fictional Wikipedia.
 
-One sentence in. A self-writing canon out — articles, illustrations,
-narration, era-by-era linguistic drift. The civilization keeps
-publishing whether anyone's watching.
+One sentence in. A self-writing canon out — articles, illustrations, narration, era-by-era linguistic drift. The civilization keeps publishing whether anyone's watching.
 
-@NousResearch · @Kimi_Moonshot · #HermesAgent
+For the @NousResearch Hermes Hackathon. Hermes runs the agent loop, @Kimi_Moonshot K2.6 writes the prose. Both prize pools.
 ```
 
-> 269 chars · leads with the agent-framework hook · @Kimi tagged in tweet 1 for the Kimi Track · video carries the proof
+**~376 chars** · X Premium required for >280. The dual-pool line is deliberate — most submissions self-select into one track; declaring both up front signals confidence.
+
+> **Wait for the video upload bar to finish before posting tweet 1.** It can take 30–60 s. If you hit "Post" too early X will silently drop the attachment.
 
 ---
 
 ## Tweet 2 · the gap
+
+**No image** — let the text breathe.
 
 ```
 Stanford's generative agents simulate people walking around a town.
 AI Dungeon writes choose-your-own-adventure.
 Hidden Door does multi-player licensed IP.
 
-Nobody had built a system that publishes its own coherent canon —
-articles that cite each other, characters who persist, language that
-drifts across centuries.
+Nobody had built a system that publishes its own coherent canon — articles that cite each other, characters who persist, language that drifts across centuries.
 
 So I did.
 ```
 
-> 312 chars
+**~312 chars**
 
 ---
 
 ## Tweet 3 · the pipeline
 
-**Attach: pipeline screenshot from the site (Landing's "How it publishes" strip)**
+**Attach:** `docs\screenshots\control-room.png` (the live agent pipeline)
 
 ```
 Three agents. Two models.
 
-@NousResearch Hermes-4-70B reads every simulated event, decides if it
-deserves an article, picks kind/voice/length.
+@NousResearch Hermes-4-70B reads every simulated event, decides if it deserves an article, picks kind/voice/length.
 
 @Kimi_Moonshot K2.6 writes the long-form prose in the era's voice.
 
@@ -58,13 +74,13 @@ Two more Hermes critics score it for slop and factual consistency.
 Pass → seal. Fail → revise.
 ```
 
-> 324 chars
+**~324 chars**
 
 ---
 
 ## Tweet 4 · the proof
 
-**Attach: OG card from `https://hermesgenesis.world/api/chronicle/og/the-inkwell-parchmentshield-betrayal-seraphinas-final-entry.svg` OR a screenshot of the article detail page with the gilt drop cap**
+**Attach:** `docs\screenshots\article-detail.jpg` (Seraphina's Final Entry — drop cap, FLUX hero, critic scores)
 
 ```
 This is one entry the canon agent decided to seal.
@@ -81,13 +97,13 @@ The civilization keeps publishing after I close the tab.
 hermesgenesis.world/chronicle/the-inkwell-parchmentshield-betrayal-seraphinas-final-entry
 ```
 
-> 360 chars (URL counts as 23)
+**~360 chars**
 
 ---
 
-## Tweet 5 · the differentiator
+## Tweet 5 · the differentiator (linguistic drift)
 
-**Attach: screenshot of the LexiconPreview section on Landing OR the /glossary page**
+**Attach:** `docs\screenshots\glossary.png` (the linguistic family tree)
 
 ```
 The language drifts era by era. Real phonological rules.
@@ -102,20 +118,20 @@ Each entry has a sample lexicon, sample text, inscriptions, sound shifts.
 The world has memory.
 ```
 
-> 290 chars
+**~290 chars**
 
 ---
 
 ## Tweet 6 · the scale
 
-**Attach: screenshot of the Landing hero with the live ArticleCounter showing the current count**
+**Attach:** `docs\screenshots\landing.jpg` (live ArticleCounter on the masthead)
 
 ```
 Currently live:
 
-· 960 canonized articles
-· 4 eras across multiple worlds
-· 65 linguistic eras with sample lexicons
+· 974 canonized articles
+· 513,829 words
+· 75 linguistic eras with sample lexicons
 · ~1 article published every 2 minutes, autonomously
 
 The pipeline runs whether anyone's watching or not.
@@ -123,13 +139,13 @@ The pipeline runs whether anyone's watching or not.
 hermesgenesis.world
 ```
 
-> 252 chars
+**~252 chars**
 
 ---
 
 ## Tweet 7 · the entry points
 
-**Attach: screenshot of the masthead nav showing the 8 routes**
+**Attach:** `docs\screenshots\nav-with-freshness.png` (the 8-route masthead)
 
 ```
 Five surfaces to poke at:
@@ -141,52 +157,66 @@ Five surfaces to poke at:
 · /control — watch the agents publish in real time
 ```
 
-> 297 chars
+**~297 chars**
 
 ---
 
 ## Tweet 8 · the close + tag
 
+**No image.**
+
 ```
 Built for the @NousResearch Hermes Agent hackathon.
 
-Stack: Hermes-4-70B (canon + critics), Kimi-K2.6 (prose), FLUX
-(illustrations), ElevenLabs (narration), SQLite + FastAPI + React +
-Source Serif 4.
+Stack: Hermes-4-70B (canon + critics), Kimi-K2.6 (prose), FLUX (illustrations), ElevenLabs (narration), 9 hermes-agent skills + 18 MCP tools, FastAPI + React + Source Serif 4.
 
 Source: github.com/Ridwannurudeen/hermes-genesis
 
 If you build worldsim, agents, or conlangs — I want feedback.
 ```
 
-> 313 chars
+**~341 chars**
 
 ---
 
-## Posting checklist
+## Posting checklist (in order)
 
-1. **Tweet 1**: paste copy, attach `C:\Users\HP\Music\demo.mp4`. Wait for upload to finish before posting.
-2. **Tweet 2**: reply to Tweet 1, paste copy.
-3. **Tweet 3**: reply to Tweet 2 with the "How it publishes" pipeline screenshot.
-4. **Tweet 4**: reply with the article OG card or article-detail screenshot. URL is included in body.
-5. **Tweet 5**: reply with /glossary screenshot.
-6. **Tweet 6**: reply with the Landing hero ArticleCounter screenshot.
-7. **Tweet 7**: reply with the nav screenshot.
-8. **Tweet 8**: reply, no image needed.
-
-**Tag accounts** to maximize reach:
-- `@NousResearch` (Hermes hackathon host) — already in tweets 3 + 8
-- `@Kimi_Moonshot` (writer model) — already in tweet 3
-- `@blackforest_labs` (FLUX) — consider adding to tweet 4 or 8
-- `@elevenlabsio` (narration) — consider adding to tweet 8
-
-**Best posting time**: Tuesday–Thursday, 9–11am PT (16:00–18:00 UTC). AI Twitter is most active then.
+```
+[ ] 1. Tweet 1     paste copy + attach demo.mp4 → wait for upload bar → Post
+[ ] 2. Tweet 2     reply, paste copy → Post
+[ ] 3. Tweet 3     reply, attach control-room.png + paste copy → Post
+[ ] 4. Tweet 4     reply, attach article-detail.jpg + paste copy → Post
+[ ] 5. Tweet 5     reply, attach glossary.png + paste copy → Post
+[ ] 6. Tweet 6     reply, attach landing.jpg + paste copy → Post
+[ ] 7. Tweet 7     reply, attach nav-with-freshness.png + paste copy → Post
+[ ] 8. Tweet 8     reply, paste copy → Post
+```
 
 ---
 
-## Alt format · single Hacker News / LinkedIn post
+## After the thread is live
 
-For audiences that don't read threads. Same beats, longer prose. Title casing for HN, regular for LinkedIn.
+1. **Submit to NousResearch.** Drop the link to **Tweet 1** in the `creative-hackathon-submissions` Discord channel. The link is your submission of record.
+2. **Pin Tweet 1** to your profile so judges browsing your account see it first.
+3. **Send me the Tweet 1 URL** — I'll verify the OG card renders correctly (1200×630 PNG with the Chroniclon hero).
+4. **Don't reply to your own thread for ~6 hours** — let the algorithm process it without engagement-spam signals.
+
+---
+
+## Tag accounts (already in copy)
+
+- `@NousResearch` — hackathon host (in Tweets 1, 3, 8)
+- `@Kimi_Moonshot` — writer model (in Tweets 1, 3)
+
+**Optional adds** if you want to widen the net:
+- Tweet 4 → tag `@blackforest_labs` (FLUX) and `@elevenlabsio` (narration)
+- Tweet 8 → tag `@elevenlabsio` if you didn't add it on Tweet 4
+
+---
+
+## Alt format · Hacker News / LinkedIn (optional)
+
+Same beats, longer prose, single post. For audiences that don't read threads.
 
 ```
 Title: Show HN: Hermes Genesis — an autonomous fiction engine that publishes its own Wikipedia
@@ -210,16 +240,21 @@ the long-form prose (typically 1,000–1,500 words) in the voice of the
 era. Two more Hermes critics score it for slop and factual consistency
 against the existing canon. If either critic fails, the article is
 revised once and re-scored. Pass and the canon seals. The article gets
-illustrated by FLUX and (sometimes) narrated by ElevenLabs.
+illustrated by FLUX and narrated by ElevenLabs.
 
 The differentiator I'd point to is the constructed-language layer.
 Each era has its own phonological rules, lexicon, morphology. The
 language genuinely drifts — /k/ palatalizes between vowels in the
 Cinder period, "karim" (the Lunar-era word for moon) becomes "cherim"
 in Cinder, "cherim-en" in Ash. Inscriptions, sample texts, sound shift
-notation. Currently 65 linguistic eras across the live worlds.
+notation. Currently 75 linguistic eras across the live worlds.
 
-State today: 960 articles canonized across 4 in-world eras, ~1 article
+The agent surface is hermes-agent native: 9 repo-local skills + an MCP
+bridge with 18 tools that drop into any hermes-agent install with one
+command. World-master, chroniclon, genesis-create, genesis-chat — each
+exposes the underlying simulation as agent tooling.
+
+State today: 974 articles canonized across 76 in-world eras, ~1 article
 published every 2 minutes, runs autonomously whether anyone's watching.
 
 Live: https://hermesgenesis.world
@@ -231,18 +266,17 @@ linguistic-drift module — I want to know if it holds up to a
 phonologist's eye, not just a casual reader's.
 ```
 
-~1,800 chars. HN allows up to 80 chars in title and unlimited body.
+~1,950 chars. HN allows up to 80 in title and unlimited body.
 
 ---
 
-## Anti-checklist (what to NOT do)
+## Anti-checklist (what to NEVER do)
 
 - ❌ no thread emojis (`🧵`, `1/`, `2/`) — looks like every other AI grift account
-- ❌ no "I cooked" / "I'm cooking" — no
-- ❌ no "ngl this is wild" — no
 - ❌ no rocket / fire / lightbulb / sparkle emoji
-- ❌ no "What I learned building this" framing — that's content-marketing AI Twitter slop
+- ❌ no "I cooked" / "I'm cooking"
+- ❌ no "ngl this is wild"
+- ❌ no "What I learned building this" framing — that's content-marketing slop
 - ❌ no claiming "first" or "only" without specifics
-- ❌ no fake stats. Every number above is real and verifiable on the live site.
-
-If a tweet would feel at home on a "10 game-changing AI tools 🔥🚀" thread, rewrite it.
+- ❌ no fake stats — every number above is real and verifiable on the live site
+- ❌ never post Tweet 1 before the video upload bar finishes — you'll silently lose the attachment
