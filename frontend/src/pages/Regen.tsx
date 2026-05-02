@@ -313,12 +313,22 @@ export default function Regen() {
                     cancel
                   </button>
                 ) : completion ? (
-                  <button
-                    onClick={() => nav('/chronicle')}
-                    className="px-4 py-2 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 text-body-sm font-semibold"
-                  >
-                    open the canon
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {articles[0] && (
+                      <button
+                        onClick={() => nav(`/chronicle/${articles[0].slug}`)}
+                        className="px-4 py-2 rounded-md bg-gilt-500 hover:bg-gilt-400 text-night-950 text-body-sm font-semibold"
+                      >
+                        read the article
+                      </button>
+                    )}
+                    <button
+                      onClick={() => nav('/chronicle')}
+                      className="px-4 py-2 rounded-md border border-gilt-500/60 hover:border-gilt-500 text-gilt-500 text-body-sm font-semibold"
+                    >
+                      browse the canon
+                    </button>
+                  </div>
                 ) : null}
               </div>
             </div>
@@ -369,6 +379,15 @@ export default function Regen() {
             {daysCompleted > 0 && (
               <div className="font-ui text-body-sm text-faint">
                 <span className="text-sub font-mono">{daysCompleted}</span> days of history simulated.
+              </div>
+            )}
+
+            {done && articles.length === 0 && completion && (
+              <div className="border border-crimson-500/40 bg-crimson-500/10 rounded-md p-4">
+                <div className="eyebrow text-crimson-400 mb-2">no articles canonized</div>
+                <div className="font-ui text-body-sm text-sub">
+                  Both providers rate-limited during this run. The world spawned and simulated, but the writer couldn't produce any articles — try again in a minute.
+                </div>
               </div>
             )}
 
