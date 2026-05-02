@@ -196,16 +196,22 @@ export default function WorldView() {
   const autoPlayActiveRef = useRef(false);
   const prevEventCountRef = useRef(0);
 
-  // ?cinematic=1 in the URL auto-opens replay mode (the cinematic playback
+  // ?cinematic=1 in the URL auto-opens REPLAY mode (the cinematic playback
   // sorted from day 1 → present). Previously this opened "live" mode, which
   // showed only currently-arriving events and felt like the playback was
-  // skipping random days — user-reported on May 2. Replay is the right
-  // default for the /watch entry point: a judge clicking through wants to see
-  // the world's history unfold from the beginning, not catch events mid-air.
+  // skipping random days — user-reported on May 2.
+  //
+  // Implementation notes:
+  //  - We wait for `events.length > 0` because replay needs at least one
+  //    event to play. Without that guard we open the modal against an empty
+  //    world and the user sees a blank screen until the first poll.
+  //  - We explicitly call setShowCinematic(false) defensively — earlier
+  //    builds were leaving live mode open in some Suspense reload paths.
   useEffect(() => {
     if (!autoCinematic || cinematicAutoOpenedRef.current) return;
-    if (world && mapData && !showReplay && events.length > 0) {
+    if (world && mapData && events.length > 0 && !showReplay) {
       cinematicAutoOpenedRef.current = true;
+      setShowCinematic(false);
       setShowReplay(true);
     }
   }, [autoCinematic, world, mapData, showReplay, events.length]);
