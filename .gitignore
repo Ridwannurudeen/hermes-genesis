@@ -20,3 +20,4 @@ gen-video-guide.py
 backend/tests/tmp_test_*/
 remotion/
 docs/DEMO_SCRIPT.md
+docs/X_THREAD.md
