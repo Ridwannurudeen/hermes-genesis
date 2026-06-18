@@ -613,7 +613,7 @@ async def canonize_event(
                 _control_emit({
                     "phase": "audio_started",
                     "pipeline_id": pipeline_id,
-                    "model": "ElevenLabs / OpenAI TTS",
+                    "model": "ElevenLabs / 60db / OpenAI TTS",
                     "stage": "audio chapter",
                     "slug": slug,
                 })
@@ -622,7 +622,7 @@ async def canonize_event(
                     _control_emit({
                         "phase": "audio_complete",
                         "pipeline_id": pipeline_id,
-                        "model": "ElevenLabs / OpenAI TTS",
+                        "model": "ElevenLabs / 60db / OpenAI TTS",
                         "stage": "audio chapter",
                         "slug": slug,
                         "archetype": result.get("archetype"),
