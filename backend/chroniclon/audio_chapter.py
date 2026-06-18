@@ -3,8 +3,8 @@
 Usage:
     python -m chroniclon.audio_chapter --slug the-betrayal-of-silas-stargaze
 
-Reads the article, strips markdown, synthesises via voices.py (OpenAI TTS or
-ElevenLabs depending on TTS_PROVIDER), saves to data/chroniclon/audio/<slug>.mp3,
+Reads the article, strips markdown, synthesises via voices.py (ElevenLabs, 60db,
+or OpenAI TTS depending on TTS_PROVIDER), saves to data/chroniclon/audio/<slug>.mp3,
 updates the article's audio_url field. Idempotent — re-running overwrites.
 
 Cost note: OpenAI tts-1 is ~$15 per 1M chars. A typical 600-word article is

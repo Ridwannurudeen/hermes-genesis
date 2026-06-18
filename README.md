@@ -11,6 +11,7 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 [![Kimi K2.6](https://img.shields.io/badge/Kimi--K2.6-Moonshot-D4A85F?style=flat-square)](https://moonshot.ai)
 [![FLUX](https://img.shields.io/badge/FLUX-BlackForestLabs-1A1208?style=flat-square)](https://blackforestlabs.ai)
 [![ElevenLabs](https://img.shields.io/badge/ElevenLabs-narration-CDB890?style=flat-square)](https://elevenlabs.io)
+[![60db](https://img.shields.io/badge/60db-narration-7A6A4F?style=flat-square)](https://60db.ai)
 [![License](https://img.shields.io/badge/License-MIT-4F7240?style=flat-square)](LICENSE)
 
 [**Live →**](https://hermesgenesis.world) ·
@@ -83,7 +84,7 @@ An autonomous fiction engine. One sentence in, a self-writing canon out — thre
 | **Cross-linker** | Inserts `[[wiki-style-links]]` to existing articles | Hermes-4-70B |
 | **Era ticker + linguistic drift** | Closes eras, opens next, derives next-era phonology + lexicon | Hermes-4-70B |
 | **Illustration** | Era-art-style + character-genome-grounded hero image per article | FLUX |
-| **Narration** | Multi-archetype TTS per character genome (5 voices) | ElevenLabs |
+| **Narration** | Multi-archetype TTS per character genome (5 voices) | ElevenLabs · 60db · OpenAI |
 
 **Quality gates** that keep the canon clean:
 
@@ -159,8 +160,42 @@ npm install && npm run dev
 | `NOUS_API_KEY` | Yes | Hermes-4-70B inference |
 | `KIMI_API_KEY` | Recommended | Kimi-K2.6 for long-form writing (falls back to Nous if unset) |
 | `IMAGE_API_KEY` | Optional | FLUX illustrations |
-| `OPENAI_API_KEY` / `ELEVENLABS_API_KEY` | Optional | TTS narration |
+| `ELEVENLABS_API_KEY` / `SIXTYDB_API_KEY` / `OPENAI_API_KEY` | Optional | TTS narration — pick one via `TTS_PROVIDER=elevenlabs\|60db\|openai` |
 | `TELEGRAM_BOT_TOKEN` | Optional | Telegram bot |
+
+### Narration providers
+
+Narration is provider-agnostic ([`backend/chroniclon/voices.py`](backend/chroniclon/voices.py)). Pick exactly one provider with `TTS_PROVIDER` and set the matching key — leave `TTS_PROVIDER` blank to disable narration (the wiki still works). A character's 6-trait genome maps to one of 5 voice archetypes (narrator/warrior/schemer/scholar/mystic), which maps to a provider voice.
+
+| `TTS_PROVIDER` | Key | Voice mapping |
+|---|---|---|
+| `elevenlabs` | `ELEVENLABS_API_KEY` | Public catalog voice ids, hardcoded per archetype |
+| `60db` | `SIXTYDB_API_KEY` | Account voice UUIDs via `SIXTYDB_VOICE_*` (else system default) |
+| `openai` | `OPENAI_API_KEY` | Built-in voices (alloy/onyx/echo/nova/shimmer) |
+
+**Using 60db:**
+
+```bash
+TTS_PROVIDER=60db
+SIXTYDB_API_KEY=your-60db-key
+# Optional: map archetypes to your own voices (GET https://api.60db.ai/myvoices for UUIDs).
+# Any left unset fall back to the account's system-default voice.
+SIXTYDB_VOICE_NARRATOR=...
+SIXTYDB_VOICE_WARRIOR=...
+SIXTYDB_VOICE_SCHEMER=...
+SIXTYDB_VOICE_SCHOLAR=...
+SIXTYDB_VOICE_MYSTIC=...
+# Optional tuning: SIXTYDB_STABILITY (0-100, def 50), SIXTYDB_SIMILARITY (0-100, def 75),
+# SIXTYDB_ENHANCE (true/false, def true). Speaking speed (0.5-2.0) is honoured.
+```
+
+Narration renders automatically on canonization, or on demand:
+
+```bash
+python -m chroniclon.audio_chapter --slug <article-slug>   # single article
+python -m chroniclon.audio_chapter --all                   # backfill the whole canon
+# or: POST /api/chronicle/audio/render  {"slug": "<article-slug>"}
+```
 
 ---
 

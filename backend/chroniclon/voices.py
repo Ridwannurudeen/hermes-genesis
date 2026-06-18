@@ -1,7 +1,11 @@
 """Provider-agnostic TTS layer for the audiobook chapter render.
 
-Two providers supported, picked via TTS_PROVIDER env var:
+Three providers supported, picked via TTS_PROVIDER env var:
   - elevenlabs: best voices, character-distinguishable. ELEVENLABS_API_KEY required.
+  - 60db:       60db.ai TTS. SIXTYDB_API_KEY required. Honours speaking speed and
+                returns base64-wrapped audio (decoded here). Voice ids are
+                account-specific UUIDs — map archetypes via SIXTYDB_VOICE_* env
+                vars, else fall back to the account's system-default voice.
   - openai:     decent voices, cheaper. Uses OPENAI_API_KEY (or KIMI key fallback if compatible).
 
 Voice profile is derived from a character's genome — high courage + low empathy gets
@@ -14,6 +18,7 @@ before invoking. The audio chapter is optional in the demo; missing TTS does not
 break the wiki.
 """
 import asyncio
+import base64
 import logging
 import os
 import random
@@ -25,11 +30,13 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-Provider = Literal["elevenlabs", "openai", "none"]
+Provider = Literal["elevenlabs", "60db", "openai", "none"]
 
 
 def get_provider() -> Provider:
     p = os.getenv("TTS_PROVIDER", "").strip().lower()
+    if p in ("60db", "sixtydb"):
+        return "60db"
     if p in ("elevenlabs", "openai"):
         return p  # type: ignore[return-value]
     return "none"
@@ -39,6 +46,8 @@ def is_configured() -> bool:
     p = get_provider()
     if p == "elevenlabs":
         return bool(os.getenv("ELEVENLABS_API_KEY"))
+    if p == "60db":
+        return bool(os.getenv("SIXTYDB_API_KEY"))
     if p == "openai":
         return bool(os.getenv("OPENAI_API_KEY"))
     return False
@@ -66,6 +75,18 @@ _OPENAI_DEFAULTS = {
     "mystic":    "shimmer",
 }
 
+# 60db voice ids are account-specific UUIDs (see GET /myvoices), so there are no
+# safe hardcoded defaults like ElevenLabs has. Map each archetype to an env var;
+# if unset, voice_id_for returns "" and _sixtydb_synth omits voice_id entirely so
+# 60db falls back to the account's system-default voice.
+_SIXTYDB_VOICE_ENV = {
+    "narrator":  "SIXTYDB_VOICE_NARRATOR",
+    "warrior":   "SIXTYDB_VOICE_WARRIOR",
+    "schemer":   "SIXTYDB_VOICE_SCHEMER",
+    "scholar":   "SIXTYDB_VOICE_SCHOLAR",
+    "mystic":    "SIXTYDB_VOICE_MYSTIC",
+}
+
 
 def voice_archetype_from_genome(genome: dict) -> str:
     """Map a 6-trait Genesis genome to one of 5 voice archetypes."""
@@ -91,6 +112,10 @@ def voice_id_for(archetype: str) -> str:
     p = get_provider()
     if p == "elevenlabs":
         return _ELEVENLABS_DEFAULTS.get(archetype, _ELEVENLABS_DEFAULTS["narrator"])
+    if p == "60db":
+        env = _SIXTYDB_VOICE_ENV.get(archetype, _SIXTYDB_VOICE_ENV["narrator"])
+        # Empty string → caller omits voice_id → 60db uses its system default.
+        return os.getenv(env, "")
     if p == "openai":
         return _OPENAI_DEFAULTS.get(archetype, _OPENAI_DEFAULTS["narrator"])
     return archetype
@@ -127,6 +152,8 @@ async def synthesize(
 
     if provider == "elevenlabs":
         return await _elevenlabs_synth(text, voice, output_path, speed)
+    if provider == "60db":
+        return await _sixtydb_synth(text, voice, output_path, speed)
     if provider == "openai":
         return await _openai_synth(text, voice, output_path, speed)
     raise RuntimeError(f"unsupported provider: {provider}")
@@ -179,6 +206,58 @@ async def _elevenlabs_synth(text: str, voice_id: str, output_path: Path, speed: 
         resp = await _post_with_backoff(client, url, headers=headers, json=body)
         output_path.write_bytes(resp.content)
     logger.info(f"elevenlabs synth → {output_path} ({len(resp.content)} bytes)")
+    return output_path
+
+
+def _env_float(name: str, default: float, lo: float, hi: float) -> float:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        return max(lo, min(hi, float(raw)))
+    except ValueError:
+        logger.warning(f"invalid {name}={raw!r}, using default {default}")
+        return default
+
+
+async def _sixtydb_synth(text: str, voice_id: str, output_path: Path, speed: float) -> Path:
+    """60db.ai TTS. Unlike ElevenLabs/OpenAI (raw audio bytes), 60db returns a
+    JSON envelope with base64-encoded audio, so we decode before writing.
+
+    `voice_id` is "" when no SIXTYDB_VOICE_* override is set — we then omit it and
+    let 60db use the account's system-default voice. stability/similarity are on a
+    0-100 scale here (ElevenLabs uses 0-1) and speed (0.5-2.0) is actually honoured.
+
+    output_format stays mp3: the serving route and audio_chapter both assume a
+    `<slug>.mp3` written as audio/mpeg. Overriding it would desync the extension.
+    """
+    api_key = os.getenv("SIXTYDB_API_KEY", "")
+    url = "https://api.60db.ai/tts-synthesize"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "text": text,
+        "enhance": os.getenv("SIXTYDB_ENHANCE", "true").strip().lower() != "false",
+        "speed": max(0.5, min(2.0, speed)),
+        "stability": _env_float("SIXTYDB_STABILITY", 50.0, 0.0, 100.0),
+        "similarity": _env_float("SIXTYDB_SIMILARITY", 75.0, 0.0, 100.0),
+        "output_format": os.getenv("SIXTYDB_OUTPUT_FORMAT", "mp3"),
+    }
+    if voice_id:
+        body["voice_id"] = voice_id
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        resp = await _post_with_backoff(client, url, headers=headers, json=body)
+        data = resp.json()
+        if not data.get("success", True):
+            raise RuntimeError(f"60db tts failed: {data.get('message', 'unknown error')}")
+        b64 = data.get("audio_base64")
+        if not b64:
+            raise RuntimeError(f"60db tts: no audio_base64 in response: {str(data)[:200]}")
+        audio_bytes = base64.b64decode(b64)
+        output_path.write_bytes(audio_bytes)
+    logger.info(f"60db tts synth → {output_path} ({len(audio_bytes)} bytes)")
     return output_path
 
 

@@ -214,6 +214,34 @@ def test_voices_provider_switch():
     os.environ.pop("TTS_PROVIDER", None)
 
 
+def test_voices_60db_provider():
+    import os
+    from chroniclon.voices import get_provider, is_configured, voice_id_for
+    os.environ["TTS_PROVIDER"] = "60db"
+    try:
+        assert get_provider() == "60db"
+        # "sixtydb" is accepted as an alias for the same provider.
+        os.environ["TTS_PROVIDER"] = "sixtydb"
+        assert get_provider() == "60db"
+
+        # No SIXTYDB_* override → empty voice_id so 60db uses its system default.
+        os.environ.pop("SIXTYDB_VOICE_WARRIOR", None)
+        assert voice_id_for("warrior") == ""
+
+        # An override env var maps the archetype to that account voice id.
+        os.environ["SIXTYDB_VOICE_WARRIOR"] = "uuid-warrior-123"
+        assert voice_id_for("warrior") == "uuid-warrior-123"
+
+        # is_configured() gates on SIXTYDB_API_KEY.
+        os.environ.pop("SIXTYDB_API_KEY", None)
+        assert is_configured() is False
+        os.environ["SIXTYDB_API_KEY"] = "test-key"
+        assert is_configured() is True
+    finally:
+        for k in ("TTS_PROVIDER", "SIXTYDB_VOICE_WARRIOR", "SIXTYDB_API_KEY"):
+            os.environ.pop(k, None)
+
+
 def test_moon_dry_run_defaults():
     from chroniclon import moon
     assert moon.MOON_X_DRY_RUN is True
